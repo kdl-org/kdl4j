@@ -1,0 +1,7 @@
+/gradlew.bat
+/gradlew
+/.idea/
+/.gradle/
+/gradle/
+/src/main/java/dev/cbeck/kdl/antlr/
+/build/
