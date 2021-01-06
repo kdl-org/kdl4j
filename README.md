@@ -1,0 +1,1 @@
+A Java implementation of a parser for the [KDL Document Language](https://github.com/kdl-org/kdl). Not in the least bit ready for production.
