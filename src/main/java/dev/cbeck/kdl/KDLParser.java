@@ -14,7 +14,7 @@ import java.io.StringReader;
 public class KDLParser {
 
     private static final String ex =
-            "\"package\" {\n" +
+            "package {\n" +
             "    name \"kdl\"\n" +
             "    version \"0.0.0\"\n" +
             "    description \"kat's document language\"\n" +

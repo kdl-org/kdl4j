@@ -38,7 +38,7 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
 
     @Override
     public KDLObject visitNode(kdlParser.NodeContext ctx) {
-        if (ctx.COMMENTED_NODE() != null) {
+        if (ctx.COMMENTED_CHUNK() != null) {
             return null;
         }
 
@@ -61,7 +61,7 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
 
     @Override
     public KDLObject visitNode_props_and_args(kdlParser.Node_props_and_argsContext ctx) {
-        if (ctx.COMMENTED_NODE() != null) {
+        if (ctx.COMMENTED_CHUNK() != null) {
             return null;
         }
 
@@ -80,7 +80,7 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
 
     @Override
     public KDLObject visitNode_children(kdlParser.Node_childrenContext ctx) {
-        if (ctx.COMMENTED_NODE() != null) {
+        if (ctx.COMMENTED_CHUNK() != null) {
             return null;
         }
 
@@ -148,7 +148,8 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
             }
         }
 
-        if ("null".equals(ctx.getText())) {
+        final TerminalNode isNull = ctx.NULL();
+        if (isNull != null) {
             return KDLNull.INSTANCE;
         }
 
