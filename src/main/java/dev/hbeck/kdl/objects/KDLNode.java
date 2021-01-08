@@ -2,6 +2,7 @@ package dev.hbeck.kdl.objects;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -44,18 +45,25 @@ public class KDLNode implements KDLObject {
 
     void writeKDLPretty(Writer writer, int indent, int depth) throws IOException {
         writer.write(identifier.getIdentifier());
-        writer.write(' ');
-
-        for (KDLValue arg : args) {
-            writer.write(arg.toKDL());
+        if (!args.isEmpty() || !props.isEmpty() || child.isPresent()) {
             writer.write(' ');
         }
 
-        for (Map.Entry<KDLIdentifier, KDLValue> entry : props.entrySet()) {
-            writer.write(entry.getKey().toKDL());
+        for (int i = 0; i < args.size(); i++) {
+            writer.write(args.get(i).toKDL());
+            if (i < args.size() - 1 || !props.isEmpty() || child.isPresent()) {
+                writer.write(' ');
+            }
+        }
+
+        final ArrayList<KDLIdentifier> keys = new ArrayList<>(props.keySet());
+        for (int i = 0; i < keys.size(); i++) {
+            writer.write(keys.get(i).toKDL());
             writer.write('=');
-            writer.write(entry.getValue().toKDL());
-            writer.write(' ');
+            writer.write(props.get(keys.get(i)).toKDL());
+            if (i < keys.size() - 1 || child.isPresent()) {
+                writer.write(' ');
+            }
         }
 
         if (child.isPresent()) {

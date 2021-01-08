@@ -1,5 +1,6 @@
 package dev.hbeck.kdl.objects;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -29,9 +30,11 @@ public class KDLDocument implements KDLObject {
 
     public String toKDLPretty(int indent) {
         final StringWriter writer = new StringWriter();
+        final BufferedWriter bufferedWriter = new BufferedWriter(writer);
 
         try {
-            writeKDLPretty(writer, indent);
+            writeKDLPretty(bufferedWriter, indent);
+            bufferedWriter.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

@@ -19,5 +19,5 @@ dependencies {
     antlr("org.antlr:antlr4:4.9")
     implementation("org.apache.commons:commons-text:1.9")
     implementation("org.antlr:antlr4:4.9")
-//    testCompile("junit", "junit", "4.12")
+    testImplementation("junit", "junit", "4.12")
 }

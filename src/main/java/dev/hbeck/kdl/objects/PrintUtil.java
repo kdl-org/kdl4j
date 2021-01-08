@@ -7,8 +7,8 @@ import java.util.regex.Pattern;
 
 class PrintUtil {
     private static final Predicate<String> VALID_BARE_ID = Pattern.compile(
-            "[^\n\r\u000C\u0085\u2028\u2029{}<>;\\[\\]=,\"\u0009\u0020\u00A0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]" +
-            "[^\n\r\u000C\u0085\u2028\u2029{}<>;\\[\\]=,\"\u0009\u0020\u00A0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u30000-9]*"
+            "[^\n\r\u000C\u0085\u2028\u2029{}<>;\\[\\]=,\"\u0009\u0020\u00A0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u30000-9]" +
+            "[^\n\r\u000C\u0085\u2028\u2029{}<>;\\[\\]=,\"\u0009\u0020\u00A0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200A\u202F\u205F\u3000]*"
     ).asPredicate();
     
     static void writeStringQuotedAppropriately(Writer writer, String string, boolean bareAllowed) throws IOException {

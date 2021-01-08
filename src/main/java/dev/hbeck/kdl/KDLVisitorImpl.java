@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,7 +56,7 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
 
         final KDLIdentifier identifier = (KDLIdentifier) visitIdentifier(ctx.identifier());
 
-        final Map<KDLIdentifier, KDLValue> props = new HashMap<>();
+        final Map<KDLIdentifier, KDLValue> props = new LinkedHashMap<>();
         final List<KDLValue> args = new ArrayList<>(ctx.node_props_and_args().size());
         ctx.node_props_and_args().forEach(argCtx -> {
             final KDLObject object = visitNode_props_and_args(argCtx);
