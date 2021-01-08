@@ -1,13 +1,12 @@
 package dev.cbeck.kdl.objects;
 
 import java.util.Objects;
-import java.util.Optional;
 
 public class KDLProperty implements KDLObject {
     private final KDLIdentifier key;
-    private final Optional<KDLValue> value;
+    private final KDLValue value;
 
-    public KDLProperty(KDLIdentifier key, Optional<KDLValue> value) {
+    public KDLProperty(KDLIdentifier key, KDLValue value) {
         this.key = Objects.requireNonNull(key);
         this.value = Objects.requireNonNull(value);
     }
@@ -16,7 +15,7 @@ public class KDLProperty implements KDLObject {
         return key;
     }
 
-    public Optional<KDLValue> getValue() {
+    public KDLValue getValue() {
         return value;
     }
 

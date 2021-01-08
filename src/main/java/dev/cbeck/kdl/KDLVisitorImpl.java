@@ -18,22 +18,34 @@ import org.apache.commons.text.StringEscapeUtils;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
     @Override
+    public KDLObject visitParse(kdlParser.ParseContext ctx) {
+        final kdlParser.NodesContext nodes = ctx.nodes();
+        if (nodes == null) {
+            return new KDLDocument(Collections.emptyList());
+        }
+
+        return visitNodes(nodes);
+    }
+
+    @Override
     public KDLObject visitNodes(kdlParser.NodesContext ctx) {
-        final List<KDLNode> nodes = new ArrayList<>(ctx.getChildCount());
+        final List<kdlParser.NodeContext> nodeCtxs = ctx.node();
+        if (nodeCtxs == null || nodeCtxs.isEmpty()) {
+            return new KDLDocument(Collections.emptyList());
+        }
 
-        ctx.children.forEach(parseTree -> {
-            final KDLObject child = parseTree.accept(this);
-            if (child instanceof KDLNode) {
-                nodes.add((KDLNode) child);
-            }
-        });
+        final List<KDLNode> parsedNodes = new ArrayList<>();
+        nodeCtxs.forEach(nodeCtx -> parsedNodes.add((KDLNode) visitNode(nodeCtx)));
 
-        return new KDLDocument(nodes);
+        return new KDLDocument(parsedNodes);
     }
 
     @Override
@@ -44,11 +56,15 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
 
         final KDLIdentifier identifier = (KDLIdentifier) visitIdentifier(ctx.identifier());
 
-        final ArrayList<KDLProperty> propsAndArgs = new ArrayList<>(ctx.node_props_and_args().size());
+        final Map<KDLIdentifier, KDLValue> props = new HashMap<>();
+        final List<KDLValue> args = new ArrayList<>(ctx.node_props_and_args().size());
         ctx.node_props_and_args().forEach(argCtx -> {
             final KDLObject object = visitNode_props_and_args(argCtx);
             if (object instanceof KDLProperty) {
-                propsAndArgs.add((KDLProperty) object);
+                final KDLProperty property = (KDLProperty) object;
+                props.put(property.getKey(), property.getValue());
+            } else if (object instanceof KDLValue) {
+                args.add((KDLValue) object);
             }
         });
 
@@ -56,7 +72,7 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
                 (KDLDocument) visitNodes(childCtx.nodes())
         );
 
-        return new KDLNode(identifier, propsAndArgs, child);
+        return new KDLNode(identifier, props, args, child);
     }
 
     @Override
@@ -123,7 +139,7 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
         final KDLIdentifier key = (KDLIdentifier) visitIdentifier(idCtx);
         final KDLValue value = (KDLValue) visitValue(valueCtx);
 
-        return new KDLProperty(key, Optional.of(value));
+        return new KDLProperty(key, value);
     }
 
     @Override
@@ -240,34 +256,5 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
         }
 
         throw new RuntimeException("wat");
-    }
-
-    /*
-     * Whitespace and comments, ignored
-     */
-
-    @Override
-    public KDLObject visitLinespace(kdlParser.LinespaceContext ctx) {
-        throw new RuntimeException("Should be ignored");
-    }
-
-    @Override
-    public KDLObject visitWs(kdlParser.WsContext ctx) {
-        throw new RuntimeException("Should be ignored");
-    }
-
-    @Override
-    public KDLObject visitNode_space(kdlParser.Node_spaceContext ctx) {
-        throw new RuntimeException("Should be ignored");
-    }
-
-    @Override
-    public KDLObject visitMulti_line_comment(kdlParser.Multi_line_commentContext ctx) {
-        throw new RuntimeException("Should be ignored");
-    }
-
-    @Override
-    public KDLObject visitEscline(kdlParser.EsclineContext ctx) {
-        throw new RuntimeException("Should be ignored");
     }
 }

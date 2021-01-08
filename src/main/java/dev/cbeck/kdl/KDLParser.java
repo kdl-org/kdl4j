@@ -16,7 +16,7 @@ public class KDLParser {
     private static final String ex =
             "package {\n" +
             "    name \"kdl\"\n" +
-            "    version \"0.0.0\"\n" +
+            "    version \"0.0.0\"\n yes=true" +
             "    description \"kat's document language\"\n" +
             "    authors \"Kat Marchán <kzm@zkat.tech>\"\n" +
             "    license-file \"LICENSE.md\"\n" +
@@ -41,6 +41,6 @@ public class KDLParser {
         parser.setErrorHandler(new BailErrorStrategy());
 
         final KDLVisitorImpl visitor = new KDLVisitorImpl();
-        return (KDLDocument) visitor.visit(parser.start());
+        return (KDLDocument) visitor.visit(parser.parse());
     }
 }
