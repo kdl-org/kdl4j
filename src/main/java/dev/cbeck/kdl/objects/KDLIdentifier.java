@@ -17,7 +17,7 @@ public class KDLIdentifier implements KDLObject {
 
     @Override
     public void writeKDL(Writer writer) throws IOException {
-        PrintUtil.writeStringQuotedAppropriately(writer, identifier);
+        PrintUtil.writeStringQuotedAppropriately(writer, identifier, true);
     }
 
     @Override

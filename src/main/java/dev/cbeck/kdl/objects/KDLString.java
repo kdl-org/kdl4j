@@ -17,7 +17,7 @@ public class KDLString implements KDLValue {
 
     @Override
     public void writeKDL(Writer writer) throws IOException {
-        PrintUtil.writeStringQuotedAppropriately(writer, value);
+        PrintUtil.writeStringQuotedAppropriately(writer, value, false);
     }
 
     @Override

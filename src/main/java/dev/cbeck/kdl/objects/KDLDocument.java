@@ -27,7 +27,7 @@ public class KDLDocument implements KDLObject {
         writeKDL(writer, indent, 0);
     }
 
-    public String writeKDLPretty(int indent) {
+    public String toKDLPretty(int indent) {
         final StringWriter writer = new StringWriter();
 
         try {
@@ -44,7 +44,7 @@ public class KDLDocument implements KDLObject {
             for (int i = 0; i < indent * depth; i++) {
                 writer.write(' ');
             }
-            node.writeKDL(writer);
+            node.writeKDLPretty(writer, indent, depth);
             writer.write('\n');
         }
     }

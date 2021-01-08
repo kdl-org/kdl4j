@@ -18,7 +18,7 @@ public class KDLNumber implements KDLValue {
 
     @Override
     public void writeKDL(Writer writer) throws IOException {
-        PrintUtil.writeNumber(writer, value);
+        writer.write(value.toString());
     }
 
     @Override
