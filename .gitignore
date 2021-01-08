@@ -3,5 +3,5 @@
 /.idea/
 /.gradle/
 /gradle/
-/src/main/java/dev/cbeck/kdl/antlr/
+/src/main/java/dev/hbeck/kdl/antlr/
 /build/

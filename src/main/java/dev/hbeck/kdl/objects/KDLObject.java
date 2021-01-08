@@ -1,4 +1,4 @@
-package dev.cbeck.kdl.objects;
+package dev.hbeck.kdl.objects;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

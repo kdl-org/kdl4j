@@ -1,39 +1,38 @@
-package dev.cbeck.kdl.objects;
+package dev.hbeck.kdl.objects;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.math.BigDecimal;
 import java.util.Objects;
 
-public class KDLNumber implements KDLValue {
-    private final BigDecimal value;
+public class KDLString implements KDLValue {
+    private final String value;
 
-    public KDLNumber(BigDecimal value) {
+    public KDLString(String value) {
         this.value = Objects.requireNonNull(value);
     }
 
-    public BigDecimal getAsBigDecimal() {
+    public String getValue() {
         return value;
     }
 
     @Override
     public void writeKDL(Writer writer) throws IOException {
-        writer.write(value.toString());
+        PrintUtil.writeStringQuotedAppropriately(writer, value, false);
     }
 
     @Override
     public String toString() {
-        return "KDLNumber{" +
-                "value=" + value +
+        return "KDLString{" +
+                "value='" + value + '\'' +
                 '}';
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof KDLNumber)) return false;
-        KDLNumber kdlNumber = (KDLNumber) o;
-        return Objects.equals(value, kdlNumber.value);
+        if (!(o instanceof KDLString)) return false;
+        KDLString kdlString = (KDLString) o;
+        return Objects.equals(value, kdlString.value);
     }
 
     @Override

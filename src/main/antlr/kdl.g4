@@ -1,7 +1,7 @@
 grammar kdl;
 
 @header {
-package dev.cbeck.kdl.antlr;
+package dev.hbeck.kdl.antlr;
 }
 
 parse : nodes? EOF;

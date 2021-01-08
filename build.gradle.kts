@@ -3,7 +3,7 @@ plugins {
     antlr
 }
 
-group = "dev.cbeck.kdl"
+group = "dev.hbeck.kdl"
 version = "0.1.0-SNAPSHOT"
 
 repositories {
@@ -11,7 +11,7 @@ repositories {
 }
 
 tasks.generateGrammarSource {
-    outputDirectory = file("src/main/java/dev/cbeck/kdl/antlr")
+    outputDirectory = file("src/main/java/dev/hbeck/kdl/antlr")
     arguments = arguments + listOf("-visitor", "-no-listener")
 }
 
