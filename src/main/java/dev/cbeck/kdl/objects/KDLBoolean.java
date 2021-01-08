@@ -1,5 +1,7 @@
 package dev.cbeck.kdl.objects;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Objects;
 
 public class KDLBoolean implements KDLValue {
@@ -14,6 +16,11 @@ public class KDLBoolean implements KDLValue {
 
     public boolean getValue() {
         return value;
+    }
+
+    @Override
+    public void writeKDL(Writer writer) throws IOException {
+        writer.write(value ? "true" : "false");
     }
 
     @Override

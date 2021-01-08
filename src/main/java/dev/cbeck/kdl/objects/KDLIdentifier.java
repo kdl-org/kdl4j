@@ -1,5 +1,7 @@
 package dev.cbeck.kdl.objects;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Objects;
 
 public class KDLIdentifier implements KDLObject {
@@ -11,6 +13,11 @@ public class KDLIdentifier implements KDLObject {
 
     public String getIdentifier() {
         return identifier;
+    }
+
+    @Override
+    public void writeKDL(Writer writer) throws IOException {
+        PrintUtil.writeStringQuotedAppropriately(writer, identifier);
     }
 
     @Override

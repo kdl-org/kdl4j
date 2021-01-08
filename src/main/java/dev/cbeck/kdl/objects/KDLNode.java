@@ -1,5 +1,7 @@
 package dev.cbeck.kdl.objects;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +35,37 @@ public class KDLNode implements KDLObject {
 
     public Optional<KDLDocument> getChild() {
         return child;
+    }
+
+    @Override
+    public void writeKDL(Writer writer) throws IOException {
+        writeKDLPretty(writer, 0, 0);
+    }
+
+    void writeKDLPretty(Writer writer, int indent, int depth) throws IOException {
+        writer.write(identifier.getIdentifier());
+        writer.write(' ');
+
+        for (KDLValue arg : args) {
+            writer.write(arg.toKDL());
+            writer.write(' ');
+        }
+
+        for (Map.Entry<KDLIdentifier, KDLValue> entry : props.entrySet()) {
+            writer.write(entry.getKey().toKDL());
+            writer.write('=');
+            writer.write(entry.getValue().toKDL());
+            writer.write(' ');
+        }
+
+        if (child.isPresent()) {
+            writer.write("{\n");
+            child.get().writeKDL(writer, indent, depth + 1);
+            for (int i = 0; i < indent * depth; i++) {
+                writer.write(' ');
+            }
+            writer.write('}');
+        }
     }
 
     @Override

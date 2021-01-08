@@ -1,5 +1,7 @@
 package dev.cbeck.kdl.objects;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Objects;
 
 public class KDLString implements KDLValue {
@@ -11,6 +13,11 @@ public class KDLString implements KDLValue {
 
     public String getValue() {
         return value;
+    }
+
+    @Override
+    public void writeKDL(Writer writer) throws IOException {
+        PrintUtil.writeStringQuotedAppropriately(writer, value);
     }
 
     @Override

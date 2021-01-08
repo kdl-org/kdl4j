@@ -1,5 +1,7 @@
 package dev.cbeck.kdl.objects;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -12,6 +14,11 @@ public class KDLNumber implements KDLValue {
 
     public BigDecimal getAsBigDecimal() {
         return value;
+    }
+
+    @Override
+    public void writeKDL(Writer writer) throws IOException {
+        PrintUtil.writeNumber(writer, value);
     }
 
     @Override
