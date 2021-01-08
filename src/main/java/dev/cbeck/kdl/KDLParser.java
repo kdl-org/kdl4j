@@ -41,6 +41,6 @@ public class KDLParser {
         parser.setErrorHandler(new BailErrorStrategy());
 
         final KDLVisitorImpl visitor = new KDLVisitorImpl();
-        return (KDLDocument) visitor.visitNodes(parser.nodes());
+        return (KDLDocument) visitor.visit(parser.start());
     }
 }
