@@ -44,7 +44,7 @@ public class KDLNode implements KDLObject {
     }
 
     void writeKDLPretty(Writer writer, int indent, int depth) throws IOException {
-        writer.write(identifier.getIdentifier());
+        PrintUtil.writeStringQuotedAppropriately(writer, identifier.getIdentifier(), true);
         if (!args.isEmpty() || !props.isEmpty() || child.isPresent()) {
             writer.write(' ');
         }

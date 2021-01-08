@@ -43,7 +43,12 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
         }
 
         final List<KDLNode> parsedNodes = new ArrayList<>();
-        nodeCtxs.forEach(nodeCtx -> parsedNodes.add((KDLNode) visitNode(nodeCtx)));
+        nodeCtxs.forEach(nodeCtx -> {
+            final KDLObject node = visitNode(nodeCtx);
+            if (node != null) {
+                parsedNodes.add((KDLNode) node);
+            }
+        });
 
         return new KDLDocument(parsedNodes);
     }
@@ -68,9 +73,9 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
             }
         });
 
-        final Optional<KDLDocument> child = Optional.ofNullable(ctx.node_children()).map(childCtx ->
-                (KDLDocument) visitNodes(childCtx.nodes())
-        );
+        final Optional<KDLDocument> child = Optional.ofNullable(ctx.node_children())
+                .filter(childCtx -> childCtx.COMMENTED_CHUNK() == null)
+                .map(childCtx -> (KDLDocument) visitNodes(childCtx.nodes()));
 
         return new KDLNode(identifier, props, args, child);
     }
@@ -128,7 +133,7 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
     public KDLObject visitProp(kdlParser.PropContext ctx) {
         final kdlParser.IdentifierContext idCtx = ctx.identifier();
         if (idCtx == null) {
-                throw new RuntimeException("Missing property key");
+            throw new RuntimeException("Missing property key");
         }
 
         final kdlParser.ValueContext valueCtx = ctx.value();
@@ -234,25 +239,25 @@ public class KDLVisitorImpl extends kdlBaseVisitor<KDLObject> {
         final TerminalNode decimal = ctx.DECIMAL();
         if (decimal != null) {
             final String text = decimal.getText();
-            return new KDLNumber(new BigDecimal(text));
+            return new KDLNumber(new BigDecimal(text), 10);
         }
 
         final TerminalNode hex = ctx.HEX();
         if (hex != null) {
-            final String text = hex.getText();
-            return new KDLNumber(new BigDecimal(new BigInteger(text, 16)));
+            final String text = hex.getText().substring(2);
+            return new KDLNumber(new BigDecimal(new BigInteger(text, 16)), 16);
         }
 
         final TerminalNode binary = ctx.BINARY();
         if (binary != null) {
-            final String text = binary.getText();
-            return new KDLNumber(new BigDecimal(new BigInteger(text, 2)));
+            final String text = binary.getText().substring(2);
+            return new KDLNumber(new BigDecimal(new BigInteger(text, 2)), 2);
         }
 
         final TerminalNode octal = ctx.OCTAL();
         if (octal != null) {
-            final String text = octal.getText();
-            return new KDLNumber(new BigDecimal(new BigInteger(text, 8)));
+            final String text = octal.getText().substring(2);
+            return new KDLNumber(new BigDecimal(new BigInteger(text, 8)), 8);
         }
 
         throw new RuntimeException("wat");
