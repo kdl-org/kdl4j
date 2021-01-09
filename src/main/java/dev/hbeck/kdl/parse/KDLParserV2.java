@@ -270,8 +270,8 @@ public class KDLParserV2 {
             if (c == 'r') {
                 context.read();
                 int next = context.peek();
+                context.unread('r');
                 if (next == '"' || next == '#') {
-                    context.unread('r');
                     strVal = parseRawString(context);
                 } else {
                     isBare = true;
@@ -391,6 +391,7 @@ public class KDLParserV2 {
                 radix = 2;
                 legalChars = BINARY_CHARS;
             } else {
+                stringBuilder.append('0');
                 radix = 10;
                 legalChars = DECIMAL_CHARS;
             }
@@ -546,7 +547,7 @@ public class KDLParserV2 {
         if (c != '"') {
             throw new KDLParseException("Malformed raw string");
         }
-//node_2 r#""arg\n""#
+
         final StringBuilder stringBuilder = new StringBuilder();
         while (true) {
             c = context.read();
