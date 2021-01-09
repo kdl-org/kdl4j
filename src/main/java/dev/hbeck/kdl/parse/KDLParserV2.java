@@ -1,7 +1,5 @@
 package dev.hbeck.kdl.parse;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import dev.hbeck.kdl.objects.KDLBoolean;
 import dev.hbeck.kdl.objects.KDLDocument;
 import dev.hbeck.kdl.objects.KDLNode;
@@ -20,6 +18,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -45,9 +44,9 @@ public class KDLParserV2 {
             .map(character -> (int) character)
             .collect(Collectors.toSet());
 
-    private static final Set<Integer> INVALID_BARE_ID_START_CHARS = ImmutableSet.<Integer>builder().addAll(INVALID_BARE_ID_CHARS)
-            .addAll(Stream.of('0', '1', '2', '3', '4', '5', '6', '7', '8', '9').map(character -> (int) character).collect(Collectors.toSet()))
-            .build();
+    private static final Set<Integer> INVALID_BARE_ID_START_CHARS = Stream.concat(INVALID_BARE_ID_CHARS.stream(),
+            Stream.of((int) '0', (int) '1', (int) '2', (int) '3', (int) '4', (int) '5', (int) '6', (int) '7', (int) '8', (int) '9'))
+            .collect(Collectors.toSet());
 
     private static final Set<Integer> DECIMAL_CHARS =
             Stream.of('+', '-', 'e', 'E', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
@@ -126,10 +125,10 @@ public class KDLParserV2 {
     private KDLDocument parseDocument(KDLParseContext context, boolean root) throws IOException {
         int c = context.peek();
         if (c == EOF) {
-            return new KDLDocument(ImmutableList.of());
+            return new KDLDocument(Collections.emptyList());
         }
 
-        final ImmutableList.Builder<KDLNode> nodes = ImmutableList.builder();
+        final ArrayList<KDLNode> nodes = new ArrayList<>();
         while (true) {
             boolean skippingNode = false;
             switch (consumeWhitespaceAndLinespace(context)) {
@@ -151,7 +150,7 @@ public class KDLParserV2 {
             c = context.peek();
             if (c == EOF) {
                 if (root) {
-                    return new KDLDocument(nodes.build());
+                    return new KDLDocument(nodes);
                 } else {
                     throw new KDLParseException("Got EOF, expected a node or '}'");
                 }
@@ -159,7 +158,7 @@ public class KDLParserV2 {
                 if (root) {
                     throw new KDLParseException("Unexpected '}' in root document");
                 } else {
-                    return new KDLDocument(nodes.build());
+                    return new KDLDocument(nodes);
                 }
             }
 
