@@ -10,23 +10,23 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class KDLNode implements KDLObject {
-    private final KDLIdentifier identifier;
-    private final Map<KDLIdentifier, KDLValue> props;
+    private final String identifier;
+    private final Map<String, KDLValue> props;
     private final List<KDLValue> args;
     private final Optional<KDLDocument> child;
 
-    public KDLNode(KDLIdentifier identifier, Map<KDLIdentifier, KDLValue> props, List<KDLValue> args, Optional<KDLDocument> child) {
+    public KDLNode(String identifier, Map<String, KDLValue> props, List<KDLValue> args, Optional<KDLDocument> child) {
         this.identifier = Objects.requireNonNull(identifier);
         this.props = Collections.unmodifiableMap(Objects.requireNonNull(props));
         this.args = Collections.unmodifiableList(args);
         this.child = Objects.requireNonNull(child);
     }
 
-    public KDLIdentifier getIdentifier() {
+    public String getIdentifier() {
         return identifier;
     }
 
-    public Map<KDLIdentifier, KDLValue> getProps() {
+    public Map<String, KDLValue> getProps() {
         return props;
     }
 
@@ -44,23 +44,23 @@ public class KDLNode implements KDLObject {
     }
 
     void writeKDLPretty(Writer writer, int indent, int depth) throws IOException {
-        PrintUtil.writeStringQuotedAppropriately(writer, identifier.getIdentifier(), true);
+        PrintUtil.writeStringQuotedAppropriately(writer, identifier, true);
         if (!args.isEmpty() || !props.isEmpty() || child.isPresent()) {
             writer.write(' ');
         }
 
         for (int i = 0; i < args.size(); i++) {
-            writer.write(args.get(i).toKDL());
+            args.get(i).writeKDL(writer);
             if (i < args.size() - 1 || !props.isEmpty() || child.isPresent()) {
                 writer.write(' ');
             }
         }
 
-        final ArrayList<KDLIdentifier> keys = new ArrayList<>(props.keySet());
+        final ArrayList<String> keys = new ArrayList<>(props.keySet());
         for (int i = 0; i < keys.size(); i++) {
-            writer.write(keys.get(i).toKDL());
+            PrintUtil.writeStringQuotedAppropriately(writer, keys.get(i), true);
             writer.write('=');
-            writer.write(props.get(keys.get(i)).toKDL());
+            props.get(keys.get(i)).writeKDL(writer);
             if (i < keys.size() - 1 || child.isPresent()) {
                 writer.write(' ');
             }

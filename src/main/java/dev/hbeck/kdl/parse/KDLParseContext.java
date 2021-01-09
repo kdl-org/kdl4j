@@ -28,7 +28,7 @@ public class KDLParseContext {
 
         this.reader = new PushbackReader(reader, 2);
         this.positionInLine = 0;
-        this.lineNumber = 0;
+        this.lineNumber = 1;
     }
 
     public int read() throws IOException {
@@ -65,6 +65,15 @@ public class KDLParseContext {
         reader.unread(c);
     }
 
+    public int peek() throws IOException {
+        int c = reader.read();
+        if (c != -1) {
+            reader.unread(c);
+        }
+
+        return c;
+    }
+
     public String getCurrentPosition() {
         final StringBuilder stringBuilder = new StringBuilder();
 
@@ -72,7 +81,7 @@ public class KDLParseContext {
                 .append(lines.peek()).append('\n');
 
         for (int i = 0; i < positionInLine; i++) {
-            stringBuilder.append(' ');
+            stringBuilder.append('-');
         }
 
         return stringBuilder.append('^').toString();

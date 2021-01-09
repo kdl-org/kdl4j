@@ -1,11 +1,7 @@
 package dev.hbeck.kdl;
 
-import dev.hbeck.kdl.antlr.kdlLexer;
-import dev.hbeck.kdl.antlr.kdlParser;
 import dev.hbeck.kdl.objects.KDLDocument;
-import org.antlr.v4.runtime.BailErrorStrategy;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
+import dev.hbeck.kdl.parse.KDLParserV2;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -46,14 +42,10 @@ public class TestRoundTrip {
 
     @Test
     public void roundTripTest() throws IOException {
-        final kdlLexer lexer = new kdlLexer(CharStreams.fromReader(new FileReader(inputPath.toFile())));
-        final kdlParser parser = new kdlParser(new CommonTokenStream(lexer));
-        parser.setErrorHandler(new BailErrorStrategy());
-
-        final KDLVisitorImpl visitor = new KDLVisitorImpl();
-        final KDLDocument document = (KDLDocument) visitor.visit(parser.parse());
+        final FileReader reader = new FileReader(inputPath.toFile());
+        final KDLParserV2 parserV2 = new KDLParserV2();
+        final KDLDocument document = parserV2.parse(reader);
         final String output = document.toKDLPretty(4);
-
         assertThat(output, equalTo(getExpected()));
     }
 

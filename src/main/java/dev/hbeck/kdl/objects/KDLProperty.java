@@ -5,25 +5,25 @@ import java.io.Writer;
 import java.util.Objects;
 
 public class KDLProperty implements KDLObject {
-    private final KDLIdentifier key;
+    private final String key;
     private final KDLValue value;
 
-    public KDLProperty(KDLIdentifier key, KDLValue value) {
+    public KDLProperty(String key, KDLValue value) {
         this.key = Objects.requireNonNull(key);
         this.value = Objects.requireNonNull(value);
-    }
-
-    public KDLIdentifier getKey() {
-        return key;
     }
 
     public KDLValue getValue() {
         return value;
     }
 
+    public String getKey() {
+        return key;
+    }
+
     @Override
     public void writeKDL(Writer writer) throws IOException {
-        key.writeKDL(writer);
+        PrintUtil.writeStringQuotedAppropriately(writer, key, true);
         writer.write('=');
         value.writeKDL(writer);
     }
