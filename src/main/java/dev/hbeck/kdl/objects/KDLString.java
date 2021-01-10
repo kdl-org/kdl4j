@@ -3,8 +3,11 @@ package dev.hbeck.kdl.objects;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Objects;
+import java.util.Optional;
 
 public class KDLString implements KDLValue {
+    public static final KDLString EMPTY = KDLString.from("");
+
     private final String value;
 
     public KDLString(String value) {
@@ -20,8 +23,32 @@ public class KDLString implements KDLValue {
         PrintUtil.writeStringQuotedAppropriately(writer, value, false);
     }
 
+    @Override
+    public boolean isString() {
+        return true;
+    }
+
+    @Override
+    public KDLString getAsString() {
+        return this;
+    }
+
+    @Override
+    public Optional<KDLNumber> getAsNumber() {
+        return KDLNumber.from(value);
+    }
+
+    @Override
+    public Optional<KDLBoolean> getAsBoolean() {
+        return Optional.empty();
+    }
+
     public static KDLString from(String val) {
         return new KDLString(val);
+    }
+
+    public static KDLString empty() {
+        return EMPTY;
     }
 
     @Override
