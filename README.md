@@ -33,6 +33,7 @@ The expected file should have:
 * Node fields should be `identifier <args> <properties in alpha order by key> <child if present>`
 * All strings/identifiers should be at the lowest level of quoting possible. `r"words"` becomes `"words"` if a value or `words` 
   if an identifier.
+* Any duplicate properties removed, with only the rightmost one remaining  
 
 formatted with 4 space indents. To try out your test cases, run the `TestRoundTrip` test class.
 
