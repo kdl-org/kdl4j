@@ -20,6 +20,10 @@ public class KDLString implements KDLValue {
         PrintUtil.writeStringQuotedAppropriately(writer, value, false);
     }
 
+    public static KDLString from(String val) {
+        return new KDLString(val);
+    }
+
     @Override
     public String toString() {
         return "KDLString{" +

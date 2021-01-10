@@ -1,11 +1,8 @@
 package dev.hbeck.kdl.parse;
 
 import dev.hbeck.kdl.TestUtil;
-import dev.hbeck.kdl.objects.KDLBoolean;
 import dev.hbeck.kdl.objects.KDLDocument;
 import dev.hbeck.kdl.objects.KDLNode;
-import dev.hbeck.kdl.objects.KDLNull;
-import dev.hbeck.kdl.objects.KDLString;
 import dev.hbeck.kdl.objects.KDLValue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,7 +13,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,28 +29,29 @@ public class TestParseNode {
     @Parameterized.Parameters(name = "{0}")
     public static List<Object[]> getCases() {
         return Stream.of(
-                new Object[]{"a", new KDLNode("a", map(), list(), Optional.empty())},
-                new Object[]{"a\n", new KDLNode("a", map(), list(), Optional.empty())},
-                new Object[]{"\"a\"", new KDLNode("a", map(), list(), Optional.empty())},
-                new Object[]{"r\"a\"", new KDLNode("a", map(), list(), Optional.empty())},
-                new Object[]{"r", new KDLNode("r", map(), list(), Optional.empty())},
-                new Object[]{"rrrr", new KDLNode("rrrr", map(), list(), Optional.empty())},
-                new Object[]{"a // stuff", new KDLNode("a", map(), list(), Optional.empty())},
-                new Object[]{"a \"arg\"", new KDLNode("a", map(), list(new KDLString("arg")), Optional.empty())},
-                new Object[]{"a key=\"val\"", new KDLNode("a", map("key", new KDLString("val")), list(), Optional.empty())},
-                new Object[]{"a \"key\"=true", new KDLNode("a", map("key", KDLBoolean.TRUE), list(), Optional.empty())},
-                new Object[]{"a \"arg\" key=\"val\"", new KDLNode("a", map("key", new KDLString("val")), list(new KDLString("arg")), Optional.empty())},
-                new Object[]{"a r#\"arg\"\"# key=\"val\"", new KDLNode("a", map("key", new KDLString("val")), list(new KDLString("arg\"")), Optional.empty())},
-                new Object[]{"a true false null", new KDLNode("a", map(), list(KDLBoolean.TRUE, KDLBoolean.FALSE, KDLNull.INSTANCE), Optional.empty())},
-                new Object[]{"a /- \"arg1\" \"arg2\"", new KDLNode("a", map(), list(new KDLString("arg2")), Optional.empty())},
-                new Object[]{"a key=\"val\" key=\"val2\"", new KDLNode("a", map("key", new KDLString("val2")), list(), Optional.empty())},
-                new Object[]{"a key=\"val\" /- key=\"val2\"", new KDLNode("a", map("key", new KDLString("val")), list(), Optional.empty())},
-                new Object[]{"a {}", new KDLNode("a", map(), list(), Optional.of(new KDLDocument(nodeList())))},
-                new Object[]{"a {\nb\n}", new KDLNode("a", map(), list(), Optional.of(new KDLDocument(nodeList(new KDLNode("b", map(), list(), Optional.empty())))))},
-                new Object[]{"a \"arg\" key=null \\\n{\nb\n}", new KDLNode("a", map("key", KDLNull.INSTANCE), list(new KDLString("arg")),
-                        Optional.of(new KDLDocument(nodeList(new KDLNode("b", map(), list(), Optional.empty())))))},
-                new Object[]{"a {\n\n}", new KDLNode("a", map(), list(), Optional.of(new KDLDocument(nodeList())))},
-                new Object[]{"a{\n\n}", new KDLNode("a", map(), list(), Optional.of(new KDLDocument(nodeList())))},
+                new Object[]{"a", KDLNode.builder().setIdentifier("a").build()},
+                new Object[]{"a\n", KDLNode.builder().setIdentifier("a").build()},
+                new Object[]{"\"a\"", KDLNode.builder().setIdentifier("a").build()},
+                new Object[]{"r\"a\"", KDLNode.builder().setIdentifier("a").build()},
+                new Object[]{"r", KDLNode.builder().setIdentifier("r").build()},
+                new Object[]{"rrrr", KDLNode.builder().setIdentifier("rrrr").build()},
+                new Object[]{"a // stuff", KDLNode.builder().setIdentifier("a").build()},
+                new Object[]{"a \"arg\"", KDLNode.builder().setIdentifier("a").addArg("arg").build()},
+                new Object[]{"a key=\"val\"", KDLNode.builder().setIdentifier("a").addProp("key", "val").build()},
+                new Object[]{"a \"key\"=true", KDLNode.builder().setIdentifier("a").addProp("key", true).build()},
+                new Object[]{"a \"arg\" key=\"val\"", KDLNode.builder().setIdentifier("a").addProp("key", "val").addArg("arg").build()},
+                new Object[]{"a r#\"arg\"\"# key=\"val\"", KDLNode.builder().setIdentifier("a").addProp("key", "val").addArg("arg\"").build()},
+                new Object[]{"a true false null", KDLNode.builder().setIdentifier("a").addArg(true).addArg(false).addNullArg().build()},
+                new Object[]{"a /- \"arg1\" \"arg2\"", KDLNode.builder().setIdentifier("a").addArg("arg2").build()},
+                new Object[]{"a key=\"val\" key=\"val2\"", KDLNode.builder().setIdentifier("a").addProp("key", "val2").build()},
+                new Object[]{"a key=\"val\" /- key=\"val2\"", KDLNode.builder().setIdentifier("a").addProp("key", "val").build()},
+                new Object[]{"a {}", KDLNode.builder().setIdentifier("a").setChild(KDLDocument.empty()).build()},
+                new Object[]{"a {\nb\n}", KDLNode.builder().setIdentifier("a")
+                        .setChild(KDLDocument.builder().addNode(KDLNode.builder().setIdentifier("b").build()).build()).build()},
+                new Object[]{"a \"arg\" key=null \\\n{\nb\n}", KDLNode.builder().setIdentifier("a").addArg("arg").addNullProp("key")
+                        .setChild(KDLDocument.builder().addNode(KDLNode.builder().setIdentifier("b").build()).build()).build()},
+                new Object[]{"a {\n\n}", KDLNode.builder().setIdentifier("a").setChild(KDLDocument.empty()).build()},
+                new Object[]{"a{\n\n}", KDLNode.builder().setIdentifier("a").setChild(KDLDocument.empty()).build()},
                 new Object[]{"a\"arg\"", null},
                 new Object[]{"a#", null},
                 new Object[]{"a /-", null}

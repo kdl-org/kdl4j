@@ -9,9 +9,7 @@ import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,7 +58,7 @@ public class TestParseChild {
 
     private static KDLDocument doc(String... identifiers) {
         final List<KDLNode> nodes = Arrays.stream(identifiers)
-                .map(id -> new KDLNode(id, Collections.emptyMap(), Collections.emptyList(), Optional.empty()))
+                .map(id -> KDLNode.builder().setIdentifier(id).build())
                 .collect(Collectors.toList());
         return new KDLDocument(nodes);
     }

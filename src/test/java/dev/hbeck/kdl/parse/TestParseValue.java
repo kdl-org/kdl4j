@@ -11,7 +11,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -29,23 +28,23 @@ public class TestParseValue {
     @Parameterized.Parameters(name = "{0}")
     public static List<Object[]> getCases() {
         return Stream.of(
-                new Object[]{"0", new KDLNumber(new BigDecimal(0), 10)},
-                new Object[]{"10", new KDLNumber(new BigDecimal(10), 10)},
-                new Object[]{"-10", new KDLNumber(new BigDecimal(-10), 10)},
-                new Object[]{"+10", new KDLNumber(new BigDecimal(10), 10)},
-                new Object[]{"\"\"", new KDLString("")},
-                new Object[]{"\"r\"", new KDLString("r")},
-                new Object[]{"\"\n\"", new KDLString("\n")},
-                new Object[]{"\"\\n\"", new KDLString("\n")},
-                new Object[]{"r\"\"", new KDLString("")},
-                new Object[]{"r\"\n\"", new KDLString("\n")},
-                new Object[]{"r\"\\n\"", new KDLString("\\n")},
+                new Object[]{"0", KDLNumber.from(0, 10)},
+                new Object[]{"10", KDLNumber.from(10, 10)},
+                new Object[]{"-10", KDLNumber.from(-10, 10)},
+                new Object[]{"+10", KDLNumber.from(10, 10)},
+                new Object[]{"\"\"", KDLString.from("")},
+                new Object[]{"\"r\"", KDLString.from("r")},
+                new Object[]{"\"\n\"", KDLString.from("\n")},
+                new Object[]{"\"\\n\"", KDLString.from("\n")},
+                new Object[]{"r\"\"", KDLString.from("")},
+                new Object[]{"r\"\n\"", KDLString.from("\n")},
+                new Object[]{"r\"\\n\"", KDLString.from("\\n")},
                 new Object[]{"true", KDLBoolean.TRUE},
                 new Object[]{"false", KDLBoolean.FALSE},
                 new Object[]{"null", KDLNull.INSTANCE},
-                new Object[]{"\"true\"", new KDLString("true")},
-                new Object[]{"\"false\"", new KDLString("false")},
-                new Object[]{"\"null\"", new KDLString("null")},
+                new Object[]{"\"true\"", KDLString.from("true")},
+                new Object[]{"\"false\"", KDLString.from("false")},
+                new Object[]{"\"null\"", KDLString.from("null")},
                 new Object[]{"garbage", null}
         ).collect(Collectors.toList());
     }

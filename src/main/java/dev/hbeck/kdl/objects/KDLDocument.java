@@ -54,6 +54,10 @@ public class KDLDocument implements KDLObject {
         }
     }
 
+    public static KDLDocument empty() {
+        return new KDLDocument(new ArrayList<>());
+    }
+
     public static Builder builder() {
         return new Builder();
     }

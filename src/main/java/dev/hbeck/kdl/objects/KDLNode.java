@@ -79,6 +79,10 @@ public class KDLNode implements KDLObject {
         }
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public static class Builder {
         private final List<KDLValue> args = new ArrayList<>();
         private final Map<String, KDLValue> props = new ConcurrentHashMap<>();
@@ -141,12 +145,12 @@ public class KDLNode implements KDLObject {
             return this;
         }
 
-        public Builder addArg(int val) {
+        public Builder addArg(long val) {
             args.add(new KDLNumber(new BigDecimal(val), 10));
             return this;
         }
         
-        public Builder addArg(int val, int radix) {
+        public Builder addArg(long val, int radix) {
             args.add(new KDLNumber(new BigDecimal(val), radix));
             return this;
         }

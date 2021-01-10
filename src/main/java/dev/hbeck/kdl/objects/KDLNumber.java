@@ -40,6 +40,38 @@ public class KDLNumber implements KDLValue {
 
     }
 
+    public static KDLNumber from(BigDecimal val, int radix) {
+        return new KDLNumber(val, radix);
+    }
+
+    public static KDLNumber from(BigDecimal val) {
+        return from(val, 10);
+    }
+
+    public static KDLNumber from(String val, int radix) {
+        return new KDLNumber(new BigDecimal(val), radix);
+    }
+
+    public static KDLNumber from(String val) {
+        return from(val, 10);
+    }
+
+    public static KDLNumber from(long val, int radix) {
+        return new KDLNumber(new BigDecimal(val), radix);
+    }
+
+    public static KDLNumber from(long val) {
+        return from(val, 10);
+    }
+
+    public static KDLNumber from(double val, int radix) {
+        return new KDLNumber(new BigDecimal(val), radix);
+    }
+
+    public static KDLNumber from(double bigDecimal) {
+        return from(bigDecimal, 10);
+    }
+
     @Override
     public String toString() {
         return "KDLNumber{" +
