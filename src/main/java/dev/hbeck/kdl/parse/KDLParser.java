@@ -473,7 +473,7 @@ public class KDLParser {
         boolean inEscape = false;
         while (true) {
             c = context.read();
-            if (c == '\\') {
+            if (!inEscape && c == '\\') {
                 inEscape = true;
             } else if (c == '"' && !inEscape) {
                 return stringBuilder.toString();
