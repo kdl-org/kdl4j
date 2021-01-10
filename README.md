@@ -50,7 +50,7 @@ To add a test case, add a `.kdl` file to the `input` directory and a file with t
 The expected file should have:
 
 * All comments removed
-* Extra newlines removed except for a newline after the last node
+* Extra empty lines removed except for a newline after the last node
 * All nodes should be reformatted without escaped newlines 
 * Node fields should be `identifier <args> <properties in alpha order by key> <child if present>`
 * All strings/identifiers should be at the lowest level of quoting possible. `r"words"` becomes `"words"` if a value or `words` 
