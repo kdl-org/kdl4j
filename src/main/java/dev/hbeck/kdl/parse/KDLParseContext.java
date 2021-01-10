@@ -68,8 +68,17 @@ public class KDLParseContext {
         return c;
     }
 
-    public String getCurrentPosition() {
+    public String getErrorLocationAndInvalidateContext() {
         final StringBuilder stringBuilder = new StringBuilder();
+
+        try {
+            int c = reader.read();
+            if (!UNICODE_LINESPACE.contains(c) || c == EOF) {
+                stringBuilder.appendCodePoint(c);
+            }
+        } catch (IOException e) {
+            stringBuilder.append("<Read Error>");
+        }
 
         stringBuilder.append("Line ").append(lineNumber).append(":\n")
                 .append(lines.peek()).append('\n');

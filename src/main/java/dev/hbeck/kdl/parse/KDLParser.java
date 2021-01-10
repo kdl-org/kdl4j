@@ -100,12 +100,12 @@ public class KDLParser {
         try {
             return parseDocument(context, true);
         } catch (KDLParseException e) {
-            final String message = String.format("%s\n%s", e.getMessage(), context.getCurrentPosition());
+            final String message = String.format("%s\n%s", e.getMessage(), context.getErrorLocationAndInvalidateContext());
             throw new KDLParseException(message, e);
         } catch (IOException e) {
-            throw new IOException(e);
+            throw new IOException(context.getErrorLocationAndInvalidateContext(), e);
         } catch (Throwable t) {
-            throw new KDLParseException(String.format("Unexpected exception:\n%s", context.getCurrentPosition()), t);
+            throw new KDLParseException(String.format("Unexpected exception:\n%s", context.getErrorLocationAndInvalidateContext()), t);
         }
     }
 
