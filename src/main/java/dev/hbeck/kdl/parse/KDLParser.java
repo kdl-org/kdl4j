@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 public class KDLParser {
 
     public static final int EOF = -1;
-    public static final int MAX_UNICODE = 0x10FFF;
+    public static final int MAX_UNICODE = 0x10FFFF;
 
     private static final Set<Integer> NUMERIC_START_CHARS =
             Stream.of('+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
