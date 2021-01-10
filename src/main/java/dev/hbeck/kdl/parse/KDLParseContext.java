@@ -5,17 +5,11 @@ import java.io.PushbackReader;
 import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static dev.hbeck.kdl.parse.KDLParserV2.EOF;
+import static dev.hbeck.kdl.parse.KDLParserV2.UNICODE_LINESPACE;
 
 public class KDLParseContext {
-    private static final Set<Integer> UNICODE_LINESPACE = Stream.of('\r', '\n', '\u0085', '\u000C', '\u2028', '\u2029')
-            .map(character -> (int) character)
-            .collect(Collectors.toSet());
-
     private final PushbackReader reader;
     private final Deque<StringBuilder> lines;
 
