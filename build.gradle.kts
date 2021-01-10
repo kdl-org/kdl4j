@@ -19,7 +19,5 @@ tasks.jacocoTestReport {
 }
 
 dependencies {
-    implementation("org.apache.commons:commons-text:1.9")
-    implementation("org.antlr:antlr4:4.9")
     testImplementation("junit", "junit", "4.12")
 }
