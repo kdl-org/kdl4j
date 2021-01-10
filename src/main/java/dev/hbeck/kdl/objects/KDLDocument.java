@@ -4,6 +4,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -49,6 +51,28 @@ public class KDLDocument implements KDLObject {
             }
             node.writeKDLPretty(writer, indent, depth);
             writer.write('\n');
+        }
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        final List<KDLNode> nodes = new ArrayList<>();
+
+        public Builder addNode(KDLNode node) {
+            nodes.add(node);
+            return this;
+        }
+
+        public Builder addNodes(Collection<KDLNode> nodeCollection) {
+            nodes.addAll(nodeCollection);
+            return this;
+        }
+
+        public KDLDocument build() {
+            return new KDLDocument(new ArrayList<>(nodes));
         }
     }
 

@@ -46,8 +46,4 @@ class PrintUtil {
             }
         }
     }
-
-    public static void main(String[] args) {
-        System.out.println(VALID_BARE_ID.test("0node"));
-    }
 }

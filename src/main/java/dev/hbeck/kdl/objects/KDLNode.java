@@ -2,12 +2,15 @@ package dev.hbeck.kdl.objects;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class KDLNode implements KDLObject {
     private final String identifier;
@@ -18,7 +21,7 @@ public class KDLNode implements KDLObject {
     public KDLNode(String identifier, Map<String, KDLValue> props, List<KDLValue> args, Optional<KDLDocument> child) {
         this.identifier = Objects.requireNonNull(identifier);
         this.props = Collections.unmodifiableMap(Objects.requireNonNull(props));
-        this.args = Collections.unmodifiableList(args);
+        this.args = Collections.unmodifiableList(Objects.requireNonNull(args));
         this.child = Objects.requireNonNull(child);
     }
 
@@ -74,6 +77,181 @@ public class KDLNode implements KDLObject {
             }
             writer.write('}');
         }
+    }
+
+    public static class Builder {
+        private final List<KDLValue> args = new ArrayList<>();
+        private final Map<String, KDLValue> props = new ConcurrentHashMap<>();
+
+        private String identifier = null;
+        private Optional<KDLDocument> child = Optional.empty();
+
+        public Builder setIdentifier(String identifier) {
+            this.identifier = identifier;
+            return this;
+        }
+
+        public Builder setChild(KDLDocument child) {
+            this.child = Optional.of(child);
+            return this;
+        }
+
+        public Builder addArg(KDLValue value) {
+            if (value == null) {
+                value = KDLNull.INSTANCE;
+            }
+
+            args.add(value);
+            return this;
+        }
+
+        public Builder addArg(String strValue) {
+            final KDLValue value;
+            if (strValue == null) {
+                value = KDLNull.INSTANCE;
+            } else {
+                value = new KDLString(strValue);
+            }
+
+            args.add(value);
+            return this;
+        }
+
+        public Builder addArg(BigDecimal bdValue) {
+            final KDLValue value;
+            if (bdValue == null) {
+                value = KDLNull.INSTANCE;
+            } else {
+                value = new KDLNumber(bdValue, 10);
+            }
+
+            args.add(value);
+            return this;
+        }
+
+        public Builder addArg(BigDecimal bdValue, int radix) {
+            final KDLValue value;
+            if (bdValue == null) {
+                value = KDLNull.INSTANCE;
+            } else {
+                value = new KDLNumber(bdValue, radix);
+            }
+
+            args.add(value);
+            return this;
+        }
+
+        public Builder addArg(int val) {
+            args.add(new KDLNumber(new BigDecimal(val), 10));
+            return this;
+        }
+        
+        public Builder addArg(int val, int radix) {
+            args.add(new KDLNumber(new BigDecimal(val), radix));
+            return this;
+        }
+
+        public Builder addArg(double val) {
+            args.add(new KDLNumber(new BigDecimal(val), 10));
+            return this;
+        }
+
+        public Builder addArg(double val, int radix) {
+            args.add(new KDLNumber(new BigDecimal(val), radix));
+            return this;
+        }
+        
+        public Builder addNullArg() {
+            args.add(KDLNull.INSTANCE);
+            return this;
+        }
+        
+        public Builder addArg(boolean val) {
+            args.add(val ? KDLBoolean.TRUE : KDLBoolean.FALSE);
+            return this;
+        }
+
+        public Builder addProp(String key, KDLValue value) {
+            if (value == null) {
+                value = KDLNull.INSTANCE;
+            }
+
+            props.put(key, value);
+            return this;
+        }
+
+        public Builder addProp(String key, String strValue) {
+            final KDLValue value;
+            if (strValue == null) {
+                value = KDLNull.INSTANCE;
+            } else {
+                value = new KDLString(strValue);
+            }
+
+            props.put(key, value);
+            return this;
+        }
+
+        public Builder addProp(String key, BigDecimal bdValue) {
+            final KDLValue value;
+            if (bdValue == null) {
+                value = KDLNull.INSTANCE;
+            } else {
+                value = new KDLNumber(bdValue, 10);
+            }
+
+            props.put(key, value);
+            return this;
+        }
+
+        public Builder addProp(String key, BigDecimal bdValue, int radix) {
+            final KDLValue value;
+            if (bdValue == null) {
+                value = KDLNull.INSTANCE;
+            } else {
+                value = new KDLNumber(bdValue, radix);
+            }
+
+            props.put(key, value);
+            return this;
+        }
+
+        public Builder addProp(String key, int val) {
+            props.put(key, new KDLNumber(new BigDecimal(val), 10));
+            return this;
+        }
+
+        public Builder addProp(String key, int val, int radix) {
+            props.put(key, new KDLNumber(new BigDecimal(val), radix));
+            return this;
+        }
+
+        public Builder addProp(String key, double val) {
+            props.put(key, new KDLNumber(new BigDecimal(val), 10));
+            return this;
+        }
+
+        public Builder addProp(String key, double val, int radix) {
+            props.put(key, new KDLNumber(new BigDecimal(val), radix));
+            return this;
+        }
+
+        public Builder addNullProp(String key) {
+            props.put(key, KDLNull.INSTANCE);
+            return this;
+        }
+
+        public Builder addProp(String key, boolean val) {
+            props.put(key, val ? KDLBoolean.TRUE : KDLBoolean.FALSE);
+            return this;
+        }
+        
+        public KDLNode build() {
+            Objects.requireNonNull(identifier, "Identifier must be set");
+
+            return new KDLNode(identifier, new HashMap<>(props), new ArrayList<>(args), child);
+        }
+
     }
 
     @Override

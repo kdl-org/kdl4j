@@ -16,7 +16,7 @@ public interface KDLObject {
             this.writeKDL(bufferedWriter);
             bufferedWriter.flush();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
 
         return writer.toString();
