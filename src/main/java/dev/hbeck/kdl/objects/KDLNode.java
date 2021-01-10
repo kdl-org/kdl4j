@@ -79,6 +79,14 @@ public class KDLNode implements KDLObject {
         }
     }
 
+    public Builder toBuilder() {
+        return builder()
+                .setIdentifier(identifier)
+                .addAllArgs(args)
+                .addAllProps(props)
+                .setChild(child);
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -97,6 +105,11 @@ public class KDLNode implements KDLObject {
 
         public Builder setChild(KDLDocument child) {
             this.child = Optional.of(child);
+            return this;
+        }
+
+        public Builder setChild(Optional<KDLDocument> child) {
+            this.child = child;
             return this;
         }
 
@@ -175,6 +188,11 @@ public class KDLNode implements KDLObject {
             return this;
         }
 
+        public Builder addAllArgs(List<KDLValue> args) {
+            this.args.addAll(args);
+            return this;
+        }
+
         public Builder addProp(String key, KDLValue value) {
             if (value == null) {
                 value = KDLNull.INSTANCE;
@@ -249,7 +267,12 @@ public class KDLNode implements KDLObject {
             props.put(key, val ? KDLBoolean.TRUE : KDLBoolean.FALSE);
             return this;
         }
-        
+
+        public Builder addAllProps(Map<String, KDLValue> props) {
+            this.props.putAll(props);
+            return this;
+        }
+
         public KDLNode build() {
             Objects.requireNonNull(identifier, "Identifier must be set");
 

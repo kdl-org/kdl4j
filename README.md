@@ -18,9 +18,12 @@ final KDLDocument documentFromString = parser.parse("node_name \"arg\"")
 final KDLDocument documentFromReader = parser.parse(new FileReader("some/file.kdl"))
 ```
 
+`KDLDocument` objects, and all descendants of `KDLObject`, are immutable and threadsafe, though that is not true of their 
+`Builder` objects. If you need to make changes to a `KDLDocument`, use the `filter()` and `mutate()` functions explained below.
+
 ### Searching
 
-The `Search` class allows for quick location of nodes in the document tree. Nodes match if all of below are true:
+The `Search` class allows for quick location of nodes in the document tree. Nodes match if all of the below are true:
 
 * Matches at least one identifier predicate
 * Matches at least one argument predicate if specified, or all of them if `matchAllArgs()` is set
@@ -28,7 +31,7 @@ The `Search` class allows for quick location of nodes in the document tree. Node
 * Falls within the bounds of `minDepth` and `maxDepth` if either or both are set
 
 ```java
-final List<KDLNode> matchingNodes = Search.of(document)
+final List<KDLNode> matchingNodes = document.search()
         .forNodeId("mynode") //Literal, can specify multiple
         .forNodeId(node -> nodeId.startsWith("my")) // Predicate    
         .forProperty("prop", KDLString.from("val")) // Either prop or val can also be predicates, can specify multiple
@@ -39,6 +42,10 @@ final List<KDLNode> matchingNodes = Search.of(document)
         .setMaxDepth(1) // With the above, searches only the children of children of the root document
         .search(); // execute the search
 ```
+
+In a addition, the `Search` object exposes two more functions: `filter()` and `mutate(fun)`. These are called instead of
+the final `search()`, and either remove all nodes not matching the specified predicates or allow mutation of all matching
+nodes. Both return a new `KDLDocument`.
 
 ## Contributing
 
