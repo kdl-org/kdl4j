@@ -8,6 +8,8 @@ This project is alpha-quality. While it's well tested, there are almost certainl
 
 ## Usage
 
+### Parsing
+
 ```java
 final KDLParser parser = new KDLParser();
 
@@ -16,7 +18,27 @@ final KDLDocument documentFromString = parser.parse("node_name \"arg\"")
 final KDLDocument documentFromReader = parser.parse(new FileReader("some/file.kdl"))
 ```
 
+### Searching
 
+The `Search` class allows for quick location of nodes in the document tree. Nodes match if all of below are true:
+
+* Matches at least one identifier predicate
+* Matches at least one argument predicate if specified, or all of them if `matchAllArgs()` is set
+* Matches at least one property predicate if specified, or all of them if `matchAllProps()` is set
+* Falls within the bounds of `minDepth` and `maxDepth` if either or both are set
+
+```java
+final List<KDLNode> matchingNodes = Search.of(document)
+        .forNodeId("mynode") //Literal, can specify multiple
+        .forNodeId(node -> nodeId.startsWith("my")) // Predicate    
+        .forProperty("prop", KDLString.from("val")) // Either prop or val can also be predicates, can specify multiple
+        .forArg(KDLBoolean.TRUE) // Can also be a predicate, can specify multiple
+        .matchAllProps() // Otherwise, node will match if any props match as well as identifier
+        .matchAllArgs() // Otherwise, node will match if any args match as well as identifier
+        .setMinDepth(1) // 0 is the root document
+        .setMaxDepth(1) // With the above, searches only the children of children of the root document
+        .search(); // execute the search
+```
 
 ## Contributing
 

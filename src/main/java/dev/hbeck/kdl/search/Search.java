@@ -90,7 +90,7 @@ public class Search {
         return this;
     }
 
-    public List<KDLNode> searchNodes() {
+    public List<KDLNode> search() {
         return Collections.unmodifiableList(search(document, 0, new ArrayList<>()));
     }
 
