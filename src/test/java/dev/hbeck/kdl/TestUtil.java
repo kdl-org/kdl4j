@@ -1,13 +1,13 @@
 package dev.hbeck.kdl;
 
 import dev.hbeck.kdl.parse.KDLParseContext;
-import dev.hbeck.kdl.parse.KDLParserV2;
+import dev.hbeck.kdl.parse.KDLParser;
 
 import java.io.IOException;
 import java.io.StringReader;
 
 public class TestUtil {
-    public static final KDLParserV2 parser = new KDLParserV2();
+    public static final KDLParser parser = new KDLParser();
 
     public static KDLParseContext strToContext(String str) {
         final StringReader reader = new StringReader(str);
@@ -18,7 +18,7 @@ public class TestUtil {
         final StringBuilder stringBuilder = new StringBuilder();
         try {
             int read = context.read();
-            while (read != KDLParserV2.EOF) {
+            while (read != KDLParser.EOF) {
                 stringBuilder.appendCodePoint(read);
                 read = context.read();
             }

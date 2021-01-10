@@ -27,7 +27,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class KDLParserV2 {
+public class KDLParser {
 
     public static final int EOF = -1;
     public static final int MAX_UNICODE = 0x10FFF;

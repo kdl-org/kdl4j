@@ -1,7 +1,7 @@
 package dev.hbeck.kdl;
 
 import dev.hbeck.kdl.objects.KDLDocument;
-import dev.hbeck.kdl.parse.KDLParserV2;
+import dev.hbeck.kdl.parse.KDLParser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -43,7 +43,7 @@ public class TestRoundTrip {
     @Test
     public void roundTripTest() throws IOException {
         final FileReader reader = new FileReader(inputPath.toFile());
-        final KDLParserV2 parserV2 = new KDLParserV2();
+        final KDLParser parserV2 = new KDLParser();
         final KDLDocument document = parserV2.parse(reader);
         final String output = document.toKDLPretty(4);
         assertThat(output, equalTo(getExpected()));

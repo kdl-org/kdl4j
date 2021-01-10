@@ -15,7 +15,7 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(Parameterized.class)
 public class TestConsumeWhitespaceAndLinespace {
-    public TestConsumeWhitespaceAndLinespace(String input, KDLParserV2.WhitespaceResult expectedResult, String expectedRemainder) {
+    public TestConsumeWhitespaceAndLinespace(String input, KDLParser.WhitespaceResult expectedResult, String expectedRemainder) {
         this.input = input;
         this.expectedResult = expectedResult;
         this.expectedRemainder = expectedRemainder;
@@ -24,18 +24,18 @@ public class TestConsumeWhitespaceAndLinespace {
     @Parameterized.Parameters(name = "{0}")
     public static List<Object[]> getCases() {
         return Stream.of(
-                new Object[]{"", KDLParserV2.WhitespaceResult.END_NODE, ""},
-                new Object[]{"\n", KDLParserV2.WhitespaceResult.END_NODE, ""},
-                new Object[]{"   \n/- a", KDLParserV2.WhitespaceResult.SKIP_NEXT, "a"},
-                new Object[]{"\\\r\na", KDLParserV2.WhitespaceResult.NODE_SPACE, "a"},
-                new Object[]{" \\\r\n \\\n \\\ra", KDLParserV2.WhitespaceResult.NODE_SPACE, "a"},
-                new Object[]{" a ", KDLParserV2.WhitespaceResult.NODE_SPACE, "a "},
-                new Object[]{"a", KDLParserV2.WhitespaceResult.NO_WHITESPACE, "a"},
-                new Object[]{"\\\na", KDLParserV2.WhitespaceResult.NODE_SPACE, "a"},
-                new Object[]{"\\\ra", KDLParserV2.WhitespaceResult.NODE_SPACE, "a"},
-                new Object[]{"\t", KDLParserV2.WhitespaceResult.END_NODE, ""},
-                new Object[]{"/* comment */a", KDLParserV2.WhitespaceResult.NODE_SPACE, "a"},
-                new Object[]{"\t a", KDLParserV2.WhitespaceResult.NODE_SPACE, "a"},
+                new Object[]{"", KDLParser.WhitespaceResult.END_NODE, ""},
+                new Object[]{"\n", KDLParser.WhitespaceResult.END_NODE, ""},
+                new Object[]{"   \n/- a", KDLParser.WhitespaceResult.SKIP_NEXT, "a"},
+                new Object[]{"\\\r\na", KDLParser.WhitespaceResult.NODE_SPACE, "a"},
+                new Object[]{" \\\r\n \\\n \\\ra", KDLParser.WhitespaceResult.NODE_SPACE, "a"},
+                new Object[]{" a ", KDLParser.WhitespaceResult.NODE_SPACE, "a "},
+                new Object[]{"a", KDLParser.WhitespaceResult.NO_WHITESPACE, "a"},
+                new Object[]{"\\\na", KDLParser.WhitespaceResult.NODE_SPACE, "a"},
+                new Object[]{"\\\ra", KDLParser.WhitespaceResult.NODE_SPACE, "a"},
+                new Object[]{"\t", KDLParser.WhitespaceResult.END_NODE, ""},
+                new Object[]{"/* comment */a", KDLParser.WhitespaceResult.NODE_SPACE, "a"},
+                new Object[]{"\t a", KDLParser.WhitespaceResult.NODE_SPACE, "a"},
                 new Object[]{"\\ a", null, " a"},
                 new Object[]{"/- ", null, ""},
                 new Object[]{"/- \n", null, "\n"}
@@ -43,7 +43,7 @@ public class TestConsumeWhitespaceAndLinespace {
     }
 
     private final String input;
-    private final KDLParserV2.WhitespaceResult expectedResult;
+    private final KDLParser.WhitespaceResult expectedResult;
     private final String expectedRemainder;
 
     @Test
@@ -51,7 +51,7 @@ public class TestConsumeWhitespaceAndLinespace {
         final KDLParseContext context = TestUtil.strToContext(input);
 
         try {
-            final KDLParserV2.WhitespaceResult whitespaceResult = TestUtil.parser.consumeWhitespaceAndLinespace(context);
+            final KDLParser.WhitespaceResult whitespaceResult = TestUtil.parser.consumeWhitespaceAndLinespace(context);
             assertThat(whitespaceResult, equalTo(expectedResult));
         } catch (KDLParseException e) {
             if (expectedResult != null) {

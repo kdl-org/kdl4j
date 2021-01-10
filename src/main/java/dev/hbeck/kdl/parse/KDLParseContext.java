@@ -6,8 +6,8 @@ import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import static dev.hbeck.kdl.parse.KDLParserV2.EOF;
-import static dev.hbeck.kdl.parse.KDLParserV2.UNICODE_LINESPACE;
+import static dev.hbeck.kdl.parse.KDLParser.EOF;
+import static dev.hbeck.kdl.parse.KDLParser.UNICODE_LINESPACE;
 
 public class KDLParseContext {
     private final PushbackReader reader;
