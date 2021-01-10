@@ -211,6 +211,9 @@ public class KDLParser {
                         return Optional.of(new KDLNode(identifier, properties, args, child));
                     } else if (UNICODE_LINESPACE.contains(c) || c == EOF) {
                         return Optional.of(new KDLNode(identifier, properties, args, child));
+                    } else if (c == ';') {
+                        context.read();
+                        return Optional.of(new KDLNode(identifier, properties, args, child));
                     } else {
                         throw new KDLParseException(String.format("Unexpected character: '%s'", (char) c));
                     }
