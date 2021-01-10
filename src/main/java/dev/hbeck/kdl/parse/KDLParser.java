@@ -478,7 +478,7 @@ public class KDLParser {
             } else if (c == '"' && !inEscape) {
                 return stringBuilder.toString();
             } else if (inEscape) {
-                stringBuilder.append((char) getEscaped(c, context));
+                stringBuilder.append(getEscaped(c, context));
                 inEscape = false;
             } else if (c == EOF) {
                 throw new KDLParseException("EOF while reading an escaped string");
@@ -488,22 +488,24 @@ public class KDLParser {
         }
     }
 
-    int getEscaped(int c, KDLParseContext context) throws IOException {
+    String getEscaped(int c, KDLParseContext context) throws IOException {
         switch (c) {
             case 'n':
-                return '\n';
+                return "\n";
             case 'r':
-                return '\r';
+                return "\r";
             case 't':
-                return '\t';
+                return "\t";
             case '\\':
-                return '\\';
+                return "\\";
+            case '/':
+                return "/";
             case '"':
-                return '\"';
+                return "\"";
             case 'b':
-                return '\b';
+                return "\b";
             case 'f':
-                return '\f';
+                return "\f";
             case 'u': {
                 final StringBuilder stringBuilder = new StringBuilder(6);
                 c = context.read();
@@ -538,7 +540,7 @@ public class KDLParser {
                 if (code < 0 || MAX_UNICODE < code) {
                     throw new KDLParseException(String.format("Unicode code point is outside allowed range [0, %x]: %x", MAX_UNICODE, code));
                 } else {
-                    return code;
+                    return new String(Character.toChars(code));
                 }
             }
             default:
