@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 public class KDLParser {
 
     public static final int EOF = -1;
-    public static final int MAX_UNICODE = 0x10FFF;
+    public static final int MAX_UNICODE = 0x10FFFF;
 
     private static final Set<Integer> NUMERIC_START_CHARS =
             Stream.of('+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
@@ -210,6 +210,9 @@ public class KDLParser {
                         child = Optional.of(parseChild(context));
                         return Optional.of(new KDLNode(identifier, properties, args, child));
                     } else if (UNICODE_LINESPACE.contains(c) || c == EOF) {
+                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                    } else if (c == ';') {
+                        context.read();
                         return Optional.of(new KDLNode(identifier, properties, args, child));
                     } else {
                         throw new KDLParseException(String.format("Unexpected character: '%s'", (char) c));
@@ -470,12 +473,12 @@ public class KDLParser {
         boolean inEscape = false;
         while (true) {
             c = context.read();
-            if (c == '\\') {
+            if (!inEscape && c == '\\') {
                 inEscape = true;
             } else if (c == '"' && !inEscape) {
                 return stringBuilder.toString();
             } else if (inEscape) {
-                stringBuilder.append((char) getEscaped(c, context));
+                stringBuilder.appendCodePoint(getEscaped(c, context));
                 inEscape = false;
             } else if (c == EOF) {
                 throw new KDLParseException("EOF while reading an escaped string");
@@ -495,6 +498,8 @@ public class KDLParser {
                 return '\t';
             case '\\':
                 return '\\';
+            case '/':
+                return '/';
             case '"':
                 return '\"';
             case 'b':

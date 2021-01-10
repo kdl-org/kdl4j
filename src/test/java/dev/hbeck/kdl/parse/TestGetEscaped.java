@@ -27,6 +27,7 @@ public class TestGetEscaped {
                 new Object[]{"r", '\r'},
                 new Object[]{"t", '\t'},
                 new Object[]{"\\", '\\'},
+                new Object[]{"/", '/'},
                 new Object[]{"\"", '\"'},
                 new Object[]{"b", '\b'},
                 new Object[]{"f", '\f'},
@@ -37,13 +38,15 @@ public class TestGetEscaped {
                 new Object[]{"u{0001}", '\u0001'},
                 new Object[]{"u{00001}", '\u0001'},
                 new Object[]{"u{000001}", '\u0001'},
+                new Object[]{"u{10FFFF}", 0x10FFFF},
+                new Object[]{"i", -2},
                 new Object[]{"ux", -2},
                 new Object[]{"u{x}", -2},
                 new Object[]{"u{0001", -2},
                 new Object[]{"u{AX}", -2},
                 new Object[]{"u{}", -2},
                 new Object[]{"u{0000001}", -2},
-                new Object[]{"u{11FFF}", -2}
+                new Object[]{"u{110000}", -2}
         ).collect(Collectors.toList());
     }
 
