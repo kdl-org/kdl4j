@@ -36,8 +36,8 @@ final List<KDLNode> matchingNodes = document.search()
         .forNodeId(node -> nodeId.startsWith("my")) // Predicate    
         .forProperty("prop", KDLString.from("val")) // Either prop or val can also be predicates, can specify multiple
         .forArg(KDLBoolean.TRUE) // Can also be a predicate, can specify multiple
-        .matchAllProps() // Otherwise, node will match if any props match as well as identifier
-        .matchAllArgs() // Otherwise, node will match if any args match as well as identifier
+        .matchAllPropPredicates() // Otherwise, node will match if any props match as well as identifier
+        .matchAllArgPredicates() // Otherwise, node will match if any args match as well as identifier
         .setMinDepth(1) // 0 is the root document
         .setMaxDepth(1) // With the above, searches only the children of children of the root document
         .search(); // execute the search
