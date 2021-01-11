@@ -70,18 +70,19 @@ public class KDLParseContext {
 
     public String getErrorLocationAndInvalidateContext() {
         final StringBuilder stringBuilder = new StringBuilder();
-
+        final StringBuilder line = lines.peek();
         try {
             int c = reader.read();
-            if (!UNICODE_LINESPACE.contains(c) || c == EOF) {
-                stringBuilder.appendCodePoint(c);
+            while (!UNICODE_LINESPACE.contains(c) && c != EOF) {
+                line.appendCodePoint(c);
+                c = reader.read();
             }
         } catch (IOException e) {
-            stringBuilder.append("<Read Error>");
+            line.append("<Read Error>");
         }
 
         stringBuilder.append("Line ").append(lineNumber).append(":\n")
-                .append(lines.peek()).append('\n');
+                .append(line).append('\n');
 
         for (int i = 0; i < positionInLine; i++) {
             stringBuilder.append('-');

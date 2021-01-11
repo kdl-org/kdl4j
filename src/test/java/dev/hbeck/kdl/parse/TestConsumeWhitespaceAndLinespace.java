@@ -36,7 +36,7 @@ public class TestConsumeWhitespaceAndLinespace {
                 new Object[]{"\t", KDLParser.WhitespaceResult.END_NODE, ""},
                 new Object[]{"/* comment */a", KDLParser.WhitespaceResult.NODE_SPACE, "a"},
                 new Object[]{"\t a", KDLParser.WhitespaceResult.NODE_SPACE, "a"},
-                new Object[]{"\\ a", null, " a"},
+                new Object[]{"\\ a", null, "a"},
                 new Object[]{"/- ", null, ""},
                 new Object[]{"/- \n", null, "\n"}
         ).collect(Collectors.toList());

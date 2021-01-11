@@ -38,7 +38,7 @@ public class KDLParser {
                     .collect(Collectors.toSet());
 
     private static final Set<Integer> INVALID_BARE_ID_CHARS = Stream.of('\n', '\u000C', '\r', '\u0085', '\u2028', '\u2029',
-            '\\', '{', '}', '<', '>', ';', '[', ']', '=', ',', '"', '#', '\u0009', '\u0020', '\u00A0', '\u1680', '\u2000',
+            '\\', '{', '}', '<', '>', ';', '[', ']', '=', ',', '"', '\u0009', '\u0020', '\u00A0', '\u1680', '\u2000',
             '\u2001', '\u2002', '\u2003', '\u2004', '\u2005', '\u2006', '\u2007', '\u2008', '\u2009', '\u200A', '\u202F',
             '\u205F', '\u3000')
             .map(character -> (int) character)
@@ -49,7 +49,7 @@ public class KDLParser {
             .collect(Collectors.toSet());
 
     private static final Set<Integer> DECIMAL_CHARS =
-            Stream.of('+', '-', 'e', 'E', '.', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
+            Stream.of('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
                     .map(character -> (int) character)
                     .collect(Collectors.toSet());
 
@@ -105,7 +105,7 @@ public class KDLParser {
         } catch (IOException e) {
             throw new IOException(context.getErrorLocationAndInvalidateContext(), e);
         } catch (Throwable t) {
-            throw new KDLParseException(String.format("Unexpected exception:\n%s", context.getErrorLocationAndInvalidateContext()), t);
+            throw new KDLInternalException(String.format("Unexpected exception:\n%s", context.getErrorLocationAndInvalidateContext()), t);
         }
     }
 
@@ -163,6 +163,7 @@ public class KDLParser {
             }
 
             final Optional<KDLNode> node = parseNode(context);
+            consumeAfterNode(context);
             if (!skippingNode && node.isPresent()) {
                 nodes.add(node.get());
             }
@@ -375,9 +376,8 @@ public class KDLParser {
     }
 
     KDLNumber parseNumber(KDLParseContext context) throws IOException {
-        final StringBuilder stringBuilder = new StringBuilder();
         final int radix;
-        final Set<Integer> legalChars;
+        Set<Integer> legalChars = null;
 
         int c = context.peek();
         if (c == '0') {
@@ -396,30 +396,28 @@ public class KDLParser {
                 radix = 2;
                 legalChars = BINARY_CHARS;
             } else {
-                stringBuilder.append('0');
+                context.unread('0');
                 radix = 10;
-                legalChars = DECIMAL_CHARS;
             }
         } else {
             radix = 10;
-            legalChars = DECIMAL_CHARS;
         }
 
-        c = context.peek();
+        if (radix == 10) {
+            return parseDecimalNumber(context);
+        } else {
+            return parseNonDecimalNumber(context, legalChars, radix);
+        }
+    }
+
+    KDLNumber parseNonDecimalNumber(KDLParseContext context, Set<Integer> legalChars, int radix) throws IOException {
+        final StringBuilder stringBuilder = new StringBuilder();
+
+        int c = context.peek();
         if (c == '_') {
-            throw new KDLParseException("Numbers may not begin with an '_' character");
-        } else if (c == '+' || c == '-') {
-            int sign = c;
-            context.read();
-            c = context.peek();
-            if (c == '_') {
-                throw new KDLParseException("Numbers may not begin with an '_' character after sign");
-            } else {
-                context.unread(sign);
-            }
+            throw new KDLParseException("The first character after radix indicator must not be '_'");
         }
 
-        c = context.peek();
         while (legalChars.contains(c) || c == '_') {
             context.read();
             if (c != '_') {
@@ -429,18 +427,87 @@ public class KDLParser {
         }
 
         final String str = stringBuilder.toString();
-        final BigDecimal value;
-        try {
-            if (radix == 10) {
-                value = new BigDecimal(str);
-            } else {
-                value = new BigDecimal(new BigInteger(str, radix));
-            }
-        } catch (NumberFormatException e) {
-            throw new KDLParseException(String.format("Couldn't parse '%s' as a number with radix %d", stringBuilder.toString(), radix));
+        if (str.isEmpty()) {
+            throw new KDLParseException("Must include at least one digit following radix marker");
         }
 
-        return new KDLNumber(value, radix);
+        return KDLNumber.from(new BigInteger(str, radix), radix);
+    }
+
+    // Unfortunately, in order to match the grammar we have to do a lot of parsing ourselves here
+    KDLNumber parseDecimalNumber(KDLParseContext context) throws IOException {
+        final StringBuilder stringBuilder = new StringBuilder();
+
+        int c = context.peek();
+        if (c == '_' || c == 'E' || c == 'e') {
+            throw new KDLParseException(String.format("Decimal numbers may not begin with an '%s' character", (char) c));
+        } else if (c == '+' || c == '-') {
+            context.read();
+            int sign = c;
+            c = context.peek();
+            if (c == '_') {
+                throw new KDLParseException("Numbers may not begin with an '_' character after sign");
+            } else {
+                stringBuilder.appendCodePoint(sign);
+            }
+        }
+
+        boolean inFraction = false;
+        boolean inExponent = false;
+        boolean signLegal = true;
+        c = context.peek();
+        while (DECIMAL_CHARS.contains(c) || c == 'e' || c == 'E' || c == '_' || c == '.' || c == '-' || c == '+') {
+            context.read();
+            if (c == '.') {
+                if (inFraction || inExponent) {
+                    throw new KDLParseException("The '.' character is not allowed in the fraction or exponent of a decimal");
+                }
+
+                if (!DECIMAL_CHARS.contains(context.peek())) {
+                    throw new KDLParseException("The character following '.' in a decimal number must be a decimal digit");
+                }
+
+                inFraction = true;
+                signLegal = false;
+                stringBuilder.appendCodePoint(c);
+            } else if (c == 'e' || c == 'E') {
+                if (inExponent) {
+                    throw new KDLParseException(String.format("Found '%s' in exponent", (char) c));
+                }
+
+                inExponent = true;
+                inFraction = false;
+                signLegal = true;
+                stringBuilder.appendCodePoint(c);
+
+                if (context.peek() == '_') {
+                    throw new KDLParseException("Character following exponent marker must not be '_'");
+                }
+            } else if (c == '_') {
+                if (inFraction) {
+                    throw new KDLParseException("The '_' character is not allowed in the fraction portion of decimal");
+                }
+                signLegal = false;
+            } else if (c == '+' || c == '-') {
+                if (!signLegal) {
+                    throw new KDLParseException(String.format("The sign character '%s' is not allowed here", (char) c));
+                }
+
+                signLegal = false;
+                stringBuilder.appendCodePoint(c);
+            } else {
+                stringBuilder.appendCodePoint(c);
+            }
+
+            c = context.peek();
+        }
+
+        final String val = stringBuilder.toString();
+        try {
+            return KDLNumber.from(new BigDecimal(val));
+        } catch (NumberFormatException e) {
+            throw new KDLInternalException(String.format("Couldn't parse pre-vetted input '%s' into a BigDecimal", val), e);
+        }
     }
 
     String parseBareIdentifier(KDLParseContext context) throws IOException {
@@ -598,7 +665,7 @@ public class KDLParser {
         }
     }
 
-    SlashAction getSlashAction(KDLParseContext context) throws IOException {
+    SlashAction getSlashAction(KDLParseContext context, boolean escaped) throws IOException {
         int c = context.read();
         if (c != '/') {
             throw new KDLParseException("");
@@ -613,23 +680,46 @@ public class KDLParser {
                 return SlashAction.NOTHING;
             case '/':
                 consumeLineComment(context);
-                return SlashAction.END_NODE;
+                if (escaped) {
+                    return SlashAction.NOTHING;
+                } else {
+                    return SlashAction.END_NODE;
+                }
             default:
                 throw new KDLParseException(String.format("Unexpected character: '%s'", (char) c));
+        }
+    }
+
+    void consumeAfterNode(KDLParseContext context) throws IOException {
+        int c = context.peek();
+        while (c == ';' || UNICODE_WHITESPACE.contains(c)) {
+            context.read();
+            c = context.peek();
         }
     }
 
     WhitespaceResult consumeWhitespaceAndBlockComments(KDLParseContext context) throws IOException {
         boolean skipping = false;
         boolean foundWhitespace = false;
+        boolean inLineEscape = false;
+        boolean foundSemicolon = false;
         int c = context.peek();
-        while (UNICODE_WHITESPACE.contains(c) || c == '/' || c == '\\') {
+        while (UNICODE_WHITESPACE.contains(c) || c == '/' || c == '\\' || c == ';' || UNICODE_LINESPACE.contains(c)) {
             if (c == '/') {
-                switch (getSlashAction(context)) {
+                switch (getSlashAction(context, inLineEscape)) {
                     case END_NODE:
+                        if (inLineEscape) {
+                            foundWhitespace = true;
+                            inLineEscape = false;
+                            break;
+                        }
                         return WhitespaceResult.END_NODE;
 
                     case SKIP_NEXT:
+                        if (inLineEscape) {
+                            throw new KDLParseException("Found skip marker after line escape");
+                        }
+
                         if (skipping) {
                             throw new KDLParseException("Node/Token skip may only be specified once per node/token");
                         } else {
@@ -641,8 +731,30 @@ public class KDLParser {
                         foundWhitespace = true;
                         break;
                 }
+            } else if (c == ';') {
+                context.read();
+                foundSemicolon = true;
+            } else if (c == '\\') {
+                context.read();
+                inLineEscape = true;
+            } else if (UNICODE_LINESPACE.contains(c)) {
+                if (inLineEscape) {
+                    context.read();
+                    if (c == '\r') {
+                        c = context.peek();
+                        if (c == '\n') {
+                            context.read();
+                        }
+                    }
+
+                    inLineEscape = false;
+                    foundWhitespace = true;
+                } else {
+                    break;
+                }
             } else {
-                foundWhitespace |= consumeWhitespace(context);
+                context.read();
+                foundWhitespace = true;
             }
 
             c = context.peek();
@@ -650,6 +762,8 @@ public class KDLParser {
 
         if (skipping) {
             return WhitespaceResult.SKIP_NEXT;
+        } else if (foundSemicolon) {
+            return WhitespaceResult.END_NODE;
         } else if (foundWhitespace) {
             return WhitespaceResult.NODE_SPACE;
         } else {
@@ -700,39 +814,10 @@ public class KDLParser {
         }
     }
 
-    boolean consumeWhitespace(KDLParseContext context) throws IOException {
-        boolean foundWhitespace = false;
-        int c = context.peek();
-        while (UNICODE_WHITESPACE.contains(c) || c == '\\') {
-            foundWhitespace = true;
-            if (c == '\\') {
-                context.read();
-                c = context.peek();
-                if (c == '\r') {
-                    context.read();
-                    c = context.peek();
-                    if (c == '\n') {
-                        context.read();
-                        c = context.peek();
-                    }
-                } else if (!UNICODE_LINESPACE.contains(c)) {
-                    throw new KDLParseException("Node space newline escape must be followed by newline");
-                } else {
-                    context.read();
-                    c = context.peek();
-                }
-            } else {
-                context.read();
-                c = context.peek();
-            }
-        }
-
-        return foundWhitespace;
-    }
-
     WhitespaceResult consumeWhitespaceAndLinespace(KDLParseContext context) throws IOException {
         boolean skipNext = false;
         boolean foundWhitespace = false;
+        boolean inEscape = false;
         while (true) {
             int c = context.peek();
             boolean isLinespace = UNICODE_LINESPACE.contains(c);
@@ -741,13 +826,18 @@ public class KDLParser {
                 if (isLinespace && skipNext) {
                     throw new KDLParseException("Unexpected newline after skip marker");
                 }
+
+                if (isLinespace && inEscape) {
+                    inEscape = false;
+                }
+
                 context.read();
                 c = context.peek();
                 isLinespace = UNICODE_LINESPACE.contains(c);
             }
 
             if (c == '/') {
-                switch (getSlashAction(context)) {
+                switch (getSlashAction(context, inEscape)) {
                     case END_NODE:
                     case NOTHING:
                         foundWhitespace = true;
@@ -757,21 +847,22 @@ public class KDLParser {
                         skipNext = true;
                 }
             } else if (c == '\\') {
-                // No need to explicitly handle CRLF here, it will be picked up on next loop
                 context.read();
-                c = context.peek();
-                if (!UNICODE_LINESPACE.contains(c)) {
-                    throw new KDLParseException("Expected a linespace character following escape");
-                }
-
                 foundWhitespace = true;
+                inEscape = true;
             } else if (c == EOF) {
                 if (skipNext) {
                     throw new KDLParseException("Unexpected EOF after skip marker");
+                } else if (inEscape) {
+                    throw new KDLParseException("Unexpected EOF after line escape");
                 } else {
                     return WhitespaceResult.END_NODE;
                 }
             } else {
+                if (inEscape) {
+                    throw new KDLParseException("Expected newline or line comment following escape");
+                }
+
                 if (skipNext) {
                     return WhitespaceResult.SKIP_NEXT;
                 } else if (foundWhitespace) {

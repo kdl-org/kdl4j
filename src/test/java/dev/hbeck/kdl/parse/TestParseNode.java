@@ -53,7 +53,7 @@ public class TestParseNode {
                 new Object[]{"a {\n\n}", KDLNode.builder().setIdentifier("a").setChild(KDLDocument.empty()).build()},
                 new Object[]{"a{\n\n}", KDLNode.builder().setIdentifier("a").setChild(KDLDocument.empty()).build()},
                 new Object[]{"a\"arg\"", null},
-                new Object[]{"a#", null},
+                new Object[]{"a=", null},
                 new Object[]{"a /-", null}
         ).collect(Collectors.toList());
     }

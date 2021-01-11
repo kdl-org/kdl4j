@@ -28,7 +28,8 @@ public class TestParseArgOrProp {
                 new Object[]{"r", "r"},
                 new Object[]{"rrrr", "rrrr"},
                 new Object[]{"r\"raw\"", "raw"},
-                new Object[]{"#goals", null}
+                new Object[]{"#goals", "#goals"},
+                new Object[]{"=goals", null}
         ).collect(Collectors.toList());
     }
 

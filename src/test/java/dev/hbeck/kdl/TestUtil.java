@@ -3,8 +3,6 @@ package dev.hbeck.kdl;
 import dev.hbeck.kdl.parse.KDLParseContext;
 import dev.hbeck.kdl.parse.KDLParser;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.hamcrest.Description;
@@ -12,6 +10,7 @@ import org.hamcrest.Description;
 import java.io.IOException;
 import java.io.StringReader;
 
+@SuppressWarnings("rawtypes")
 public class TestUtil {
     public static final KDLParser parser = new KDLParser();
 
@@ -40,6 +39,7 @@ public class TestUtil {
     }
 }
 
+@SuppressWarnings("rawtypes")
 class ThrowsExceptionMatcher extends TypeSafeMatcher<Runnable> {
 
   private final Class exceptionClass;
