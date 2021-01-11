@@ -69,6 +69,3 @@ formatted with 4 space indents. To try out your test cases, run the `TestRoundTr
 ## TODO
 
 * More tests
-* Switch from Sets to switch statements for character classes
-* Show full line on error
-* Convenience methods on model objects
