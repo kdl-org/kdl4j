@@ -22,64 +22,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.function.Predicate;
+
+import static dev.hbeck.kdl.parse.CharClasses.isLiteralChar;
+import static dev.hbeck.kdl.parse.CharClasses.isUnicodeLinespace;
+import static dev.hbeck.kdl.parse.CharClasses.isUnicodeWhitespace;
+import static dev.hbeck.kdl.parse.CharClasses.isValidBareIdChar;
+import static dev.hbeck.kdl.parse.CharClasses.isValidBareIdStart;
+import static dev.hbeck.kdl.parse.CharClasses.isValidDecimalChar;
+import static dev.hbeck.kdl.parse.CharClasses.isValidHexChar;
+import static dev.hbeck.kdl.parse.CharClasses.isValidNumericStart;
 
 public class KDLParser {
 
     public static final int EOF = -1;
     public static final int MAX_UNICODE = 0x10FFFF;
-
-    private static final Set<Integer> NUMERIC_START_CHARS =
-            Stream.of('+', '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
-                    .map(character -> (int) character)
-                    .collect(Collectors.toSet());
-
-    private static final Set<Integer> INVALID_BARE_ID_CHARS = Stream.of('\n', '\u000C', '\r', '\u0085', '\u2028', '\u2029',
-            '\\', '{', '}', '<', '>', ';', '[', ']', '=', ',', '"', '\u0009', '\u0020', '\u00A0', '\u1680', '\u2000',
-            '\u2001', '\u2002', '\u2003', '\u2004', '\u2005', '\u2006', '\u2007', '\u2008', '\u2009', '\u200A', '\u202F',
-            '\u205F', '\u3000')
-            .map(character -> (int) character)
-            .collect(Collectors.toSet());
-
-    private static final Set<Integer> INVALID_BARE_ID_START_CHARS = Stream.concat(INVALID_BARE_ID_CHARS.stream(),
-            Stream.of((int) '0', (int) '1', (int) '2', (int) '3', (int) '4', (int) '5', (int) '6', (int) '7', (int) '8', (int) '9'))
-            .collect(Collectors.toSet());
-
-    private static final Set<Integer> DECIMAL_CHARS =
-            Stream.of('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
-                    .map(character -> (int) character)
-                    .collect(Collectors.toSet());
-
-    private static final Set<Integer> HEX_CHARS =
-            Stream.of('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'a', 'B', 'b', 'C', 'c', 'D', 'd', 'E', 'e', 'F', 'f')
-                    .map(character -> (int) character)
-                    .collect(Collectors.toSet());
-
-    private static final Set<Integer> OCTAL_CHARS =
-            Stream.of('0', '1', '2', '3', '4', '5', '6', '7')
-                    .map(character -> (int) character)
-                    .collect(Collectors.toSet());
-
-    private static final Set<Integer> BINARY_CHARS = Stream.of('0', '1')
-            .map(character -> (int) character)
-            .collect(Collectors.toSet());
-
-    private static final Set<Integer> LITERAL_CHARS = Stream.of('t', 'r', 'u', 'e', 'n', 'l', 'f', 'a', 's')
-            .map(character -> (int) character)
-            .collect(Collectors.toSet());
-
-    static final Set<Integer> UNICODE_LINESPACE = Stream.of('\r', '\n', '\u0085', '\u000C', '\u2028', '\u2029')
-            .map(character -> (int) character)
-            .collect(Collectors.toSet());
-
-    private static final Set<Integer> UNICODE_WHITESPACE =
-            Stream.of('\u0009', '\u0020', '\u00A0', '\u1680', '\u2000', '\u2001', '\u2002', '\u2003', '\u2004', '\u2005',
-                    '\u2006', '\u2007', '\u2008', '\u2009', '\u200A', '\u202F', '\u205F', '\u3000')
-                    .map(character -> (int) character)
-                    .collect(Collectors.toSet());
 
     enum WhitespaceResult {
         NO_WHITESPACE,
@@ -189,7 +147,7 @@ public class KDLParser {
                     if (c == '{') {
                         child = Optional.of(parseChild(context));
                         return Optional.of(new KDLNode(identifier, properties, args, child));
-                    } else if (UNICODE_LINESPACE.contains(c)) {
+                    } else if (isUnicodeLinespace(c)) {
                         return Optional.of(new KDLNode(identifier, properties, args, child));
                     } else {
                         final KDLObject object = parseArgOrProp(context);
@@ -210,7 +168,7 @@ public class KDLParser {
                     if (c == '{') {
                         child = Optional.of(parseChild(context));
                         return Optional.of(new KDLNode(identifier, properties, args, child));
-                    } else if (UNICODE_LINESPACE.contains(c) || c == EOF) {
+                    } else if (isUnicodeLinespace(c) || c == EOF) {
                         return Optional.of(new KDLNode(identifier, properties, args, child));
                     } else if (c == ';') {
                         context.read();
@@ -224,7 +182,7 @@ public class KDLParser {
                     if (c == '{') {
                         parseChild(context); //Ignored
                         return Optional.of(new KDLNode(identifier, properties, args, child));
-                    } else if (UNICODE_LINESPACE.contains(c)) {
+                    } else if (isUnicodeLinespace(c)) {
                         throw new KDLParseException("Unexpected skip marker before newline");
                     } else {
                         final KDLObject object = parseArgOrProp(context);
@@ -243,7 +201,7 @@ public class KDLParser {
         int c = context.peek();
         if (c == '"') {
             return parseEscapedString(context);
-        } else if (!INVALID_BARE_ID_START_CHARS.contains(c)) {
+        } else if (isValidBareIdStart(c)) {
             if (c == 'r') {
                 context.read();
                 int next = context.peek();
@@ -267,9 +225,9 @@ public class KDLParser {
         int c = context.peek();
         if (c == '"') {
             object = new KDLString(parseEscapedString(context));
-        } else if (NUMERIC_START_CHARS.contains(c)) {
+        } else if (isValidNumericStart(c)) {
             object = parseNumber(context);
-        } else if (!INVALID_BARE_ID_START_CHARS.contains(c)) {
+        } else if (isValidBareIdStart(c)) {
             String strVal;
             if (c == 'r') {
                 context.read();
@@ -350,12 +308,12 @@ public class KDLParser {
             return new KDLString(parseEscapedString(context));
         } else if (c == 'r') {
             return new KDLString(parseRawString(context));
-        } else if (NUMERIC_START_CHARS.contains(c)) {
+        } else if (isValidNumericStart(c)) {
             return parseNumber(context);
         } else {
             final StringBuilder stringBuilder = new StringBuilder();
 
-            while (LITERAL_CHARS.contains(c)) {
+            while (isLiteralChar(c)) {
                 context.read();
                 stringBuilder.appendCodePoint(c);
                 c = context.peek();
@@ -370,14 +328,14 @@ public class KDLParser {
                 case "null":
                     return KDLNull.INSTANCE;
                 default:
-                    throw new KDLParseException(String.format("Unknown literal in property value: '%s'", strVal));
+                    throw new KDLParseException(String.format("Unknown literal in property value: '%s' Expected 'true', 'false', or 'null'", strVal));
             }
         }
     }
 
     KDLNumber parseNumber(KDLParseContext context) throws IOException {
         final int radix;
-        Set<Integer> legalChars = null;
+        Predicate<Integer> legalChars = null;
 
         int c = context.peek();
         if (c == '0') {
@@ -386,15 +344,15 @@ public class KDLParser {
             if (c == 'x') {
                 context.read();
                 radix = 16;
-                legalChars = HEX_CHARS;
+                legalChars = CharClasses::isValidHexChar;
             } else if (c == 'o') {
                 context.read();
                 radix = 8;
-                legalChars = OCTAL_CHARS;
+                legalChars = CharClasses::isValidOctalChar;
             } else if (c == 'b') {
                 context.read();
                 radix = 2;
-                legalChars = BINARY_CHARS;
+                legalChars = CharClasses::isValidBinaryChar;
             } else {
                 context.unread('0');
                 radix = 10;
@@ -410,7 +368,7 @@ public class KDLParser {
         }
     }
 
-    KDLNumber parseNonDecimalNumber(KDLParseContext context, Set<Integer> legalChars, int radix) throws IOException {
+    KDLNumber parseNonDecimalNumber(KDLParseContext context, Predicate<Integer> legalChars, int radix) throws IOException {
         final StringBuilder stringBuilder = new StringBuilder();
 
         int c = context.peek();
@@ -418,7 +376,7 @@ public class KDLParser {
             throw new KDLParseException("The first character after radix indicator must not be '_'");
         }
 
-        while (legalChars.contains(c) || c == '_') {
+        while (legalChars.test(c) || c == '_') {
             context.read();
             if (c != '_') {
                 stringBuilder.appendCodePoint(c);
@@ -456,14 +414,14 @@ public class KDLParser {
         boolean inExponent = false;
         boolean signLegal = true;
         c = context.peek();
-        while (DECIMAL_CHARS.contains(c) || c == 'e' || c == 'E' || c == '_' || c == '.' || c == '-' || c == '+') {
+        while (isValidDecimalChar(c) || c == 'e' || c == 'E' || c == '_' || c == '.' || c == '-' || c == '+') {
             context.read();
             if (c == '.') {
                 if (inFraction || inExponent) {
                     throw new KDLParseException("The '.' character is not allowed in the fraction or exponent of a decimal");
                 }
 
-                if (!DECIMAL_CHARS.contains(context.peek())) {
+                if (!isValidDecimalChar(context.peek())) {
                     throw new KDLParseException("The character following '.' in a decimal number must be a decimal digit");
                 }
 
@@ -512,7 +470,7 @@ public class KDLParser {
 
     String parseBareIdentifier(KDLParseContext context) throws IOException {
         int c = context.read();
-        if (INVALID_BARE_ID_START_CHARS.contains(c)) {
+        if (!isValidBareIdStart(c)) {
             throw new KDLParseException("Illegal character at start of bare identifier");
         } else if (c == EOF) {
             throw new KDLInternalException("EOF when a bare identifer expected");
@@ -522,7 +480,7 @@ public class KDLParser {
         stringBuilder.appendCodePoint(c);
 
         c = context.peek();
-        while (!INVALID_BARE_ID_CHARS.contains(c) && c != EOF) {
+        while (isValidBareIdChar(c) && c != EOF) {
             stringBuilder.appendCodePoint(context.read());
             c = context.peek();
         }
@@ -584,7 +542,7 @@ public class KDLParser {
                 while (c != '}') {
                     if (c == EOF) {
                         throw new KDLParseException("Reached EOF while reading unicode escape sequence");
-                    } else if (!HEX_CHARS.contains(c)) {
+                    } else if (!isValidHexChar(c)) {
                         throw new KDLParseException(String.format("Unicode escape sequences must be valid hex chars, got: '%s'", (char) c));
                     }
 
@@ -692,7 +650,7 @@ public class KDLParser {
 
     void consumeAfterNode(KDLParseContext context) throws IOException {
         int c = context.peek();
-        while (c == ';' || UNICODE_WHITESPACE.contains(c)) {
+        while (c == ';' || isUnicodeWhitespace(c)) {
             context.read();
             c = context.peek();
         }
@@ -704,7 +662,7 @@ public class KDLParser {
         boolean inLineEscape = false;
         boolean foundSemicolon = false;
         int c = context.peek();
-        while (UNICODE_WHITESPACE.contains(c) || c == '/' || c == '\\' || c == ';' || UNICODE_LINESPACE.contains(c)) {
+        while (isUnicodeWhitespace(c) || c == '/' || c == '\\' || c == ';' || isUnicodeLinespace(c)) {
             if (c == '/') {
                 switch (getSlashAction(context, inLineEscape)) {
                     case END_NODE:
@@ -737,7 +695,7 @@ public class KDLParser {
             } else if (c == '\\') {
                 context.read();
                 inLineEscape = true;
-            } else if (UNICODE_LINESPACE.contains(c)) {
+            } else if (isUnicodeLinespace(c)) {
                 if (inLineEscape) {
                     context.read();
                     if (c == '\r') {
@@ -773,7 +731,7 @@ public class KDLParser {
 
     void consumeLineComment(KDLParseContext context) throws IOException {
         int c = context.peek();
-        while (!UNICODE_LINESPACE.contains(c) && c != EOF) {
+        while (!isUnicodeLinespace(c) && c != EOF) {
             context.read();
             if (c == '\r') {
                 c = context.peek();
@@ -820,8 +778,8 @@ public class KDLParser {
         boolean inEscape = false;
         while (true) {
             int c = context.peek();
-            boolean isLinespace = UNICODE_LINESPACE.contains(c);
-            while (UNICODE_WHITESPACE.contains(c) || isLinespace) {
+            boolean isLinespace = isUnicodeLinespace(c);
+            while (isUnicodeWhitespace(c) || isLinespace) {
                 foundWhitespace = true;
                 if (isLinespace && skipNext) {
                     throw new KDLParseException("Unexpected newline after skip marker");
@@ -833,7 +791,7 @@ public class KDLParser {
 
                 context.read();
                 c = context.peek();
-                isLinespace = UNICODE_LINESPACE.contains(c);
+                isLinespace = isUnicodeLinespace(c);
             }
 
             if (c == '/') {

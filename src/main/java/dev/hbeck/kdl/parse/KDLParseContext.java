@@ -6,8 +6,8 @@ import java.io.Reader;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
+import static dev.hbeck.kdl.parse.CharClasses.isUnicodeLinespace;
 import static dev.hbeck.kdl.parse.KDLParser.EOF;
-import static dev.hbeck.kdl.parse.KDLParser.UNICODE_LINESPACE;
 
 public class KDLParseContext {
     private final PushbackReader reader;
@@ -29,7 +29,7 @@ public class KDLParseContext {
         int c = reader.read();
         if (c == EOF) {
             return c;
-        } else if (UNICODE_LINESPACE.contains(c)) {
+        } else if (isUnicodeLinespace(c)) {
             // We're cheating a bit here and not checking for CRLF
             positionInLine = 0;
             lineNumber++;
@@ -46,7 +46,7 @@ public class KDLParseContext {
     }
 
     public void unread(int c) throws IOException {
-        if (UNICODE_LINESPACE.contains(c)) {
+        if (isUnicodeLinespace(c)) {
             lines.pop();
             lineNumber--;
             positionInLine = lines.peek().length() - 1;
@@ -73,7 +73,7 @@ public class KDLParseContext {
         final StringBuilder line = lines.peek();
         try {
             int c = reader.read();
-            while (!UNICODE_LINESPACE.contains(c) && c != EOF) {
+            while (!isUnicodeLinespace(c) && c != EOF) {
                 line.appendCodePoint(c);
                 c = reader.read();
             }
