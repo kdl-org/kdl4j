@@ -198,9 +198,9 @@ public class TestParser {
 
     @Test
     public void test_node_space() {
-//        assertThat(parser.parse("node 1"), equalTo(doc(node("node", list(1)))));
-//        assertThat(parser.parse("node\t1"), equalTo(doc(node("node", list(1)))));
-//        assertThat(parser.parse("node\t \\\n 1"), equalTo(doc(node("node", list(1)))));
+        assertThat(parser.parse("node 1"), equalTo(doc(node("node", list(1)))));
+        assertThat(parser.parse("node\t1"), equalTo(doc(node("node", list(1)))));
+        assertThat(parser.parse("node\t \\\n 1"), equalTo(doc(node("node", list(1)))));
         assertThat(parser.parse("node\t \\ // hello\n 1"), equalTo(doc(node("node", list(1))))); // TODO: fails
     }
 
