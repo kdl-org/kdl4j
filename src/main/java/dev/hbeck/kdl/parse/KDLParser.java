@@ -149,6 +149,8 @@ public class KDLParser {
                         return Optional.of(new KDLNode(identifier, properties, args, child));
                     } else if (isUnicodeLinespace(c)) {
                         return Optional.of(new KDLNode(identifier, properties, args, child));
+                    } if (c == EOF) {
+                        return Optional.of(new KDLNode(identifier, properties, args, child));
                     } else {
                         final KDLObject object = parseArgOrProp(context);
                         if (object instanceof KDLValue) {
@@ -662,7 +664,7 @@ public class KDLParser {
         boolean inLineEscape = false;
         boolean foundSemicolon = false;
         int c = context.peek();
-        while (isUnicodeWhitespace(c) || c == '/' || c == '\\' || c == ';' || isUnicodeLinespace(c)) {
+        while (c == '/' || c == '\\' || c == ';' || isUnicodeWhitespace(c) || isUnicodeLinespace(c)) {
             if (c == '/') {
                 switch (getSlashAction(context, inLineEscape)) {
                     case END_NODE:
@@ -762,11 +764,10 @@ public class KDLParser {
                     consumeBlockComment(context);
                 }
             } else { // c == '*'
-                c = context.read();
+                c = context.peek();
                 if (c == '/') {
+                    context.read();
                     return;
-                } else {
-                    context.unread(c);
                 }
             }
         }
