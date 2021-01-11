@@ -149,17 +149,18 @@ public class Search {
         }
 
         final KDLDocument.Builder docBuilder = KDLDocument.builder();
-        if (depth < minDepth || maxDepth < depth) {
-            for (KDLNode node : doc.getNodes()) {
-                if (nodeMatches(node)) {
-                    if (node.getChild().isPresent()) {
-                        final Optional<KDLDocument> newChild = node.getChild().flatMap(ch -> mutate(fun, ch, depth + 1));
-                        final KDLNode newNode = node.toBuilder().setChild(newChild).build();
-                        fun.apply(newNode).ifPresent(docBuilder::addNode);
-                    } else {
-                        fun.apply(node).ifPresent(docBuilder::addNode);
-                    }
+        for (KDLNode node : doc.getNodes()) {
+            if (depth >= minDepth && nodeMatches(node)) {
+                if (node.getChild().isPresent()) {
+                    final Optional<KDLDocument> newChild = node.getChild().flatMap(ch -> mutate(fun, ch, depth + 1));
+                    final KDLNode newNode = node.toBuilder().setChild(newChild).build();
+                    fun.apply(newNode).ifPresent(docBuilder::addNode);
+                } else {
+                    fun.apply(node).ifPresent(docBuilder::addNode);
                 }
+            } else {
+                final Optional<KDLDocument> newChild = node.getChild().flatMap(ch -> mutate(fun, ch, depth + 1));
+                docBuilder.addNode(node.toBuilder().setChild(newChild).build());
             }
         }
 
