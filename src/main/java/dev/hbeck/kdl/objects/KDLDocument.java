@@ -51,6 +51,11 @@ public class KDLDocument implements KDLObject {
     }
 
     void writeKDL(Writer writer, int indent, int depth) throws IOException {
+        if (nodes.isEmpty() && depth == 0) {
+            writer.write('\n');
+            return;
+        }
+
         for (KDLNode node : nodes) {
             for (int i = 0; i < indent * depth; i++) {
                 writer.write(' ');

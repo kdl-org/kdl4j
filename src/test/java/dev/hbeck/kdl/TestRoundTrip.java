@@ -55,7 +55,7 @@ public class TestRoundTrip {
                 throw new RuntimeException(String.format("Expected parse failure, but got:\n%s", output));
             }
 
-            assertThat(output, equalTo(expected));
+            assertThat(output, equalTo(expected.get()));
         } catch (KDLParseException e) {
             if (expected.isPresent()) {
                 throw new RuntimeException("Expected no exception!", e);

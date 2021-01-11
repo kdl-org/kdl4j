@@ -1,1 +1,1 @@
-node 1 1.0 1.0e10 1.0e-100x01 0o07 0b10 "arg" r"arg\\" true false null
+node 1 1.0 1.0E+10 1.0E-10 0x1 0o7 0b10 "arg" r"arg\\" true false null
