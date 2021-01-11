@@ -1,20 +1,23 @@
 package dev.hbeck.kdl.parse;
 
-import dev.hbeck.kdl.objects.*;
-import static dev.hbeck.kdl.TestUtil.parser;
-import static dev.hbeck.kdl.TestUtil.throwsException;
+import dev.hbeck.kdl.objects.KDLDocument;
+import dev.hbeck.kdl.objects.KDLNode;
+import dev.hbeck.kdl.objects.KDLNull;
+import dev.hbeck.kdl.objects.KDLNumber;
+import dev.hbeck.kdl.objects.KDLValue;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Map.Entry;
-import java.util.Collections;
-import java.util.Optional;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
+import static dev.hbeck.kdl.TestUtil.parser;
+import static dev.hbeck.kdl.TestUtil.throwsException;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -32,17 +35,17 @@ public class TestParser {
         assertThat(parser.parse("node\n"), equalTo(doc(node("node"))));
         assertThat(parser.parse("\nnode\n"), equalTo(doc(node("node"))));
         assertThat(parser.parse("node1\nnode2"),
-            equalTo(doc(node("node1"), node("node2"))));
+                equalTo(doc(node("node1"), node("node2"))));
     }
 
     @Test
     public void test_node() {
         assertThat(parser.parse("node;"), equalTo(doc(node("node"))));
-        assertThat(parser.parse("node 1"), equalTo(doc(node("node", List.of(1)))));
+        assertThat(parser.parse("node 1"), equalTo(doc(node("node", list(1)))));
         assertThat(parser.parse("node 1 2 \"3\" true false null"),
-            equalTo(doc(node("node", List.of(1, 2, "3", true, false, KDLNull.INSTANCE)))));
+                equalTo(doc(node("node", list(1, 2, "3", true, false, KDLNull.INSTANCE)))));
         assertThat(parser.parse("node {\n    node2\n}"),
-            equalTo(doc(node("node", node("node2")))));
+                equalTo(doc(node("node", node("node2")))));
     }
 
     @Test
@@ -59,8 +62,8 @@ public class TestParser {
     @Test
     public void test_argSlashdashComment() {
         assertThat(parser.parse("node /-1"), equalTo(doc(node("node"))));
-        assertThat(parser.parse("node /-1 2"), equalTo(doc(node("node", List.of(2)))));
-        assertThat(parser.parse("node 1 /- 2 3"), equalTo(doc(node("node", List.of(1, 3)))));
+        assertThat(parser.parse("node /-1 2"), equalTo(doc(node("node", list(2)))));
+        assertThat(parser.parse("node 1 /- 2 3"), equalTo(doc(node("node", list(1, 3)))));
         assertThat(parser.parse("node /--1"), equalTo(doc(node("node"))));
         assertThat(parser.parse("node /- -1"), equalTo(doc(node("node"))));
         assertThat(parser.parse("node \\\n/- -1"), equalTo(doc(node("node"))));
@@ -70,7 +73,7 @@ public class TestParser {
     public void test_prop_slashdash_comment() {
         assertThat(parser.parse("node /-key=1"), equalTo(doc(node("node"))));
         assertThat(parser.parse("node /- key=1"), equalTo(doc(node("node"))));
-        assertThat(parser.parse("node key=1 /-key2=2"), equalTo(doc(node("node", Map.of("key", 1)))));
+        assertThat(parser.parse("node key=1 /-key2=2"), equalTo(doc(node("node", map("key", 1)))));
     }
 
     @Test
@@ -82,13 +85,13 @@ public class TestParser {
 
     @Test
     public void test_string() {
-        assertThat(parser.parse("node \"\""), equalTo(doc(node("node", List.of("")))));
-        assertThat(parser.parse("node \"hello\""), equalTo(doc(node("node", List.of("hello")))));
-        assertThat(parser.parse("node \"hello\\nworld\""), equalTo(doc(node("node", List.of("hello\nworld")))));
-        assertThat(parser.parse("node \"\\u{1F408}\""), equalTo(doc(node("node", List.of("\uD83D\uDC08")))));
+        assertThat(parser.parse("node \"\""), equalTo(doc(node("node", list("")))));
+        assertThat(parser.parse("node \"hello\""), equalTo(doc(node("node", list("hello")))));
+        assertThat(parser.parse("node \"hello\\nworld\""), equalTo(doc(node("node", list("hello\nworld")))));
+        assertThat(parser.parse("node \"\\u{1F408}\""), equalTo(doc(node("node", list("\uD83D\uDC08")))));
         assertThat(parser.parse("node \"\\\"\\\\\\/\\b\\f\\n\\r\\t\""),
-            equalTo(doc(node("node", List.of("\"\\/\u0008\u000C\n\r\t")))));
-        assertThat(parser.parse("node \"\\u{10}\""), equalTo(doc(node("node", List.of("\u0010")))));
+                equalTo(doc(node("node", list("\"\\/\u0008\u000C\n\r\t")))));
+        assertThat(parser.parse("node \"\\u{10}\""), equalTo(doc(node("node", list("\u0010")))));
 
         assertThat(() -> parser.parse("node \"\\i\""), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node \"\\u{c0ffee}\""), throwsException(KDLParseException.class));
@@ -96,47 +99,53 @@ public class TestParser {
 
     @Test
     public void test_float() {
-        assertThat(parser.parse("node 1.0"), equalTo(doc(node("node", List.of(1.0)))));
-        assertThat(parser.parse("node 0.0"), equalTo(doc(node("node", List.of(0.0)))));
-        assertThat(parser.parse("node -1.0"), equalTo(doc(node("node", List.of(-1.0)))));
-        assertThat(parser.parse("node +1.0"), equalTo(doc(node("node", List.of(1.0)))));
-        assertThat(parser.parse("node 1.0e10"), equalTo(doc(node("node", List.of(1.0e10)))));
-        assertThat(parser.parse("node 1.0e-10"), equalTo(doc(node("node", List.of(1.0e-10)))));
+        assertThat(parser.parse("node 1.0"), equalTo(doc(node("node", list(1.0)))));
+        assertThat(parser.parse("node 0.0"), equalTo(doc(node("node", list(0.0)))));
+        assertThat(parser.parse("node -1.0"), equalTo(doc(node("node", list(-1.0)))));
+        assertThat(parser.parse("node +1.0"), equalTo(doc(node("node", list(1.0)))));
+        assertThat(parser.parse("node 1.0e10"), equalTo(doc(node("node", list(1.0e10)))));
+        assertThat(parser.parse("node 1.0e-10"), equalTo(doc(node("node", list(1.0e-10)))));
         assertThat(parser.parse("node 123_456_789.0"),
-            equalTo(doc(node("node", List.of(new BigDecimal("123456789.0"))))));
-        assertThat(parser.parse("node 123_456_789.0_"),
-            equalTo(doc(node("node", List.of(new BigDecimal("123456789.0"))))));
+                equalTo(doc(node("node", list(new BigDecimal("123456789.0"))))));
 
+        assertThat(() -> parser.parse("node 123_456_789.0_"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node ?1.0"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node _1.0"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node .0"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node 1.0E100E10"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node 1.0E1.10"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node 1.0.0"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node 1.0.0E7"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node 1.E7"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node 1._0"), throwsException(KDLParseException.class)); // TODO: fails
         assertThat(() -> parser.parse("node 1."), throwsException(KDLParseException.class)); // TODO: fails
     }
 
     @Test
     public void test_integer() {
-        assertThat(parser.parse("node 0"), equalTo(doc(node("node", List.of(0)))));
-        assertThat(parser.parse("node 0123456789"), equalTo(doc(node("node", List.of(123456789)))));
-        assertThat(parser.parse("node 0123_456_789"), equalTo(doc(node("node", List.of(123456789)))));
-        assertThat(parser.parse("node 0123_456_789_"), equalTo(doc(node("node", List.of(123456789)))));
-        assertThat(parser.parse("node +0123456789"), equalTo(doc(node("node", List.of(123456789)))));
-        assertThat(parser.parse("node -0123456789"), equalTo(doc(node("node", List.of(-123456789)))));
+        assertThat(parser.parse("node 0"), equalTo(doc(node("node", list(0)))));
+        assertThat(parser.parse("node 0123456789"), equalTo(doc(node("node", list(123456789)))));
+        assertThat(parser.parse("node 0123_456_789"), equalTo(doc(node("node", list(123456789)))));
+        assertThat(parser.parse("node 0123_456_789_"), equalTo(doc(node("node", list(123456789)))));
+        assertThat(parser.parse("node +0123456789"), equalTo(doc(node("node", list(123456789)))));
+        assertThat(parser.parse("node -0123456789"), equalTo(doc(node("node", list(-123456789)))));
 
         assertThat(() -> parser.parse("node ?0123456789"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node _0123456789"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node a"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node --"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node 0x"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node 0x_1"), throwsException(KDLParseException.class));
     }
 
     @Test
     public void test_hexadecimal() {
         KDLNumber kdlNumber = new KDLNumber(new BigDecimal(new BigInteger("0123456789abcdef", 16)), 16);
 
-        assertThat(parser.parse("node 0x0123456789abcdef"), equalTo(doc(node("node", List.of(kdlNumber)))));
-        assertThat(parser.parse("node 0x01234567_89abcdef"), equalTo(doc(node("node", List.of(kdlNumber)))));
-        assertThat(parser.parse("node 0x01234567_89abcdef_"), equalTo(doc(node("node", List.of(kdlNumber)))));
-        
+        assertThat(parser.parse("node 0x0123456789abcdef"), equalTo(doc(node("node", list(kdlNumber)))));
+        assertThat(parser.parse("node 0x01234567_89abcdef"), equalTo(doc(node("node", list(kdlNumber)))));
+        assertThat(parser.parse("node 0x01234567_89abcdef_"), equalTo(doc(node("node", list(kdlNumber)))));
+
         assertThat(() -> parser.parse("node 0x_123"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node 0xg"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node 0xx"), throwsException(KDLParseException.class));
@@ -146,9 +155,9 @@ public class TestParser {
     public void test_octal() {
         KDLNumber kdlNumber = new KDLNumber(new BigDecimal(01234567), 8);
 
-        assertThat(parser.parse("node 0o01234567"), equalTo(doc(node("node", List.of(kdlNumber)))));
-        assertThat(parser.parse("node 0o0123_4567"), equalTo(doc(node("node", List.of(kdlNumber)))));
-        assertThat(parser.parse("node 0o01234567_"), equalTo(doc(node("node", List.of(kdlNumber)))));
+        assertThat(parser.parse("node 0o01234567"), equalTo(doc(node("node", list(kdlNumber)))));
+        assertThat(parser.parse("node 0o0123_4567"), equalTo(doc(node("node", list(kdlNumber)))));
+        assertThat(parser.parse("node 0o01234567_"), equalTo(doc(node("node", list(kdlNumber)))));
 
         assertThat(() -> parser.parse("node 0o_123"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node 0o8"), throwsException(KDLParseException.class));
@@ -159,10 +168,10 @@ public class TestParser {
     public void test_binary() {
         KDLNumber kdlNumber = new KDLNumber(new BigDecimal(6), 2);
 
-        assertThat(parser.parse("node 0b0110"), equalTo(doc(node("node", List.of(kdlNumber)))));
-        assertThat(parser.parse("node 0b01_10"), equalTo(doc(node("node", List.of(kdlNumber)))));
-        assertThat(parser.parse("node 0b01___10"), equalTo(doc(node("node", List.of(kdlNumber)))));
-        assertThat(parser.parse("node 0b0110_"), equalTo(doc(node("node", List.of(kdlNumber)))));
+        assertThat(parser.parse("node 0b0110"), equalTo(doc(node("node", list(kdlNumber)))));
+        assertThat(parser.parse("node 0b01_10"), equalTo(doc(node("node", list(kdlNumber)))));
+        assertThat(parser.parse("node 0b01___10"), equalTo(doc(node("node", list(kdlNumber)))));
+        assertThat(parser.parse("node 0b0110_"), equalTo(doc(node("node", list(kdlNumber)))));
 
         assertThat(() -> parser.parse("node 0b_0110"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node 0b20"), throwsException(KDLParseException.class));
@@ -171,28 +180,28 @@ public class TestParser {
 
     @Test
     public void test_raw_string() {
-        assertThat(parser.parse("node r\"foo\""), equalTo(doc(node("node", List.of("foo")))));
-        assertThat(parser.parse("node r\"foo\\nbar\""), equalTo(doc(node("node", List.of("foo\\nbar")))));
-        assertThat(parser.parse("node r#\"foo\"#"), equalTo(doc(node("node", List.of("foo")))));
-        assertThat(parser.parse("node r##\"foo\"##"), equalTo(doc(node("node", List.of("foo")))));
-        assertThat(parser.parse("node r\"\\nfoo\\r\""), equalTo(doc(node("node", List.of("\\nfoo\\r")))));
-        assertThat(parser.parse("node r#\"hello\"world\"#"), equalTo(doc(node("node", List.of("hello\"world")))));
-    
+        assertThat(parser.parse("node r\"foo\""), equalTo(doc(node("node", list("foo")))));
+        assertThat(parser.parse("node r\"foo\\nbar\""), equalTo(doc(node("node", list("foo\\nbar")))));
+        assertThat(parser.parse("node r#\"foo\"#"), equalTo(doc(node("node", list("foo")))));
+        assertThat(parser.parse("node r##\"foo\"##"), equalTo(doc(node("node", list("foo")))));
+        assertThat(parser.parse("node r\"\\nfoo\\r\""), equalTo(doc(node("node", list("\\nfoo\\r")))));
+        assertThat(parser.parse("node r#\"hello\"world\"#"), equalTo(doc(node("node", list("hello\"world")))));
+
         assertThat(() -> parser.parse("node r##\"foo\"#"), throwsException(KDLParseException.class));
     }
 
     @Test
     public void test_boolean() {
-        assertThat(parser.parse("node true"), equalTo(doc(node("node", List.of(true)))));
-        assertThat(parser.parse("node false"), equalTo(doc(node("node", List.of(false)))));
+        assertThat(parser.parse("node true"), equalTo(doc(node("node", list(true)))));
+        assertThat(parser.parse("node false"), equalTo(doc(node("node", list(false)))));
     }
 
     @Test
     public void test_node_space() {
-        assertThat(parser.parse("node 1"), equalTo(doc(node("node", List.of(1)))));
-        assertThat(parser.parse("node\t1"), equalTo(doc(node("node", List.of(1)))));
-        assertThat(parser.parse("node\t \\\n 1"), equalTo(doc(node("node", List.of(1)))));
-        assertThat(parser.parse("node\t \\ // hello\n 1"), equalTo(doc(node("node", List.of(1))))); // TODO: fails
+//        assertThat(parser.parse("node 1"), equalTo(doc(node("node", list(1)))));
+//        assertThat(parser.parse("node\t1"), equalTo(doc(node("node", list(1)))));
+//        assertThat(parser.parse("node\t \\\n 1"), equalTo(doc(node("node", list(1)))));
+        assertThat(parser.parse("node\t \\ // hello\n 1"), equalTo(doc(node("node", list(1))))); // TODO: fails
     }
 
     @Test
@@ -243,21 +252,21 @@ public class TestParser {
     @Test
     public void test_nestedChildNodes() {
         KDLDocument actual = parser.parse(
-            "content { \n" +
-            "    section \"First section\" {\n" +
-            "        paragraph \"This is the first paragraph\"\n" +
-            "        paragraph \"This is the second paragraph\"\n" +
-            "    }\n" +
-            "}"
+                "content { \n" +
+                        "    section \"First section\" {\n" +
+                        "        paragraph \"This is the first paragraph\"\n" +
+                        "        paragraph \"This is the second paragraph\"\n" +
+                        "    }\n" +
+                        "}"
         );
 
         KDLDocument expected = doc(
-            node("content", 
-                node("section", List.of("First section"),
-                    node("paragraph", List.of("This is the first paragraph")),
-                    node("paragraph", List.of("This is the second paragraph"))
+                node("content",
+                        node("section", list("First section"),
+                                node("paragraph", list("This is the first paragraph")),
+                                node("paragraph", list("This is the second paragraph"))
+                        )
                 )
-            )
         );
 
         assertThat(actual, equalTo(expected));
@@ -266,35 +275,35 @@ public class TestParser {
     @Test
     public void test_semicolon() {
         assertThat(parser.parse("node1; node2; node3"),
-            equalTo(doc(node("node1"), node("node2"), node("node3"))));
+                equalTo(doc(node("node1"), node("node2"), node("node3"))));
         assertThat(parser.parse("node1 { node2; }; node3"),
-            equalTo(doc(node("node1", node("node2")), node("node3")))); // TODO: fails
+                equalTo(doc(node("node1", node("node2")), node("node3")))); // TODO: fails
     }
 
     @Test
     public void test_multiline_strings() {
         assertThat(parser.parse("string \"my\nmultiline\nvalue\""),
-            equalTo(doc(node("string", List.of("my\nmultiline\nvalue")))));
+                equalTo(doc(node("string", list("my\nmultiline\nvalue")))));
     }
 
     @Test
     public void test_comments() {
         KDLDocument actual = parser.parse(
-            "// C style\n"+
+                "// C style\n" +
 
-            "/*\n" +
-            "C style multiline\n" +
-            "*/\n" +
+                        "/*\n" +
+                        "C style multiline\n" +
+                        "*/\n" +
 
-            "tag /*foo=true*/ bar=false\n" +
+                        "tag /*foo=true*/ bar=false\n" +
 
-            "/*/*\n" +
-            "hello\n" +
-            "*/*/"
+                        "/*/*\n" +
+                        "hello\n" +
+                        "*/*/"
         );
 
         KDLDocument expected = doc(
-            node("tag", Map.of("bar", false))
+                node("tag", map("bar", false))
         );
 
         assertThat(actual, equalTo(expected));
@@ -303,16 +312,15 @@ public class TestParser {
     @Test
     public void test_multiline_nodes() {
         KDLDocument actual = parser.parse(
-            "title \\\n" +
-            "    \"Some title\"\n" +
-
-            "my-node 1 2 \\    // comments are ok after \\\n" +
-            "        3 4\n"
+                "title \\\n" +
+                        "    \"Some title\"\n" +
+                        "my-node 1 2 \\    // comments are ok after \\\n" +
+                        "        3 4\n"
         );
 
         KDLDocument expected = doc(
-            node("title", List.of("Some title")),
-            node("my-node", List.of(1, 2, 3, 4))
+                node("title", list("Some title")),
+                node("my-node", list(1, 2, 3, 4))
         );
 
         assertThat(actual, equalTo(expected)); // TODO: fails
@@ -320,17 +328,17 @@ public class TestParser {
 
     @Test
     public void test_utf8() {
-        assertThat(parser.parse("smile \"😁\""), equalTo(doc(node("smile", List.of("😁")))));
-        assertThat(parser.parse("ノード お名前＝\"☜(ﾟヮﾟ☜)\""),
-            equalTo(doc(node("ノード", Map.of("お名前", "☜(ﾟヮﾟ☜)"))))); // TODO: fails
+        assertThat(parser.parse("smile \"😁\""), equalTo(doc(node("smile", list("😁")))));
+        assertThat(parser.parse("ノード お名前=\"☜(ﾟヮﾟ☜)\""),
+                equalTo(doc(node("ノード", map("お名前", "☜(ﾟヮﾟ☜)"))))); // TODO: fails
     }
 
     @Test
     public void test_node_names() {
         assertThat(parser.parse("\"!@#$@$%Q#$%~@!40\" \"1.2.3\" \"!!!!!\"=true"),
-            equalTo(doc(node("!@#$@$%Q#$%~@!40", List.of("1.2.3"), Map.of("!!!!!", true)))));
+                equalTo(doc(node("!@#$@$%Q#$%~@!40", list("1.2.3"), map("!!!!!", true)))));
         assertThat(parser.parse("foo123~!@#$%^&*.:'|/?+ \"weeee\""),
-            equalTo(doc(node("foo123~!@#$%^&*.:'|/?+", List.of("weeee"))))); // TODO: fails
+                equalTo(doc(node("foo123~!@#$%^&*.:'|/?+", list("weeee"))))); // TODO: fails
     }
 
     private KDLDocument doc(KDLNode... nodes) {
@@ -365,5 +373,16 @@ public class TestParser {
 
     private KDLNode node(String ident, KDLNode... nodes) {
         return node(ident, Collections.emptyList(), nodes);
+    }
+
+    private List<Object> list(Object... values) {
+        final ArrayList<Object> kdlValues = new ArrayList<>();
+        Collections.addAll(kdlValues, values);
+
+        return kdlValues;
+    }
+
+    private Map<String, Object> map(String key, Object value) {
+        return Collections.singletonMap(key, value);
     }
 }

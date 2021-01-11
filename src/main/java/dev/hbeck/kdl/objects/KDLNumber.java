@@ -94,6 +94,14 @@ public class KDLNumber implements KDLValue {
         return from(val, 10);
     }
 
+    public static KDLNumber from(BigInteger val, int radix) {
+        return new KDLNumber(new BigDecimal(val), radix);
+    }
+
+    public static KDLNumber from(BigInteger val) {
+        return from(val, 10);
+    }
+
     public static Optional<KDLNumber> from(String val, int radix) {
         return from(val).filter(v -> v.radix == radix);
     }

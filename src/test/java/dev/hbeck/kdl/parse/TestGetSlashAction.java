@@ -46,7 +46,7 @@ public class TestGetSlashAction {
         final KDLParseContext context = TestUtil.strToContext(input);
 
         try {
-            final KDLParser.SlashAction action = TestUtil.parser.getSlashAction(context);
+            final KDLParser.SlashAction action = TestUtil.parser.getSlashAction(context, false);
             final String rem = TestUtil.readRemainder(context);
 
             assertThat(action, equalTo(expectedResult));
