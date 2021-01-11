@@ -42,12 +42,12 @@ public class Search {
         return this;
     }
 
-    public Search matchAllArgs() {
+    public Search matchAllArgPredicates() {
         matchAllArgs = true;
         return this;
     }
 
-    public Search matchAllProps() {
+    public Search matchAllPropPredicates() {
         matchAllProps = true;
         return this;
     }

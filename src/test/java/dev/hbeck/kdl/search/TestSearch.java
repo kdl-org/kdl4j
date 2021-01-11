@@ -150,7 +150,7 @@ public class TestSearch {
         final List<KDLNode> found = document.search()
                 .forProperty("key", KDLString.from("val"))
                 .forProperty("key2", KDLValue.from("val2"))
-                .matchAllProps()
+                .matchAllPropPredicates()
                 .search();
 
         assertThat(found, equalTo(Collections.singletonList(node2)));
@@ -179,7 +179,7 @@ public class TestSearch {
         final List<KDLNode> found = document.search()
                 .forArg(KDLValue.from("val"))
                 .forArg(KDLValue.from("val2"))
-                .matchAllArgs()
+                .matchAllArgPredicates()
                 .search();
 
         assertThat(found, equalTo(Collections.singletonList(node2)));
