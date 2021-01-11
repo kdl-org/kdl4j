@@ -97,17 +97,13 @@ public class Search {
     }
 
     private List<KDLNode> search(KDLDocument doc, int depth, List<KDLNode> nodes) {
-        if (depth < minDepth || maxDepth < depth) {
-            for (KDLNode node : doc.getNodes()) {
-                if (nodeMatches(node)) {
-                    nodes.add(node);
-                }
-            }
-        }
-
         if (depth <= maxDepth) {
             for (KDLNode node : doc.getNodes()) {
-                search(doc, depth + 1, nodes);
+                if (minDepth <= depth && nodeMatches(node)) {
+                    nodes.add(node);
+                }
+
+                node.getChild().ifPresent(ch -> search(ch, depth + 1, nodes));
             }
         }
 
@@ -185,31 +181,49 @@ public class Search {
             return false;
         }
 
-        boolean anyArgsHereMatch = false;
+        if (matchAllArgs && !args.isEmpty() && node.getArgs().isEmpty()) {
+            return false;
+        }
+
+        boolean anyArgsHereMatch = args.isEmpty();
         boolean allArgsHereMatch = true;
-        for (KDLValue arg : node.getArgs()) {
-            for (Predicate<KDLValue> pred : args) {
-                boolean matches = pred.test(arg);
-                anyArgsHereMatch |= matches;
-                allArgsHereMatch &= matches;
+        for (Predicate<KDLValue> pred : args) {
+            boolean someArgMatched = false;
+            for (KDLValue arg : node.getArgs()) {
+                someArgMatched |= pred.test(arg);
             }
+            anyArgsHereMatch |= someArgMatched;
+            allArgsHereMatch &= someArgMatched;
         }
 
         if ((matchAllArgs && !allArgsHereMatch) || !anyArgsHereMatch) {
             return false;
         }
 
-        boolean anyPropsHereMatch = false;
-        boolean allPropsHereMatch = true;
-        for (Map.Entry<String, KDLValue> prop : node.getProps().entrySet()) {
-            for (Map.Entry<Predicate<String>, Predicate<KDLValue>> propPred : properties.entrySet()) {
-                boolean matches = propPred.getKey().test(prop.getKey()) && propPred.getValue().test(prop.getValue());
-                anyPropsHereMatch |= matches;
-                allPropsHereMatch &= matches;
-            }
+        if (matchAllProps && !properties.isEmpty() && node.getProps().isEmpty()) {
+            return false;
         }
 
-        return (matchAllProps || allPropsHereMatch) && anyPropsHereMatch;
+        boolean anyPropsHereMatch = properties.isEmpty();
+        boolean allPropsHereMatch = true;
+        for (Map.Entry<Predicate<String>, Predicate<KDLValue>> propPred : properties.entrySet()) {
+            boolean somePropMatched = false;
+            for (Map.Entry<String, KDLValue> prop : node.getProps().entrySet()) {
+                somePropMatched |= propPred.getKey().test(prop.getKey()) && propPred.getValue().test(prop.getValue());
+            }
+            anyPropsHereMatch |= somePropMatched;
+            allPropsHereMatch &= somePropMatched;
+        }
+
+        if (matchAllProps) {
+            return allPropsHereMatch;
+        } else {
+            return anyPropsHereMatch;
+        }
+    }
+
+    public static <T> Predicate<T> any() {
+        return v -> true;
     }
 
     public static Search of(KDLDocument document) {
