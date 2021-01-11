@@ -38,7 +38,7 @@ public class Search {
     }
 
     public Search forNodeId(Predicate<String> identifier) {
-        nodeIdentifiers.add(Predicate.isEqual(identifier));
+        nodeIdentifiers.add(identifier);
         return this;
     }
 
