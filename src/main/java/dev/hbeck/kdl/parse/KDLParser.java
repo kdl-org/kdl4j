@@ -499,7 +499,7 @@ public class KDLParser {
     String parseEscapedString(KDLParseContext context) throws IOException {
         int c = context.read();
         if (c != '"') {
-            throw new KDLParseException("No quote at the beginning of escaped string");
+            throw new KDLInternalException("No quote at the beginning of escaped string");
         }
 
         final StringBuilder stringBuilder = new StringBuilder();

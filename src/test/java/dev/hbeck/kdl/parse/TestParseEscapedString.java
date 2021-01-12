@@ -45,7 +45,7 @@ public class TestParseEscapedString {
         try {
             final String str = TestUtil.parser.parseEscapedString(context);
             assertThat(str, equalTo(expectedResult));
-        } catch (KDLParseException e) {
+        } catch (KDLParseException | KDLInternalException e) {
             if (expectedResult != null) {
                 throw new KDLParseException("Expected no errors", e);
             }
