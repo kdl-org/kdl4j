@@ -62,6 +62,8 @@ public class KDLParser {
             throw new KDLParseException(message, e);
         } catch (IOException e) {
             throw new IOException(context.getErrorLocationAndInvalidateContext(), e);
+        } catch (KDLInternalException e) {
+            throw new KDLInternalException(context.getErrorLocationAndInvalidateContext(), e);
         } catch (Throwable t) {
             throw new KDLInternalException(String.format("Unexpected exception:\n%s", context.getErrorLocationAndInvalidateContext()), t);
         }
@@ -186,6 +188,8 @@ public class KDLParser {
                         return Optional.of(new KDLNode(identifier, properties, args, child));
                     } else if (isUnicodeLinespace(c)) {
                         throw new KDLParseException("Unexpected skip marker before newline");
+                    } else if ( c == EOF) {
+                        throw new KDLParseException("Unexpected EOF following skip marker");
                     } else {
                         final KDLObject object = parseArgOrProp(context);
                         if (!(object instanceof KDLValue) && !(object instanceof KDLProperty)) {
@@ -282,7 +286,7 @@ public class KDLParser {
     KDLDocument parseChild(KDLParseContext context) throws IOException {
         int c = context.read();
         if (c != '{') {
-            throw new KDLInternalException("");
+            throw new KDLInternalException(String.format("Expected '{' but found '%s'", (char) c));
         }
 
         final KDLDocument document = parseDocument(context, false);
@@ -398,6 +402,9 @@ public class KDLParser {
     KDLNumber parseDecimalNumber(KDLParseContext context) throws IOException {
         final StringBuilder stringBuilder = new StringBuilder();
 
+        boolean inFraction = false;
+        boolean inExponent = false;
+        boolean signLegal = true;
         int c = context.peek();
         if (c == '_' || c == 'E' || c == 'e') {
             throw new KDLParseException(String.format("Decimal numbers may not begin with an '%s' character", (char) c));
@@ -409,12 +416,10 @@ public class KDLParser {
                 throw new KDLParseException("Numbers may not begin with an '_' character after sign");
             } else {
                 stringBuilder.appendCodePoint(sign);
+                signLegal = false;
             }
         }
 
-        boolean inFraction = false;
-        boolean inExponent = false;
-        boolean signLegal = true;
         c = context.peek();
         while (isValidDecimalChar(c) || c == 'e' || c == 'E' || c == '_' || c == '.' || c == '-' || c == '+') {
             context.read();
@@ -456,6 +461,7 @@ public class KDLParser {
                 signLegal = false;
                 stringBuilder.appendCodePoint(c);
             } else {
+                signLegal = false;
                 stringBuilder.appendCodePoint(c);
             }
 

@@ -1,6 +1,9 @@
 package dev.hbeck.kdl.parse;
 
+import java.util.Optional;
+
 public class CharClasses {
+
     public static boolean isValidNumericStart(int c) {
         switch (c) {
             case '+':
@@ -166,5 +169,45 @@ public class CharClasses {
             default:
                 return false;
         }
+    }
+
+    public static boolean isPrintableAscii(int c) {
+        return ' ' <= c && c <= '~';
+    }
+
+    private static final Optional<String> ESC_BACKSLASH = Optional.of("\\\\");
+    private static final Optional<String> ESC_BACKSPACE = Optional.of("\\b");
+    private static final Optional<String> ESC_NEWLINE = Optional.of("\\n");
+    private static final Optional<String> ESC_FORM_FEED = Optional.of("\\f");
+    private static final Optional<String> ESC_FORWARD_SLASH = Optional.of("\\/");
+    private static final Optional<String> ESC_TAB = Optional.of("\\t");
+    private static final Optional<String> ESC_CR = Optional.of("\\r");
+    private static final Optional<String> ESC_QUOTE = Optional.of("\\\"");
+
+    public static Optional<String> getCommonEscape(int c) {
+        switch (c) {
+            case '\\':
+                return ESC_BACKSLASH;
+            case '\b':
+                return ESC_BACKSPACE;
+            case '\n':
+                return ESC_NEWLINE;
+            case '\f':
+                return ESC_FORM_FEED;
+            case '/':
+                return ESC_FORWARD_SLASH;
+            case '\t':
+                return ESC_TAB;
+            case '\r':
+                return ESC_CR;
+            case '"':
+                return ESC_QUOTE;
+            default:
+                return Optional.empty();
+        }
+    }
+
+    public static String getEscapeIncludingUnicode(int c) {
+        return getCommonEscape(c).orElseGet(() -> String.format("\\u{%x}", c));
     }
 }

@@ -26,7 +26,7 @@ public class TestParseNode {
         this.expectedResult = expectedResult;
     }
 
-    @Parameterized.Parameters(name = "{0}")
+    @Parameterized.Parameters(name = "{0} -> {1}")
     public static List<Object[]> getCases() {
         return Stream.of(
                 new Object[]{"a", KDLNode.builder().setIdentifier("a").build()},

@@ -49,7 +49,7 @@ public class TestParseChild {
         try {
             final KDLDocument val = TestUtil.parser.parseChild(context);
             assertThat(val, equalTo(expectedResult));
-        } catch (KDLParseException e) {
+        } catch (KDLParseException | KDLInternalException e) {
             if (expectedResult != null) {
                 throw new KDLParseException("Expected no errors", e);
             }

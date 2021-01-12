@@ -1,5 +1,8 @@
 package dev.hbeck.kdl.objects;
 
+import dev.hbeck.kdl.print.PrintConfig;
+import dev.hbeck.kdl.print.PrintUtil;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.math.BigDecimal;
@@ -42,40 +45,49 @@ public class KDLNode implements KDLObject {
     }
 
     @Override
-    public void writeKDL(Writer writer) throws IOException {
-        writeKDLPretty(writer, 0, 0);
+    public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
+        writeKDLPretty(writer, 0, printConfig);
     }
 
-    void writeKDLPretty(Writer writer, int indent, int depth) throws IOException {
-        PrintUtil.writeStringQuotedAppropriately(writer, identifier, true);
+    void writeKDLPretty(Writer writer, int depth, PrintConfig printConfig) throws IOException {
+        PrintUtil.writeStringQuotedAppropriately(writer, identifier, true, printConfig);
         if (!args.isEmpty() || !props.isEmpty() || child.isPresent()) {
             writer.write(' ');
         }
 
-        for (int i = 0; i < args.size(); i++) {
-            args.get(i).writeKDL(writer);
-            if (i < args.size() - 1 || !props.isEmpty() || child.isPresent()) {
-                writer.write(' ');
+        for (int i = 0; i < this.args.size(); i++) {
+            final KDLValue value = this.args.get(i);
+            if (value != KDLNull.INSTANCE || printConfig.shouldPrintNullArgs()) {
+                value.writeKDL(writer, printConfig);
+                if (i < this.args.size() - 1 || !props.isEmpty() || child.isPresent()) {
+                    writer.write(' ');
+                }
             }
         }
 
         final ArrayList<String> keys = new ArrayList<>(props.keySet());
         for (int i = 0; i < keys.size(); i++) {
-            PrintUtil.writeStringQuotedAppropriately(writer, keys.get(i), true);
-            writer.write('=');
-            props.get(keys.get(i)).writeKDL(writer);
-            if (i < keys.size() - 1 || child.isPresent()) {
-                writer.write(' ');
+            final KDLValue value = props.get(keys.get(i));
+            if (value != KDLNull.INSTANCE || printConfig.shouldPrintNullProps()) {
+                PrintUtil.writeStringQuotedAppropriately(writer, keys.get(i), true, printConfig);
+                writer.write('=');
+                value.writeKDL(writer, printConfig);
+                if (i < keys.size() - 1 || child.isPresent()) {
+                    writer.write(' ');
+                }
             }
         }
 
         if (child.isPresent()) {
-            writer.write("{\n");
-            child.get().writeKDL(writer, indent, depth + 1);
-            for (int i = 0; i < indent * depth; i++) {
-                writer.write(' ');
+            if (!child.get().getNodes().isEmpty() || printConfig.shouldPrintEmptyChildren()) {
+                writer.write('{');
+                writer.write(printConfig.getNewline());
+                child.get().writeKDL(writer,depth + 1, printConfig);
+                for (int i = 0; i < printConfig.getIndent() * depth; i++) {
+                    writer.write(printConfig.getIndentChar());
+                }
+                writer.write('}');
             }
-            writer.write('}');
         }
     }
 

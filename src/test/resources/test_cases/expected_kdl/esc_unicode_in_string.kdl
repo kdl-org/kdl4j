@@ -1,2 +1,1 @@
-node "hello
-world"
+node "hello\nworld"
