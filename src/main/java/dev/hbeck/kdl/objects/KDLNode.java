@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 
 public class KDLNode implements KDLObject {
     private final String identifier;
@@ -160,6 +161,30 @@ public class KDLNode implements KDLObject {
             }
 
             args.add(value);
+            return this;
+        }
+
+        public Builder removeArgIf(Predicate<KDLValue> argPredicate) {
+            args.removeIf(argPredicate);
+            return this;
+        }
+
+        public Builder removeArg(KDLValue arg) {
+            while (args.remove(arg));
+            return this;
+        }
+
+        public Builder removePropIf(Predicate<String> keyPredicate) {
+            for (String key : props.keySet()) {
+                if (keyPredicate.test(key)) {
+                    props.remove(key);
+                }
+            }
+            return this;
+        }
+
+        public Builder removeProp(String key) {
+            props.remove(key);
             return this;
         }
 

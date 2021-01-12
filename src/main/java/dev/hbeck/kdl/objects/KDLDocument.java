@@ -36,13 +36,6 @@ public class KDLDocument implements KDLObject {
         return Search.of(this);
     }
 
-    /**
-     * Writes a text representation of the document to the provided writer
-     *
-     * @param writer the writer to write to
-     * @param printConfig configuration controlling how the document is written
-     * @throws IOException if there's any error writing the document
-     */
     @Override
     public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
         writeKDLPretty(writer, printConfig);
@@ -119,6 +112,11 @@ public class KDLDocument implements KDLObject {
      *
      * @return the empty document
      */
+    public Builder toBuilder() {
+        return KDLDocument.builder()
+                .addNodes(nodes);
+    }
+    
     public static KDLDocument empty() {
         return new KDLDocument(new ArrayList<>());
     }
