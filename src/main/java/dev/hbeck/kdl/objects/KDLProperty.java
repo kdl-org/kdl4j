@@ -1,5 +1,8 @@
 package dev.hbeck.kdl.objects;
 
+import dev.hbeck.kdl.print.PrintConfig;
+import dev.hbeck.kdl.print.PrintUtil;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Objects;
@@ -22,10 +25,14 @@ public class KDLProperty implements KDLObject {
     }
 
     @Override
-    public void writeKDL(Writer writer) throws IOException {
-        PrintUtil.writeStringQuotedAppropriately(writer, key, true);
+    public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
+        if (value == KDLNull.INSTANCE && printConfig.shouldPrintNullProps()) {
+            return;
+        }
+
+        PrintUtil.writeStringQuotedAppropriately(writer, key, true, printConfig);
         writer.write('=');
-        value.writeKDL(writer);
+        value.writeKDL(writer, printConfig);
     }
 
     @Override

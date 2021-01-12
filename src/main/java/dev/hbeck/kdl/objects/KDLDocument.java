@@ -1,5 +1,6 @@
 package dev.hbeck.kdl.objects;
 
+import dev.hbeck.kdl.print.PrintConfig;
 import dev.hbeck.kdl.search.Search;
 
 import java.io.BufferedWriter;
@@ -28,20 +29,23 @@ public class KDLDocument implements KDLObject {
     }
 
     @Override
-    public void writeKDL(Writer writer) throws IOException {
-        writeKDL(writer, 0, 0);
+    public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
+        writeKDL(writer, 0, PrintConfig.RAW_DEFAULT);
     }
 
-    public void writeKDLPretty(Writer writer, int indent)  throws IOException {
-        writeKDL(writer, indent, 0);
+    public void writeKDLPretty(Writer writer, PrintConfig printConfig)  throws IOException {
+        writeKDL(writer, 0, printConfig);
+    }
+    public void writeKDLPretty(Writer writer)  throws IOException {
+        writeKDLPretty(writer, PrintConfig.PRETTY_DEFAULT);
     }
 
-    public String toKDLPretty(int indent) {
+    public String toKDLPretty(PrintConfig printConfig) {
         final StringWriter writer = new StringWriter();
         final BufferedWriter bufferedWriter = new BufferedWriter(writer);
 
         try {
-            writeKDLPretty(bufferedWriter, indent);
+            writeKDLPretty(bufferedWriter, printConfig);
             bufferedWriter.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -50,18 +54,25 @@ public class KDLDocument implements KDLObject {
         return writer.toString();
     }
 
-    void writeKDL(Writer writer, int indent, int depth) throws IOException {
+    public String toKDLPretty() {
+        return toKDLPretty(PrintConfig.PRETTY_DEFAULT);
+    }
+
+    void writeKDL(Writer writer,int depth, PrintConfig printConfig) throws IOException {
         if (nodes.isEmpty() && depth == 0) {
-            writer.write('\n');
+            writer.write(printConfig.getNewline());
             return;
         }
 
         for (KDLNode node : nodes) {
-            for (int i = 0; i < indent * depth; i++) {
-                writer.write(' ');
+            for (int i = 0; i < printConfig.getIndent() * depth; i++) {
+                writer.write(printConfig.getIndentChar());
             }
-            node.writeKDLPretty(writer, indent, depth);
-            writer.write('\n');
+            node.writeKDLPretty(writer, depth, printConfig);
+            if (printConfig.shouldRequireSemicolons()) {
+                writer.write(';');
+            }
+            writer.write(printConfig.getNewline());
         }
     }
 

@@ -1,5 +1,7 @@
 package dev.hbeck.kdl.objects;
 
+import dev.hbeck.kdl.print.PrintConfig;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Objects;
@@ -23,7 +25,7 @@ public class KDLBoolean implements KDLValue {
     }
 
     @Override
-    public void writeKDL(Writer writer) throws IOException {
+    public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
         writer.write(value ? "true" : "false");
     }
 

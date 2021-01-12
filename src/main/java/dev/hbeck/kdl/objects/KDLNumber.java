@@ -1,5 +1,7 @@
 package dev.hbeck.kdl.objects;
 
+import dev.hbeck.kdl.print.PrintConfig;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.math.BigDecimal;
@@ -26,10 +28,10 @@ public class KDLNumber implements KDLValue {
     }
 
     @Override
-    public void writeKDL(Writer writer) throws IOException {
+    public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
         switch (radix) {
             case 10:
-                writer.write(value.toString());
+                writer.write(value.toString().replace('E', printConfig.getExponentChar()));
                 break;
             case 2:
                 writer.write("0b");
@@ -44,7 +46,6 @@ public class KDLNumber implements KDLValue {
                 writer.write(value.toBigIntegerExact().toString(radix));
                 break;
         }
-
     }
 
     @Override

@@ -1,4 +1,1 @@
-node "
-hello
-world
-"
+node "\nhello\nworld\n"
