@@ -61,8 +61,9 @@ The expected file should have:
 * All nodes should be reformatted without escaped newlines 
 * Node fields should be `identifier <args> <properties in alpha order by key> <child if present>`
 * All strings/identifiers should be at the lowest level of quoting possible. `r"words"` becomes `"words"` if a value or `words` 
-  if an identifier.
-* Any duplicate properties removed, with only the rightmost one remaining  
+  if an identifier
+* Any duplicate properties removed, with only the rightmost one remaining
+* Replace any literal newlines or other ascii escape characters in escaped strings with their escape sequences
 
 formatted with 4 space indents. To try out your test cases, run the `TestRoundTrip` test class.
 

@@ -9,9 +9,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
@@ -72,7 +72,7 @@ public class TestRoundTrip {
         final String expectedFile = "src/test/resources/test_cases/expected_kdl/" + fileName;
         try {
             return Optional.of(new String(Files.readAllBytes(new File(expectedFile).toPath())));
-        } catch (FileNotFoundException e) {
+        } catch (NoSuchFileException e) {
             return Optional.empty();
         }
     }
