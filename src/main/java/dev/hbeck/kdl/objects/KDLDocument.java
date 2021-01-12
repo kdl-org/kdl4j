@@ -1,6 +1,8 @@
 package dev.hbeck.kdl.objects;
 
 import dev.hbeck.kdl.print.PrintConfig;
+import dev.hbeck.kdl.search.predicates.NodePredicate;
+import dev.hbeck.kdl.search.Operation;
 import dev.hbeck.kdl.search.Search;
 
 import java.io.BufferedWriter;
@@ -26,6 +28,32 @@ public class KDLDocument implements KDLObject {
 
     public Search search() {
         return Search.of(this);
+    }
+
+    public KDLDocument apply(Operation operation) {
+        return apply(operation, 0);
+    }
+
+    private KDLDocument apply(Operation operation, int depth) {
+        final Builder builder = KDLDocument.builder();
+
+        final NodePredicate nodePredicate = operation.getPath().get(depth);
+        for (KDLNode node : nodes) {
+            if (nodePredicate.test(node)) {
+                if (depth == operation.getDepth()) {
+                    if (operation.getMutation().isPresent()) {
+                        operation.getMutation().get().apply(node).ifPresent(builder::addNode);
+                    } else {
+                        builder.addNode(node);
+                    }
+                } else if (node.getChild().isPresent()) {
+                    final KDLNode newNode = node.toBuilder().setChild(node.getChild().get().apply(operation, depth + 1)).build();
+                    builder.addNode(newNode);
+                }
+            }
+        }
+
+        return builder.build();
     }
 
     @Override
@@ -74,6 +102,11 @@ public class KDLDocument implements KDLObject {
             }
             writer.write(printConfig.getNewline());
         }
+    }
+
+    public Builder toBuilder() {
+        return KDLDocument.builder()
+                .addNodes(nodes);
     }
 
     public static KDLDocument empty() {
