@@ -4,7 +4,7 @@ A Java implementation of a parser for the [KDL Document Language](https://github
 
 ## Status
 
-This project is alpha-quality. While it's well tested, there are almost certainly bugs still lurking.
+This project is beta-quality. It's been extensively tested, but the spec it implements is still in flux.
 
 ## Usage
 
