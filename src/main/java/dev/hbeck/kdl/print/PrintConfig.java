@@ -1,5 +1,8 @@
 package dev.hbeck.kdl.print;
 
+/**
+ * A config object controlling various aspects of how KDL documents are printed.
+ */
 public class PrintConfig {
     public static final PrintConfig PRETTY_DEFAULT = PrintConfig.builder().build();
     public static final PrintConfig RAW_DEFAULT = PrintConfig.builder()
@@ -35,46 +38,85 @@ public class PrintConfig {
         this.escapeNewlines = escapeNewlines;
     }
 
+    /**
+     * @return true if newlines in escaped strings will be represented with an escape sequence, false if they'll be
+     *         represented with a literal newline.
+     */
     public boolean shouldEscapeNewlines() {
         return escapeNewlines;
     }
 
+    /**
+     *
+     *
+     * @return true if common ascii escape characters other than newlines will be escaped, false if they'll be
+     *         represented by their literal values
+     */
     public boolean shouldEscapeCommon() {
         return escapeCommon;
     }
 
-    public boolean shouldEscapeNonAscii() {
+    /**
+     * @return true if any character outside the printable ascii range should be escaped, false if they'll be
+     *         represented by their literal values
+     */
+    public boolean shouldEscapeNonPrintableAscii() {
         return escapeNonAscii;
     }
 
+    /**
+     * @return how many getIndentChar() characters lines will be indented for each level they are away from the root.
+     *         If 0, no indentation will be performed
+     */
     public int getIndent() {
         return indent;
     }
 
+    /**
+     * @return the character used to indent lines
+     */
     public char getIndentChar() {
         return indentChar;
     }
 
+    /**
+     * @return the character used to indicate the beginning of the exponent part of floating point numbers
+     */
     public char getExponentChar() {
         return exponentChar;
     }
 
+    /**
+     * @return true if empty children should be printed with braces containing no nodes, false if they shouldn't be printed
+     */
     public boolean shouldPrintEmptyChildren() {
         return printEmptyChildren;
     }
 
+    /**
+     * @return true if node arguments with the literal value 'null' will be printed
+     */
     public boolean shouldPrintNullArgs() {
         return printNullArgs;
     }
 
+    /**
+     * @return true if node properties with the literal value 'null' will be printed
+     */
     public boolean shouldPrintNullProps() {
         return printNullProps;
     }
 
+    /**
+     * @return true if each node should be terminated with a ';', false if semicolons will be omitted entirely
+     */
     public boolean shouldRequireSemicolons() {
         return requireSemicolons;
     }
 
+    /**
+     * @return get the string used to print newlines
+     */
     public String getNewline() {
         return newline;
     }
@@ -82,7 +124,10 @@ public class PrintConfig {
     public static Builder builder() {
         return new Builder();
     }
-    
+
+    /**
+     * See get()/should() methods above for explanation of each variable's meaning
+     */
     public static class Builder {
         private boolean requireSemicolons = false;
         private String newline = "\n";
@@ -117,6 +162,10 @@ public class PrintConfig {
         }
 
         public Builder setExponentChar(char exponentChar) {
+            if (exponentChar != 'e' && exponentChar != 'E') {
+                throw new IllegalArgumentException("Exponent character must be either 'e' or 'E'");
+            }
+
             this.exponentChar = exponentChar;
             return this;
         }

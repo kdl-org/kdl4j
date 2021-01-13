@@ -9,6 +9,10 @@ import java.math.BigInteger;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * Representation of a KDL number. Numbers may be base 16, 10, 8, or 2 as stored in the radix field. Base 10 numbers may
+ * be fractional, but all others are limited to integers.
+ */
 public class KDLNumber implements KDLValue {
     private static final KDLNumber ZERO_TWO = KDLNumber.zero(10);
     private static final KDLNumber ZERO_EIGTH = KDLNumber.zero(10);
@@ -68,6 +72,12 @@ public class KDLNumber implements KDLValue {
         return Optional.empty();
     }
 
+    /**
+     * Get the Zero value for a given radix, which must be one of [2, 8, 10, 16]
+     *
+     * @param radix the radix for the zero value
+     * @return a new number with the value 0 and the given radix
+     */
     public static KDLNumber zero(int radix) {
         switch (radix) {
             case 2:
@@ -83,6 +93,11 @@ public class KDLNumber implements KDLValue {
         }
     }
 
+    /**
+     * Get a new number with value 0 and base 10
+     *
+     * @return the new 0 number
+     */
     public static KDLNumber zero() {
         return zero(10);
     }
@@ -107,6 +122,12 @@ public class KDLNumber implements KDLValue {
         return from(val).filter(v -> v.radix == radix);
     }
 
+    /**
+     * Parse the provided string into a KDLNumber if possible.
+     *
+     * @param val the string to parse
+     * @return an optional wrapping the new KDLNumber if the parse was successful, or empty() if not
+     */
     public static Optional<KDLNumber> from(String val) {
         if (val.length() == 0) {
             return Optional.empty();

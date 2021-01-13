@@ -6,11 +6,17 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Optional;
 
+/**
+ * A model object representing the KDL 'null' value.
+ */
 public class KDLNull implements KDLValue {
     public static final KDLNull INSTANCE = new KDLNull();
 
-    private static final KDLString AS_STR = KDLString.from("null");
+    private static final KDLString AS_KDL_STR = KDLString.from("null");
 
+    /**
+     * New instances should not be created, instead use the INSTANCE constant
+     */
     private KDLNull() {
     }
 
@@ -21,7 +27,7 @@ public class KDLNull implements KDLValue {
 
     @Override
     public KDLString getAsString() {
-        return AS_STR;
+        return AS_KDL_STR;
     }
 
     @Override

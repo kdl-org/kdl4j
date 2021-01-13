@@ -7,6 +7,9 @@ import java.io.Writer;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * A KDL object holding a boolean value. New instances should not be created, instead use the TRUE or FALSE constants
+ */
 public class KDLBoolean implements KDLValue {
     public static final KDLBoolean TRUE = new KDLBoolean(true);
     public static final KDLBoolean FALSE = new KDLBoolean(false);

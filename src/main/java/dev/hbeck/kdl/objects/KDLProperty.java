@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Objects;
 
+/**
+ * An object presenting a key=value pair in a KDL document. Only used during parsing.
+ */
 public class KDLProperty implements KDLObject {
     private final String key;
     private final KDLValue value;

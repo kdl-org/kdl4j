@@ -34,6 +34,9 @@ import static dev.hbeck.kdl.parse.CharClasses.isValidDecimalChar;
 import static dev.hbeck.kdl.parse.CharClasses.isValidHexChar;
 import static dev.hbeck.kdl.parse.CharClasses.isValidNumericStart;
 
+/**
+ * The core parser object. Instances are stateless and safe to share between threads.
+ */
 public class KDLParser {
 
     public static final int EOF = -1;
@@ -52,6 +55,14 @@ public class KDLParser {
         NOTHING
     }
 
+    /**
+     * Parse the given stream into a KDLDocument model object.
+     *
+     * @param reader the stream reader to parse from
+     * @return the parsed document
+     * @throws IOException if any error occurs while reading the stream
+     * @throws KDLParseException if the document is invalid for any reason
+     */
     public KDLDocument parse(Reader reader) throws IOException {
         final KDLParseContext context = new KDLParseContext(reader);
 
@@ -69,10 +80,25 @@ public class KDLParser {
         }
     }
 
+    /**
+     * Parse the given stream into a KDLDocument model object.
+     *
+     * @param stream the stream to parse from
+     * @return the parsed document
+     * @throws IOException if any error occurs while reading the stream
+     * @throws KDLParseException if the document is invalid for any reason
+     */
     public KDLDocument parse(InputStream stream) throws IOException {
         return parse(new InputStreamReader(stream));
     }
 
+    /**
+     * Parse the given string into a KDLDocument model object.
+     *
+     * @param string the string to parse
+     * @return the parsed document
+     * @throws KDLParseException if the document is invalid for any reason
+     */
     public KDLDocument parse(String string) {
         final StringReader reader = new StringReader(string);
         try {

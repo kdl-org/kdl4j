@@ -8,6 +8,9 @@ import java.io.Writer;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * A model object representing a string in a KDL document. Note that even if quoted, identifiers are not KDLStrings.
+ */
 public class KDLString implements KDLValue {
     public static final KDLString EMPTY = KDLString.from("");
 

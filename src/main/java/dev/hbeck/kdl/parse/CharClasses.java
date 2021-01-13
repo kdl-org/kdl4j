@@ -2,8 +2,19 @@ package dev.hbeck.kdl.parse;
 
 import java.util.Optional;
 
+/**
+ * Various functions used during parsing and printing to check character membership in various character classes.
+ *
+ * Also contains functions for transforming characters into their escape sequences.
+ */
 public class CharClasses {
 
+    /**
+     * Check if the character is valid at the beginning of a numeric value
+     *
+     * @param c the character to check
+     * @return true if the character is valid, false otherwise
+     */
     public static boolean isValidNumericStart(int c) {
         switch (c) {
             case '+':
@@ -24,7 +35,12 @@ public class CharClasses {
         }
     }
 
-
+    /**
+     * Check if the character is valid in a bare identifier after the first character
+     *
+     * @param c the character to check
+     * @return true if the character is valid, false otherwise
+     */
     public static boolean isValidBareIdChar(int c) {
         switch (c) {
             case '\n':
@@ -68,14 +84,32 @@ public class CharClasses {
         }
     }
 
+    /**
+     * Check if the character is valid in a bare identifier as the first character
+     *
+     * @param c the character to check
+     * @return true if the character is valid, false otherwise
+     */
     public static boolean isValidBareIdStart(int c) {
         return !isValidDecimalChar(c) && isValidBareIdChar(c);
     }
 
+    /**
+     * Check if the character is a valid decimal digit
+     *
+     * @param c the character to check
+     * @return true if the character is valid, false otherwise
+     */
     public static boolean isValidDecimalChar(int c) {
         return '0' <= c && c <= '9';
     }
 
+    /**
+     * Check if the character is a valid hexadecimal digit
+     *
+     * @param c the character to check
+     * @return true if the character is valid, false otherwise
+     */
     public static boolean isValidHexChar(int c) {
         switch (c) {
             case '0':
@@ -106,14 +140,32 @@ public class CharClasses {
         }
     }
 
+    /**
+     * Check if the character is a valid octal digit
+     *
+     * @param c the character to check
+     * @return true if the character is valid, false otherwise
+     */
     public static boolean isValidOctalChar(int c) {
         return '0' <= c && c <= '7';
     }
 
+    /**
+     * Check if the character is a valid binary digit
+     *
+     * @param c the character to check
+     * @return true if the character is valid, false otherwise
+     */
     public static boolean isValidBinaryChar(int c) {
         return c == '0' || c == '1';
     }
 
+    /**
+     * Check if the character is contained in one of the three literal values: true, false, and null
+     *
+     * @param c the character to check
+     * @return true if the character appears in a literal, false otherwise
+     */
     public static boolean isLiteralChar(int c) {
         switch (c) {
             case 't':
@@ -131,6 +183,12 @@ public class CharClasses {
         }
     }
 
+    /**
+     * Check if the character is a unicode newline of any kind
+     *
+     * @param c the character to check
+     * @return true if the character is a unicode newline, false otherwise
+     */
     public static boolean isUnicodeLinespace(int c) {
         switch (c) {
             case '\r':
@@ -145,6 +203,12 @@ public class CharClasses {
         }
     }
 
+    /**
+     * Check if the character is unicode whitespace of any kind
+     *
+     * @param c the character to check
+     * @return true if the character is unicode whitespace, false otherwise
+     */
     public static boolean isUnicodeWhitespace(int c) {
         switch (c) {
             case '\u0009':
@@ -171,8 +235,14 @@ public class CharClasses {
         }
     }
 
+    /**
+     * Check if the character is an ASCII character that can be printed unescaped
+     *
+     * @param c the character to check
+     * @return true if the character is printable unescaped, false otherwise
+     */
     public static boolean isPrintableAscii(int c) {
-        return ' ' <= c && c <= '~';
+        return ' ' <= c && c <= '~' && c != '/' && c != '"';
     }
 
     private static final Optional<String> ESC_BACKSLASH = Optional.of("\\\\");
@@ -184,6 +254,12 @@ public class CharClasses {
     private static final Optional<String> ESC_CR = Optional.of("\\r");
     private static final Optional<String> ESC_QUOTE = Optional.of("\\\"");
 
+    /**
+     * Get the escape sequence for characters from the ASCII character set
+     *
+     * @param c the character to check
+     * @return An Optional wrapping the escape sequence string if the character needs to be escaped, or false otherwise
+     */
     public static Optional<String> getCommonEscape(int c) {
         switch (c) {
             case '\\':
@@ -207,6 +283,12 @@ public class CharClasses {
         }
     }
 
+    /**
+     * Get the escape sequence for any character
+     *
+     * @param c the character to check
+     * @return The escape sequence string
+     */
     public static String getEscapeIncludingUnicode(int c) {
         return getCommonEscape(c).orElseGet(() -> String.format("\\u{%x}", c));
     }

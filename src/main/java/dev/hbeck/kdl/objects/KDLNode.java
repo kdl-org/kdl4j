@@ -44,6 +44,13 @@ public class KDLNode implements KDLObject {
         return child;
     }
 
+    /**
+     * Writes a text representation of the node to the provided writer
+     *
+     * @param writer the writer to write to
+     * @param printConfig configuration controlling how the node is written
+     * @throws IOException if there's any error writing the node
+     */
     @Override
     public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
         writeKDLPretty(writer, 0, printConfig);
@@ -91,6 +98,11 @@ public class KDLNode implements KDLObject {
         }
     }
 
+    /**
+     * Get a builder initialized with the contents of the current node
+     *
+     * @return the new builder
+     */
     public Builder toBuilder() {
         return builder()
                 .setIdentifier(identifier)
@@ -99,6 +111,11 @@ public class KDLNode implements KDLObject {
                 .setChild(child);
     }
 
+    /**
+     * Get a builder used to gradually build a node
+     *
+     * @return the builder
+     */
     public static Builder builder() {
         return new Builder();
     }

@@ -13,6 +13,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * A model object representing a KDL Document. The only data in a document is the list of nodes, which may be empty.
+ */
 public class KDLDocument implements KDLObject {
     private final List<KDLNode> nodes;
 
@@ -24,22 +27,54 @@ public class KDLDocument implements KDLObject {
         return nodes;
     }
 
+    /**
+     *  Start a search of the document
+     *
+     * @return A new Search object initialized with this document
+     */
     public Search search() {
         return Search.of(this);
     }
 
+    /**
+     * Writes a text representation of the document to the provided writer
+     *
+     * @param writer the writer to write to
+     * @param printConfig configuration controlling how the document is written
+     * @throws IOException if there's any error writing the document
+     */
     @Override
     public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
-        writeKDL(writer, 0, PrintConfig.RAW_DEFAULT);
+        writeKDLPretty(writer, printConfig);
     }
 
+    /**
+     * Writes a text representation of the document to the provided writer
+     *
+     * @param writer the writer to write to
+     * @param printConfig configuration controlling how the document is written
+     * @throws IOException if there's any error writing the document
+     */
     public void writeKDLPretty(Writer writer, PrintConfig printConfig)  throws IOException {
         writeKDL(writer, 0, printConfig);
     }
+
+    /**
+     * Write a text representation of the document to the provided writer with default 'pretty' settings
+     *
+     * @param writer the writer to write to
+     * @throws IOException if there's any error writing the document
+     */
     public void writeKDLPretty(Writer writer)  throws IOException {
         writeKDLPretty(writer, PrintConfig.PRETTY_DEFAULT);
     }
 
+    /**
+     * Get a string representation of the document
+     *
+     * @param printConfig configuration controlling how the document is written
+     * @return the string
+     */
     public String toKDLPretty(PrintConfig printConfig) {
         final StringWriter writer = new StringWriter();
         final BufferedWriter bufferedWriter = new BufferedWriter(writer);
@@ -54,6 +89,9 @@ public class KDLDocument implements KDLObject {
         return writer.toString();
     }
 
+    /**
+     * Get a string representation of the document with default 'pretty' settings
+     */
     public String toKDLPretty() {
         return toKDLPretty(PrintConfig.PRETTY_DEFAULT);
     }
@@ -76,10 +114,20 @@ public class KDLDocument implements KDLObject {
         }
     }
 
+    /**
+     * Get a document with no nodes
+     *
+     * @return the empty document
+     */
     public static KDLDocument empty() {
         return new KDLDocument(new ArrayList<>());
     }
 
+    /**
+     * Get a builder used to gradually build a document
+     *
+     * @return the builder
+     */
     public static Builder builder() {
         return new Builder();
     }

@@ -16,6 +16,9 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+/**
+ * Represents searches of a document, as well as modifications to the document based on the search
+ */
 public class Search {
     private final Set<Predicate<String>> nodeIdentifiers = new HashSet<>();
     private final Set<Predicate<KDLValue>> args = new HashSet<>();
@@ -28,70 +31,169 @@ public class Search {
 
     private final KDLDocument document;
 
-    public Search(KDLDocument document) {
+    private Search(KDLDocument document) {
         this.document = Objects.requireNonNull(document);
     }
 
+    /**
+     * Convenience method to create a predicate that matches all inputs
+     *
+     * @param <T> the type of object being matched, ignored
+     * @return a predicate that always returns true
+     */
+    public static <T> Predicate<T> any() {
+        return v -> true;
+    }
+
+    public static Search of(KDLDocument document) {
+        return new Search(document);
+    }
+
+    /**
+     * Search for a node with the literal identifier specified
+     *
+     * @param identifier the identifier to search for
+     * @return the search for build chaining
+     */
     public Search forNodeId(String identifier) {
         nodeIdentifiers.add(Predicate.isEqual(identifier));
         return this;
     }
 
+    /**
+     * Search for a node whose identifier matches the provided predicate
+     *
+     * @param identifier the identifier predicate
+     * @return the search for build chaining
+     */
     public Search forNodeId(Predicate<String> identifier) {
         nodeIdentifiers.add(identifier);
         return this;
     }
 
+    /**
+     * By default, nodes will match if *any* argument predicate matches, calling this will cause them to only match
+     * if all argument predicates return true.
+     *
+     * @return the search for build chaining
+     */
     public Search matchAllArgPredicates() {
         matchAllArgs = true;
         return this;
     }
 
+    /**
+     * By default, nodes will match if *any* property predicate matches, calling this will cause them to only match
+     * if all property predicates return true.
+     *
+     * @return the search for build chaining
+     */
     public Search matchAllPropPredicates() {
         matchAllProps = true;
         return this;
     }
 
+    /**
+     * Adds a property predicate
+     *
+     * @param property the property name
+     * @param value the property value
+     *
+     * @return the search for build chaining
+     */
     public Search forProperty(String property, KDLValue value) {
         properties.put(Predicate.isEqual(property), Predicate.isEqual(value));
         return this;
     }
 
+    /**
+     * Adds a property predicate
+     *
+     * @param property the property name
+     * @param value the property value
+     *
+     * @return the search for build chaining
+     */
     public Search forProperty(Predicate<String> property, KDLValue value) {
         properties.put(property, Predicate.isEqual(value));
         return this;
     }
 
+    /**
+     * Adds a property predicate
+     *
+     * @param property the property name
+     * @param value the property value
+     *
+     * @return the search for build chaining
+     */
     public Search forProperty(String property, Predicate<KDLValue> value) {
         properties.put(Predicate.isEqual(property), value);
         return this;
     }
 
+    /**
+     * Adds a property predicate
+     *
+     * @param property the property name
+     * @param value the property value
+     *
+     * @return the search for build chaining
+     */
     public Search forProperty(Predicate<String> property, Predicate<KDLValue> value) {
         properties.put(property, value);
         return this;
     }
 
+    /**
+     * Adds an argument predicate
+     *
+     * @param arg the argument
+     * @return the search for build chaining
+     */
     public Search forArg(KDLValue arg) {
         args.add(Predicate.isEqual(arg));
         return this;
     }
 
+    /**
+     * Adds an argument predicate
+     *
+     * @param arg the argument
+     * @return the search for build chaining
+     */
     public Search forArg(Predicate<KDLValue> arg) {
         args.add(arg);
         return this;
     }
 
+    /**
+     * Set the minimum depth in the tree where nodes may match the provided predicates. A value of 0 indicates the root.
+     *
+     * @param minDepth the minimum depth
+     * @return the search for build chaining
+     */
     public Search setMinDepth(int minDepth) {
         this.minDepth = minDepth;
         return this;
     }
 
+    /**
+     * Set the maximum depth in the tree where nodes may match the provided predicates. A value of 0 indicates the root.
+     *
+     * @param maxDepth the maximum depth
+     * @return the search for build chaining
+     */
     public Search setMaxDepth(int maxDepth) {
         this.maxDepth = maxDepth;
         return this;
     }
 
+    /**
+     * Perform the search, returning a list of all matching nodes
+     *
+     * @return the list of matching nodes
+     */
     public List<KDLNode> search() {
         return Collections.unmodifiableList(search(document, 0, new ArrayList<>()));
     }
@@ -110,6 +212,23 @@ public class Search {
         return nodes;
     }
 
+    /**
+     * Return a copy of the document where only nodes matching the provided predicates remain. Note the given a document like:
+     *
+     * node_a {
+     *     node_b
+     * }
+     *
+     * And the search:
+     *
+     * KDLDocument filtered = document.search()
+     *         .identifier("node_b")
+     *         .filter
+     *
+     * An empty document will be returned since not all nodes in the path to the matching node themselves matched.
+     *
+     * @return the filtered document
+     */
     public KDLDocument filter() {
         return filter(document, 0).orElse(KDLDocument.empty());
     }
@@ -139,6 +258,12 @@ public class Search {
         }
     }
 
+    /**
+     * Applies a provided function to all matching nodes in the tree, returning a copy of the full tree with modified nodes
+     *
+     * @param fun the function to apply
+     * @return A copy of the document with matching nodes mutated
+     */
     public KDLDocument mutate(Function<KDLNode, Optional<KDLNode>> fun) {
         return mutate(fun, document, 0).orElse(KDLDocument.empty());
     }
@@ -221,13 +346,5 @@ public class Search {
         } else {
             return anyPropsHereMatch;
         }
-    }
-
-    public static <T> Predicate<T> any() {
-        return v -> true;
-    }
-
-    public static Search of(KDLDocument document) {
-        return new Search(document);
     }
 }
