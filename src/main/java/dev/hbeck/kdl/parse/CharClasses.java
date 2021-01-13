@@ -4,7 +4,7 @@ import java.util.Optional;
 
 /**
  * Various functions used during parsing and printing to check character membership in various character classes.
- *
+ * <p>
  * Also contains functions for transforming characters into their escape sequences.
  */
 public class CharClasses {
@@ -92,6 +92,31 @@ public class CharClasses {
      */
     public static boolean isValidBareIdStart(int c) {
         return !isValidDecimalChar(c) && isValidBareIdChar(c);
+    }
+
+    /**
+     * Check if a string is a valid bare identifier
+     *
+     * @param string the string to check
+     * @return true if the string is a valid bare id, false otherwise
+     */
+    public static boolean isValidBareId(String string) {
+        if (string.isEmpty()) {
+            return false;
+        }
+
+        final boolean validBareIdStart = isValidBareIdStart(string.charAt(0));
+        if (string.length() == 1 || !validBareIdStart) {
+            return validBareIdStart;
+        }
+
+        for (int i = 0; i < string.length(); i++) {
+            if (!isValidBareIdChar(string.charAt(i))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -242,7 +267,15 @@ public class CharClasses {
      * @return true if the character is printable unescaped, false otherwise
      */
     public static boolean isPrintableAscii(int c) {
-        return ' ' <= c && c <= '~' && c != '/' && c != '"';
+        return ' ' <= c && c <= '~';
+    }
+
+    public static boolean isNonAscii(int c) {
+        return c > 127;
+    }
+
+    public static boolean mustEscape(int c) {
+        return c == '\\' || c == '"' || c == '/';
     }
 
     private static final Optional<String> ESC_BACKSLASH = Optional.of("\\\\");
@@ -280,6 +313,22 @@ public class CharClasses {
                 return ESC_QUOTE;
             default:
                 return Optional.empty();
+        }
+    }
+
+    public static boolean isCommonEscape(int c) {
+        switch (c) {
+            case '\\':
+            case '\b':
+            case '\n':
+            case '\f':
+            case '/':
+            case '\t':
+            case '\r':
+            case '"':
+                return true;
+            default:
+                return false;
         }
     }
 

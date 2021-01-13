@@ -58,7 +58,8 @@ By default, calling `document.toKDL()` or `document.writeKDL(writer)` will print
 * `null` arguments and properties with `null` values printed
 * `\n` (unicode `\u{0a}`) for newlines
 
-Any of these can be changed by creating a new PrintConfig object and passing it into the print method.
+Any of these can be changed by creating a new PrintConfig object and passing it into the print method. See the javadocs
+on PrintConfig for more information.
 
 ## Contributing
 

@@ -2,7 +2,7 @@ Project {
     PropertyGroup {
         IsCommandLinePackage true
     }
-    Import Project=r"$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\build\common.props"
+    Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), 'README.md'))\\build\\common.props"
     Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk"
     Import Project="ilmerge.props"
     PropertyGroup {
@@ -27,10 +27,10 @@ Project {
     }
     Target Name="CreateCommandlineNupkg" {
         ItemGroup {
-            TfmSpecificPackageFile Include=r"$(ArtifactsDirectory)$(VsixOutputDirName)\NuGet.exe" {
+            TfmSpecificPackageFile Include="$(ArtifactsDirectory)$(VsixOutputDirName)\\NuGet.exe" {
                 PackagePath "tools\/"
             }
-            TfmSpecificPackageFile Include=r"$(ArtifactsDirectory)$(VsixOutputDirName)\NuGet.pdb" {
+            TfmSpecificPackageFile Include="$(ArtifactsDirectory)$(VsixOutputDirName)\\NuGet.pdb" {
                 PackagePath "tools\/"
             }
         }
@@ -73,14 +73,14 @@ Project {
         Reference Include="System.Xml"
         Reference Include="System.Xml.Linq"
         Reference Include="NuGet.Core" {
-            HintPath r"$(SolutionPackagesFolder)nuget.core\2.14.0-rtm-832\lib\net40-Client\NuGet.Core.dll"
+            HintPath "$(SolutionPackagesFolder)nuget.core\\2.14.0-rtm-832\\lib\\net40-Client\\NuGet.Core.dll"
             Aliases "CoreV2"
         }
     }
     ItemGroup {
         PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop"
-        ProjectReference Include=r"$(NuGetCoreSrcDirectory)NuGet.PackageManagement\NuGet.PackageManagement.csproj"
-        ProjectReference Include=r"$(NuGetCoreSrcDirectory)NuGet.Build.Tasks\NuGet.Build.Tasks.csproj"
+        ProjectReference Include="$(NuGetCoreSrcDirectory)NuGet.PackageManagement\\NuGet.PackageManagement.csproj"
+        ProjectReference Include="$(NuGetCoreSrcDirectory)NuGet.Build.Tasks\\NuGet.Build.Tasks.csproj"
     }
     ItemGroup {
         EmbeddedResource Update="NuGetCommand.resx" {
@@ -103,7 +103,7 @@ Project {
         }
     }
     ItemGroup {
-        EmbeddedResource Include=r"$(NuGetCoreSrcDirectory)NuGet.Build.Tasks\NuGet.targets" {
+        EmbeddedResource Include="$(NuGetCoreSrcDirectory)NuGet.Build.Tasks\\NuGet.targets" {
             Link "NuGet.targets"
             SubType "Designer"
         }
@@ -113,14 +113,14 @@ Project {
             ExpectedLocalizedArtifactCount 0 Condition="'$(ExpectedLocalizedArtifactCount)' == ''"
         }
         ItemGroup {
-            BuildArtifacts Exclude="@(MergeExclude)" Include=r"$(OutputPath)\*.dll"
-            LocalizedArtifacts Include=r"$(ArtifactsDirectory)\NuGet.Commands\**\$(NETFXTargetFramework)\**\*.resources.dll"
+            BuildArtifacts Exclude="@(MergeExclude)" Include="$(OutputPath)\\*.dll"
+            LocalizedArtifacts Include="$(ArtifactsDirectory)\\NuGet.Commands\\**\\$(NETFXTargetFramework)\\**\\*.resources.dll"
         }
         Error Condition="'@(BuildArtifacts-&gt;Count())' != '@(MergeInclude-&gt;Count())'" Text="Build dependencies are inconsistent with mergeinclude specified in ilmerge.props"
         Error Condition="'@(LocalizedArtifacts-&gt;Count())' != '$(ExpectedLocalizedArtifactCount)'" Text="Satellite assemblies count ILMerged into NuGet.exe should be $(ExpectedLocalizedArtifactCount), but was: @(LocalizedArtifacts-&gt;Count())"
         PropertyGroup {
             PathToBuiltNuGetExe "$(OutputPath)NuGet.exe"
-            IlmergeCommand r"$(ILMergeExePath) /lib:$(OutputPath) /out:$(ArtifactsDirectory)$(VsixOutputDirName)\NuGet.exe @(MergeAllowDup -> '/allowdup:%(Identity)', ' ') /log:$(OutputPath)IlMergeLog.txt"
+            IlmergeCommand "$(ILMergeExePath) \/lib:$(OutputPath) \/out:$(ArtifactsDirectory)$(VsixOutputDirName)\\NuGet.exe @(MergeAllowDup -> '\/allowdup:%(Identity)', ' ') \/log:$(OutputPath)IlMergeLog.txt"
             IlmergeCommand "$(IlmergeCommand) \/delaysign \/keyfile:$(MS_PFX_PATH)" Condition="Exists($(MS_PFX_PATH))"
             IlmergeCommand "$(IlmergeCommand) $(PathToBuiltNuGetExe) @(BuildArtifacts->'%(filename)%(extension)', ' ') @(LocalizedArtifacts->'%(fullpath)', ' ')"
         }
@@ -132,7 +132,7 @@ Project {
     Target DependsOnTargets="ResolveReferences" Name="_GetFrameworkAssemblyReferences"
     Target Name="GetSigningInputs" Returns="@(DllsToSign)" {
         ItemGroup {
-            DllsToSign Include=r"$(ArtifactsDirectory)$(VsixOutputDirName)\NuGet.exe" {
+            DllsToSign Include="$(ArtifactsDirectory)$(VsixOutputDirName)\\NuGet.exe" {
                 StrongName "MsSharedLib72"
                 Authenticode "Microsoft400"
             }
@@ -140,8 +140,8 @@ Project {
     }
     Target Name="GetSymbolsToIndex" Returns="@(SymbolsToIndex)" {
         ItemGroup {
-            SymbolsToIndex Include=r"$(ArtifactsDirectory)$(VsixOutputDirName)\NuGet.exe"
-            SymbolsToIndex Include=r"$(ArtifactsDirectory)$(VsixOutputDirName)\NuGet.pdb"
+            SymbolsToIndex Include="$(ArtifactsDirectory)$(VsixOutputDirName)\\NuGet.exe"
+            SymbolsToIndex Include="$(ArtifactsDirectory)$(VsixOutputDirName)\\NuGet.pdb"
         }
     }
     Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk"

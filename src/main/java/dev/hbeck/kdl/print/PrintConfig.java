@@ -1,7 +1,15 @@
 package dev.hbeck.kdl.print;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static dev.hbeck.kdl.parse.CharClasses.isCommonEscape;
+import static dev.hbeck.kdl.parse.CharClasses.isNonAscii;
+import static dev.hbeck.kdl.parse.CharClasses.isPrintableAscii;
 import static dev.hbeck.kdl.parse.CharClasses.isUnicodeLinespace;
 import static dev.hbeck.kdl.parse.CharClasses.isUnicodeWhitespace;
+import static dev.hbeck.kdl.parse.CharClasses.mustEscape;
 
 /**
  * A config object controlling various aspects of how KDL documents are printed.
@@ -10,61 +18,78 @@ public class PrintConfig {
     public static final PrintConfig PRETTY_DEFAULT = PrintConfig.builder().build();
     public static final PrintConfig RAW_DEFAULT = PrintConfig.builder()
             .setIndent(0)
+            .setEscapeNonAscii(false)
             .setPrintEmptyChildren(false)
-            .setEscapeNewlines(true)
             .build();
 
+    private final Map<Integer, Boolean> escapes;
+    private final boolean escapeNonPrintableAscii;
+    private final boolean escapeLinespace;
+    private final boolean escapeNonAscii;
+    private final boolean escapeCommon;
     private final boolean requireSemicolons;
     private final String newline;
     private final int indent;
     private final char indentChar;
     private final char exponentChar;
-    private final boolean escapeCommon;
-    private final boolean escapeNonAscii;
     private final boolean printEmptyChildren;
     private final boolean printNullArgs;
     private final boolean printNullProps;
-    private final boolean escapeNewlines;
 
-    private PrintConfig(boolean requireSemicolons, String newline, boolean escapeCommon, boolean escapeNonAscii, int indent, char indentChar,
-                        char exponentChar, boolean printEmptyChildren, boolean printNullArgs, boolean printNullProps, boolean escapeNewlines) {
+    private PrintConfig(Map<Integer, Boolean> escapes, boolean escapeNonPrintableAscii, boolean escapeLinespace,
+                        boolean escapeNonAscii, boolean escapeCommon, boolean requireSemicolons, String newline,
+                        int indent, char indentChar, char exponentChar, boolean printEmptyChildren, boolean printNullArgs,
+                        boolean printNullProps) {
+
+        this.escapes = Collections.unmodifiableMap(escapes);
+        this.escapeNonPrintableAscii = escapeNonPrintableAscii;
+        this.escapeLinespace = escapeLinespace;
+        this.escapeNonAscii = escapeNonAscii;
+        this.escapeCommon = escapeCommon;
         this.requireSemicolons = requireSemicolons;
         this.newline = newline;
-        this.escapeCommon = escapeCommon;
-        this.escapeNonAscii = escapeNonAscii;
         this.indent = indent;
         this.indentChar = indentChar;
         this.exponentChar = exponentChar;
         this.printEmptyChildren = printEmptyChildren;
         this.printNullArgs = printNullArgs;
         this.printNullProps = printNullProps;
-        this.escapeNewlines = escapeNewlines;
+    }
+
+    public boolean requiresEscape(int c) {
+        if (shouldForceEscape(c)) {
+            return true;
+        } else if (mustEscape(c)) {
+            return true;
+        } else if (escapeLinespace && isUnicodeLinespace(c)) {
+            return true;
+        } else if (escapeNonPrintableAscii && !isNonAscii(c) && !isPrintableAscii(c)) {
+            return true;
+        } else if (escapeNonAscii && isNonAscii(c)) {
+            return true;
+        } else if (escapeCommon && isCommonEscape(c)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     /**
-     * @return true if newlines in escaped strings will be represented with an escape sequence, false if they'll be
-     *         represented with a literal newline.
-     */
-    public boolean shouldEscapeNewlines() {
-        return escapeNewlines;
-    }
-
-    /**
+     * Check if character has been set to force strings containing it to be escaped
      *
-     *
-     * @return true if common ascii escape characters other than newlines will be escaped, false if they'll be
-     *         represented by their literal values
+     * @param c the character to check
+     * @return true if the character should be escaped, false otherwise.
      */
-    public boolean shouldEscapeCommon() {
-        return escapeCommon;
+    public boolean shouldForceEscape(int c) {
+        return escapes.getOrDefault(c, false);
     }
 
-    /**
-     * @return true if any character outside the printable ascii range should be escaped, false if they'll be
-     *         represented by their literal values
-     */
     public boolean shouldEscapeNonPrintableAscii() {
-        return escapeNonAscii;
+        return escapeNonPrintableAscii;
+    }
+
+    public boolean shouldEscapeStandard() {
+        return escapeCommon;
     }
 
     /**
@@ -132,11 +157,14 @@ public class PrintConfig {
      * See get()/should() methods above for explanation of each variable's meaning
      */
     public static class Builder {
+        private final Map<Integer, Boolean> escapes = new HashMap<>();
+
         private boolean requireSemicolons = false;
-        private String newline = "\n";
-        private boolean escapeCommon = true;
         private boolean escapeNonAscii = false;
-        private boolean escapeNewlines = false;
+        private boolean escapeNonPrintableAscii = true;
+        private boolean escapeCommon = true;
+        private boolean escapeLinespace = true;
+        private String newline = "\n";
         private int indent = 4;
         private char indentChar = ' ';
         private char exponentChar = 'E';
@@ -144,13 +172,28 @@ public class PrintConfig {
         private boolean printNullArgs = true;
         private boolean printNullProps = true;
 
-        public Builder setEscapeCommon(boolean escapeCommon) {
-            this.escapeCommon = escapeCommon;
+        public Builder setForceEscapeChar(int c) {
+            escapes.put(c, true);
+            return this;
+        }
+
+        public Builder setEscapeNonPrintableAscii(boolean escapeNonPrintableAscii) {
+            this.escapeNonPrintableAscii = escapeNonPrintableAscii;
             return this;
         }
 
         public Builder setEscapeNonAscii(boolean escapeNonAscii) {
             this.escapeNonAscii = escapeNonAscii;
+            return this;
+        }
+
+        public Builder setEscapeCommon(boolean escapeCommon) {
+            this.escapeCommon = escapeCommon;
+            return this;
+        }
+
+        public Builder setEscapeLinespace(boolean escapeLinespace) {
+            this.escapeLinespace = escapeLinespace;
             return this;
         }
 
@@ -184,11 +227,6 @@ public class PrintConfig {
             return this;
         }
 
-        public Builder setEscapeNewlines(boolean escapeNewlines) {
-            this.escapeNewlines = escapeNewlines;
-            return this;
-        }
-
         public Builder setRequireSemicolons(boolean requireSemicolons) {
             this.requireSemicolons = requireSemicolons;
             return this;
@@ -214,8 +252,9 @@ public class PrintConfig {
                 throw new IllegalArgumentException("Indent character must be unicode whitespace");
             }
 
-            return new PrintConfig(requireSemicolons, newline, escapeCommon, escapeNonAscii, indent, indentChar, exponentChar,
-                    printEmptyChildren, printNullArgs, printNullProps, escapeNewlines);
+            return new PrintConfig(escapes, escapeNonPrintableAscii, escapeLinespace, escapeNonAscii, escapeCommon,
+                    requireSemicolons, newline, indent, indentChar, exponentChar,
+                    printEmptyChildren, printNullArgs, printNullProps);
         }
     }
 }

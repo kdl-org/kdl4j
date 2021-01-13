@@ -23,7 +23,7 @@ import static org.junit.Assert.assertThat;
 @RunWith(Parameterized.class)
 public class TestRoundTrip {
     private static final PrintConfig PRINT_CONFIG = PrintConfig.builder()
-            .setEscapeCommon(true)
+            .setEscapeLinespace(true)
             .build();
 
     @Parameterized.Parameters(name = "{1}")
@@ -53,7 +53,7 @@ public class TestRoundTrip {
 
         try {
             final KDLDocument document = parser.parse(inputString);
-            final String output = document.toKDLPretty();
+            final String output = document.toKDLPretty(PRINT_CONFIG);
             if (!expected.isPresent()) {
                 throw new RuntimeException(String.format("Expected parse failure, but got:\n%s", output));
             }
