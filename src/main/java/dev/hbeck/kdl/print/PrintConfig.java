@@ -1,5 +1,8 @@
 package dev.hbeck.kdl.print;
 
+import static dev.hbeck.kdl.parse.CharClasses.isUnicodeLinespace;
+import static dev.hbeck.kdl.parse.CharClasses.isUnicodeWhitespace;
+
 /**
  * A config object controlling various aspects of how KDL documents are printed.
  */
@@ -162,10 +165,6 @@ public class PrintConfig {
         }
 
         public Builder setExponentChar(char exponentChar) {
-            if (exponentChar != 'e' && exponentChar != 'E') {
-                throw new IllegalArgumentException("Exponent character must be either 'e' or 'E'");
-            }
-
             this.exponentChar = exponentChar;
             return this;
         }
@@ -201,6 +200,20 @@ public class PrintConfig {
         }
 
         public PrintConfig build() {
+            if (exponentChar != 'e' && exponentChar != 'E') {
+                throw new IllegalArgumentException("Exponent character must be either 'e' or 'E'");
+            }
+
+            for (int i = 0; i < newline.length(); i++) {
+                if (!isUnicodeLinespace(newline.charAt(i))) {
+                    throw new IllegalArgumentException("All characters in specified 'newline' must be unicode vertical space");
+                }
+            }
+
+            if (!isUnicodeWhitespace(indentChar)) {
+                throw new IllegalArgumentException("Indent character must be unicode whitespace");
+            }
+
             return new PrintConfig(requireSemicolons, newline, escapeCommon, escapeNonAscii, indent, indentChar, exponentChar,
                     printEmptyChildren, printNullArgs, printNullProps, escapeNewlines);
         }

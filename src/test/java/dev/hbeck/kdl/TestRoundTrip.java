@@ -58,7 +58,7 @@ public class TestRoundTrip {
                 throw new RuntimeException(String.format("Expected parse failure, but got:\n%s", output));
             }
 
-            System.out.printf("Expected%n%s%nGot%n%s%n---", expected.get(), output);
+            System.out.printf("EXPECTED:%n%s%n---%nGOT:%n%s%n---", expected.get(), output);
 
             assertThat(output, equalTo(expected.get()));
         } catch (KDLParseException e) {

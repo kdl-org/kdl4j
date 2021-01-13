@@ -47,26 +47,23 @@ In a addition, the `Search` object exposes two more functions: `filter()` and `m
 the final `search()`, and either remove all nodes not matching the specified predicates or allow mutation of all matching
 nodes. Both return a new `KDLDocument`.
 
+### Printing
+
+By default, calling `document.toKDL()` or `document.writeKDL(writer)` will print the structure with:
+ 
+* 4 space indents
+* No semicolons
+* Printable ASCII characters which can be escaped, escaped
+* Empty children printed
+* `null` arguments and properties with `null` values printed
+* `\n` (unicode `\u{0a}`) for newlines
+
+Any of these can be changed by creating a new PrintConfig object and passing it into the print method.
+
 ## Contributing
 
 Please read the Code of Conduct before opening any issues or pull requests.
 
 Besides code fixes, the easiest way to contribute is by generating test cases. Check out 
 [the test cases directory](https://github.com/hkolbeck/kdl4j/tree/trunk/src/test/resources/test_cases) to see the existing ones.
-To add a test case, add a `.kdl` file to the `input` directory and a file with the same name to the `expected_kdl` directory.
-The expected file should have:
-
-* All comments removed
-* Extra empty lines removed except for a newline after the last node
-* All nodes should be reformatted without escaped newlines 
-* Node fields should be `identifier <args> <properties in alpha order by key> <child if present>`
-* All strings/identifiers should be at the lowest level of quoting possible. `r"words"` becomes `"words"` if a value or `words` 
-  if an identifier
-* Any duplicate properties removed, with only the rightmost one remaining
-* Replace any literal newlines or other ascii escape characters in escaped strings with their escape sequences
-
-formatted with 4 space indents. To try out your test cases, run the `TestRoundTrip` test class.
-
-## TODO
-
-* More tests
+See the README there for more details.

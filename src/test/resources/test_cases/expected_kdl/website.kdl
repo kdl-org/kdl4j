@@ -5,7 +5,7 @@ html lang="en" {
         meta content="width=device-width, initial-scale=1.0" name="viewport"
         meta content="kdl is a document language, mostly based on SDLang, with xml-like semantics that looks like you're invoking a bunch of CLI commands!" name="description"
         title "kdl - Kat's Document Language"
-        link href="/styles/global.css" rel="stylesheet"
+        link href="\/styles\/global.css" rel="stylesheet"
     }
     body {
         main {
@@ -15,7 +15,7 @@ html lang="en" {
             section class="kdl-section" id="description" {
                 p {
                     text "kdl is a document language, mostly based on "
-                    a "SDLang" href="https://sdlang.org"
+                    a "SDLang" href="https:\/\/sdlang.org"
                     text " with xml-like semantics that looks like you're invoking a bunch of CLI commands"
                 }
                 p "It's meant to be used both as a serialization format and a configuration language, and is relatively light on syntax compared to XML."
@@ -24,7 +24,7 @@ html lang="en" {
                 h2 "Design and Discussion"
                 p {
                     text "kdl is still extremely new, and discussion about the format should happen over on the "
-                    a href="https://github.com/kdoclang/kdl/discussions" {
+                    a href="https:\/\/github.com\/kdoclang\/kdl\/discussions" {
                         text "discussions"
                     }
                     text " page in the Github repo. Feel free to jump in and give us your 2 cents!"
@@ -36,7 +36,7 @@ html lang="en" {
                     li "Maintainability"
                     li "Flexibility"
                     li "Cognitive simplicity and Learnability"
-                    li "Ease of de/serialization"
+                    li "Ease of de\/serialization"
                     li "Ease of implementation"
                 }
             }

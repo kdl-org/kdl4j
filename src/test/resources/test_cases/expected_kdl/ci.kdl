@@ -7,8 +7,8 @@ jobs {
     fmt_and_docs "Check fmt & build docs" {
         runs-on "ubuntu-latest"
         steps {
-            step uses="actions/checkout@v1"
-            step "Install Rust" uses="actions-rs/toolchain@v1" {
+            step uses="actions\/checkout@v1"
+            step "Install Rust" uses="actions-rs\/toolchain@v1" {
                 profile "minimal"
                 toolchain "stable"
                 components "rustfmt"
@@ -27,8 +27,8 @@ jobs {
             }
         }
         steps {
-            step uses="actions/checkout@v1"
-            step "Install Rust" uses="actions-rs/toolchain@v1" {
+            step uses="actions\/checkout@v1"
+            step "Install Rust" uses="actions-rs\/toolchain@v1" {
                 profile "minimal"
                 toolchain "${{ matrix.rust }}"
                 components "clippy"

@@ -28,10 +28,10 @@ Project {
     Target Name="CreateCommandlineNupkg" {
         ItemGroup {
             TfmSpecificPackageFile Include=r"$(ArtifactsDirectory)$(VsixOutputDirName)\NuGet.exe" {
-                PackagePath "tools/"
+                PackagePath "tools\/"
             }
             TfmSpecificPackageFile Include=r"$(ArtifactsDirectory)$(VsixOutputDirName)\NuGet.pdb" {
-                PackagePath "tools/"
+                PackagePath "tools\/"
             }
         }
     }
@@ -121,7 +121,7 @@ Project {
         PropertyGroup {
             PathToBuiltNuGetExe "$(OutputPath)NuGet.exe"
             IlmergeCommand r"$(ILMergeExePath) /lib:$(OutputPath) /out:$(ArtifactsDirectory)$(VsixOutputDirName)\NuGet.exe @(MergeAllowDup -> '/allowdup:%(Identity)', ' ') /log:$(OutputPath)IlMergeLog.txt"
-            IlmergeCommand "$(IlmergeCommand) /delaysign /keyfile:$(MS_PFX_PATH)" Condition="Exists($(MS_PFX_PATH))"
+            IlmergeCommand "$(IlmergeCommand) \/delaysign \/keyfile:$(MS_PFX_PATH)" Condition="Exists($(MS_PFX_PATH))"
             IlmergeCommand "$(IlmergeCommand) $(PathToBuiltNuGetExe) @(BuildArtifacts->'%(filename)%(extension)', ' ') @(LocalizedArtifacts->'%(fullpath)', ' ')"
         }
         MakeDir Directories="$(ArtifactsDirectory)$(VsixOutputDirName)"
