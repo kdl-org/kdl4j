@@ -1,4 +1,13 @@
-package dev.hbeck.kdl.kq;
+package dev.hbeck.kdl.kq
+
+import dev.hbeck.kdl.parse.KDLParser
+import kotlin.jvm.JvmStatic
+import dev.hbeck.kdl.objects.KDLDocument
+import java.io.InputStreamReader
+import dev.hbeck.kdl.parse.KDLParseException
+import dev.hbeck.kdl.search.Operation
+import java.io.IOException
+import java.io.OutputStreamWriter
 
 /*
  * search := (('*' node_predicate) | ('{}' node predicate) |  ('.' node_predicates)) mutation?
@@ -20,6 +29,11 @@ package dev.hbeck.kdl.kq;
  * -f/--file printConfig args
  *
  *
+ * ---
+
+
+ * ---
+ *
  * Examples:
  *     Pretty print full doc: `.`
  *
@@ -39,50 +53,38 @@ package dev.hbeck.kdl.kq;
  *         Set the value for properties whose key matches
  *
  */
+object KQ {
+    private val operationParser = OperationParser()
+    private val documentParser = KDLParser()
 
-import dev.hbeck.kdl.objects.KDLDocument;
-import dev.hbeck.kdl.parse.KDLParseException;
-import dev.hbeck.kdl.parse.KDLParser;
-import dev.hbeck.kdl.search.Operation;
-import dev.hbeck.kdl.search.OperationParser;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-
-public class KQ {
-    private static final OperationParser operationParser = new OperationParser();
-    private static final KDLParser documentParser = new KDLParser();
-
-    public static void main(String[] args) {
-        final Operation operation;
-        try {
-            operation = operationParser.parse(String.join(" ", args));
-        } catch (Throwable t) {
-            System.err.printf("Couldn't parse operation: %s%n", t.getLocalizedMessage());
-            System.exit(1);
-            return;
+    @JvmStatic
+    fun main(args: Array<String>) {
+        val operation: Operation = try {
+            operationParser.parse(args.joinToString(" "))
+        } catch (t: Throwable) {
+            System.err.printf("Couldn't parse operation: %s%n", t.localizedMessage)
+            System.exit(1)
+            return
         }
 
-        final KDLDocument document;
-        try {
-            document = documentParser.parse(new InputStreamReader(System.in));
-        } catch (KDLParseException e) {
-            System.err.printf("Error reading document stream: %s%n", e.getLocalizedMessage());
-            System.exit(2);
-            return;
-        } catch (IOException e) {
-            System.err.printf("Parse error: %s%n", e.getLocalizedMessage());
-            System.exit(3);
-            return;
+        val document: KDLDocument = try {
+            documentParser.parse(InputStreamReader(System.`in`))
+        } catch (e: KDLParseException) {
+            System.err.printf("Error reading document stream: %s%n", e.localizedMessage)
+            System.exit(2)
+            return
+        } catch (e: IOException) {
+            System.err.printf("Parse error: %s%n", e.localizedMessage)
+            System.exit(3)
+            return
         }
 
-        final KDLDocument result = document.apply(operation);
+        val result = document.apply(operation)
         try {
-            result.writeKDLPretty(new OutputStreamWriter(System.out));
-        } catch (IOException e) {
-            System.err.printf("Error writing result: %s%n", e.getLocalizedMessage());
-            System.exit(4);
+            result.writeKDLPretty(OutputStreamWriter(System.out))
+        } catch (e: IOException) {
+            System.err.printf("Error writing result: %s%n", e.localizedMessage)
+            System.exit(4)
         }
     }
 }

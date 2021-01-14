@@ -1,7 +1,6 @@
 package dev.hbeck.kdl.objects;
 
 import dev.hbeck.kdl.print.PrintConfig;
-import dev.hbeck.kdl.search.Search;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -25,15 +24,6 @@ public class KDLDocument implements KDLObject {
 
     public List<KDLNode> getNodes() {
         return nodes;
-    }
-
-    /**
-     *  Start a search of the document
-     *
-     * @return A new Search object initialized with this document
-     */
-    public Search search() {
-        return Search.of(this);
     }
 
     @Override
@@ -107,16 +97,16 @@ public class KDLDocument implements KDLObject {
         }
     }
 
+    public Builder toBuilder() {
+        return KDLDocument.builder()
+                .addNodes(nodes);
+    }
+
     /**
      * Get a document with no nodes
      *
      * @return the empty document
      */
-    public Builder toBuilder() {
-        return KDLDocument.builder()
-                .addNodes(nodes);
-    }
-    
     public static KDLDocument empty() {
         return new KDLDocument(new ArrayList<>());
     }
