@@ -1,9 +1,11 @@
 package dev.hbeck.kdl.objects;
 
 import dev.hbeck.kdl.print.PrintConfig;
-import dev.hbeck.kdl.search.predicates.NodePredicate;
 import dev.hbeck.kdl.search.Operation;
-import dev.hbeck.kdl.search.Search;
+import dev.hbeck.kdl.search.GeneralSearch;
+import dev.hbeck.kdl.search.mutation.AddMutation;
+import dev.hbeck.kdl.search.mutation.Mutation;
+import dev.hbeck.kdl.search.predicates.NodePredicate;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -26,8 +28,8 @@ public class KDLDocument implements KDLObject {
         return nodes;
     }
 
-    public Search search() {
-        return Search.of(this);
+    public GeneralSearch search() {
+        return GeneralSearch.of(this);
     }
 
     public KDLDocument apply(Operation operation) {
@@ -102,6 +104,32 @@ public class KDLDocument implements KDLObject {
             }
             writer.write(printConfig.getNewline());
         }
+    }
+
+    public KDLDocument applyOperation(Operation operation) {
+        if (operation.getDepth() == 0) {
+            if (operation.getMutation().isPresent()) {
+                final Mutation mutation = operation.getMutation().get();
+                if (mutation instanceof AddMutation) {
+                    final AddMutation addMutation = (AddMutation) mutation;
+                    final KDLNode.builder().setChild(this).setIdentifier("")
+
+                    addMutation.
+
+                } else {
+                    throw new IllegalArgumentException("Only add mutations are allowed on the root document");
+                }
+            } else {
+                return this;
+            }
+        }
+
+        return applyOperation(operation, this, 0);
+    }
+
+    private KDLDocument applyOperation(Operation operation, KDLDocument doc, int depth) {
+
+        final NodePredicate nodePredicate = operation.getPath().getOrDefault(depth, NodePredicate.any());
     }
 
     public Builder toBuilder() {

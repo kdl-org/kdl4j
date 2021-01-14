@@ -12,7 +12,7 @@ import java.util.List;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class TestSearch {
+public class TestGeneralSearch {
 
     @Test
     public void testEmpty() {
@@ -20,7 +20,7 @@ public class TestSearch {
         final KDLDocument document = KDLDocument.builder().addNode(node).build();
 
         final List<KDLNode> found = document.search()
-                .search();
+                .findAll();
 
         assertThat(found, equalTo(Collections.singletonList(node)));
     }
@@ -36,7 +36,7 @@ public class TestSearch {
 
         final List<KDLNode> found = document.search()
                 .forNodeId("a")
-                .search();
+                .findAll();
 
         assertThat(found, equalTo(Collections.singletonList(node1)));
     }
@@ -63,7 +63,7 @@ public class TestSearch {
         final List<KDLNode> found = document.search()
                 .setMaxDepth(1)
                 .setMinDepth(1)
-                .search();
+                .findAll();
 
         assertThat(found, equalTo(Collections.singletonList(expected)));
     }
@@ -81,8 +81,8 @@ public class TestSearch {
                 .build();
 
         final List<KDLNode> found = document.search()
-                .forProperty("key", Search.any())
-                .search();
+                .forProperty("key", GeneralSearch.any())
+                .findAll();
 
         assertThat(found, equalTo(Collections.singletonList(node1)));
     }
@@ -100,8 +100,8 @@ public class TestSearch {
                 .build();
 
         final List<KDLNode> found = document.search()
-                .forProperty(Search.any(), KDLString.from("val"))
-                .search();
+                .forProperty(GeneralSearch.any(), KDLString.from("val"))
+                .findAll();
 
         assertThat(found, equalTo(Collections.singletonList(node1)));
     }
@@ -121,8 +121,8 @@ public class TestSearch {
                 .build();
 
         final List<KDLNode> found = document.search()
-                .forProperty(Search.any(), KDLString.from("val"))
-                .search();
+                .forProperty(GeneralSearch.any(), KDLString.from("val"))
+                .findAll();
 
         assertThat(found, equalTo(Collections.singletonList(node2)));
     }
@@ -151,7 +151,7 @@ public class TestSearch {
                 .forProperty("key", KDLString.from("val"))
                 .forProperty("key2", KDLValue.from("val2"))
                 .matchAllPropPredicates()
-                .search();
+                .findAll();
 
         assertThat(found, equalTo(Collections.singletonList(node2)));
     }
@@ -180,7 +180,7 @@ public class TestSearch {
                 .forArg(KDLValue.from("val"))
                 .forArg(KDLValue.from("val2"))
                 .matchAllArgPredicates()
-                .search();
+                .findAll();
 
         assertThat(found, equalTo(Collections.singletonList(node2)));
     }

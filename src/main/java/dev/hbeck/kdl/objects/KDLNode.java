@@ -295,18 +295,23 @@ public class KDLNode implements KDLObject {
             return this;
         }
 
-        public Builder addNullProp(String key) {
-            props.put(key, KDLNull.INSTANCE);
-            return this;
-        }
-
         public Builder addProp(String key, boolean val) {
             props.put(key, val ? KDLBoolean.TRUE : KDLBoolean.FALSE);
             return this;
         }
 
+        public Builder addProp(KDLProperty prop) {
+            props.put(prop.getKey(), prop.getValue());
+            return this;
+        }
+
         public Builder addAllProps(Map<String, KDLValue> props) {
             this.props.putAll(props);
+            return this;
+        }
+
+        public Builder addNullProp(String key) {
+            props.put(key, KDLNull.INSTANCE);
             return this;
         }
 

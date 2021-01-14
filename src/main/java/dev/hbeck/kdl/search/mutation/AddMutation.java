@@ -21,6 +21,20 @@ public class AddMutation implements Mutation {
 
     @Override
     public Optional<KDLNode> apply(KDLNode node) {
-        return Optional.empty();
+        final KDLNode.Builder builder = node.toBuilder();
+
+        builder.addAllArgs(args);
+        for (String key : props.keySet()) {
+            builder.addProp(key, props.get(key));
+        }
+
+        if (node.getChild().isPresent() && child.isPresent()) {
+            final KDLDocument newChild = node.getChild().get().toBuilder().addNodes(child.get().getNodes()).build();
+            builder.setChild(newChild);
+        } else {
+            builder.setChild(child);
+        }
+
+        return Optional.of(builder.build());
     }
 }

@@ -1,6 +1,7 @@
 package dev.hbeck.kdl.search.predicates;
 
 import dev.hbeck.kdl.objects.KDLNode;
+import dev.hbeck.kdl.search.GeneralSearch;
 
 import java.util.function.Predicate;
 
@@ -24,5 +25,9 @@ public class NodePredicate implements Predicate<KDLNode> {
         } else {
             return childPredicate.test(node.getChild().isPresent());
         }
+    }
+
+    public static NodePredicate any() {
+        return new NodePredicate(GeneralSearch.any(), GeneralSearch.any(), GeneralSearch.any());
     }
 }
