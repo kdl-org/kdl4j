@@ -13,7 +13,7 @@ public class AddMutation implements Mutation {
     private final Map<String, KDLValue> props;
     private final Optional<KDLDocument> child;
 
-    private AddMutation(List<KDLValue> args, Map<String, KDLValue> props, Optional<KDLDocument> child) {
+    public AddMutation(List<KDLValue> args, Map<String, KDLValue> props, Optional<KDLDocument> child) {
         this.args = args;
         this.props = props;
         this.child = child;

@@ -2,6 +2,7 @@ package dev.hbeck.kdl.kq
 
 import dev.hbeck.kdl.kq.QueryCharClasses.Companion.isNumericPredicateStart
 import dev.hbeck.kdl.objects.KDLBoolean
+import dev.hbeck.kdl.objects.KDLDocument
 import dev.hbeck.kdl.objects.KDLNull
 import dev.hbeck.kdl.objects.KDLObject
 import dev.hbeck.kdl.objects.KDLProperty
@@ -16,6 +17,7 @@ import dev.hbeck.kdl.parse.KDLParser.EOF
 import dev.hbeck.kdl.parse.KDLParserFacade
 import dev.hbeck.kdl.search.Operation
 import dev.hbeck.kdl.search.Search
+import dev.hbeck.kdl.search.mutation.AddMutation
 import dev.hbeck.kdl.search.mutation.Mutation
 import dev.hbeck.kdl.search.mutation.SubtractMutation
 import dev.hbeck.kdl.search.predicates.ArgPredicate
@@ -23,6 +25,7 @@ import dev.hbeck.kdl.search.predicates.NodeContentPredicate
 import dev.hbeck.kdl.search.predicates.PropPredicate
 import java.io.StringReader
 import java.lang.StringBuilder
+import java.util.*
 import java.util.function.Predicate
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
@@ -315,9 +318,41 @@ class OperationParser {
     // add-list := (value | prop) (ws+ add-list)?
     fun parseAddMutation(context: KDLParseContext): Mutation {
         var c = context.read()
-        if (c != '-'.toInt()) {
+        if (c != '+'.toInt()) {
             throw KDLInternalException("Expected '-' at start of subtract mutation, but got '${runeToStr(c)}'")
         }
+
+        val props: Map<String, KDLValue> = mutableMapOf()
+        val args: List<KDLValue> = mutableListOf()
+        var child: Optional<KDLDocument> = Optional.empty()
+        var readChild = false
+
+        consumeWhitespace(context)
+        c = context.peek()
+        while (c != EOF) {
+            when (c) {
+                '{'.toInt() -> {
+                    if (readChild) {
+                        throw QueryParseException("")
+                    }
+
+                    readChild = true
+                    child = Optional.of(kdlParser.parseDocument(context, false))
+                }
+                else -> {
+                    when(val argOrProp = kdlParser.parseArgOrProp(context)) {
+                        is KDLProperty -> props.plus(argOrProp.key to argOrProp.value)
+                        is KDLValue -> args.plus(argOrProp)
+                        else -> throw QueryParseException("")
+                    }
+                }
+            }
+
+            consumeWhitespace(context)
+            c = context.peek()
+        }
+
+        return AddMutation(args, props, child)
     }
 
     // sub-mutation := ws* '-' ws* subtraction sub-list
