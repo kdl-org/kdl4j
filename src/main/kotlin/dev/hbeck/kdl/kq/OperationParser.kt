@@ -19,6 +19,7 @@ import dev.hbeck.kdl.search.Operation
 import dev.hbeck.kdl.search.Search
 import dev.hbeck.kdl.search.mutation.AddMutation
 import dev.hbeck.kdl.search.mutation.Mutation
+import dev.hbeck.kdl.search.mutation.SetMutation
 import dev.hbeck.kdl.search.mutation.SubtractMutation
 import dev.hbeck.kdl.search.predicates.ArgPredicate
 import dev.hbeck.kdl.search.predicates.NodeContentPredicate
@@ -29,6 +30,7 @@ import java.util.*
 import java.util.function.Predicate
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
+import kotlin.collections.LinkedHashMap
 
 /**
  * Parses Operation objects, using the following grammar:
@@ -311,7 +313,13 @@ class OperationParser {
 
     // mutation := add-mutation | sub-mutation | set-mutation
     fun parseMutation(context: KDLParseContext): Mutation {
-
+        consumeWhitespace(context)
+        return when (val c =context.peek()) {
+            '+'.toInt() -> parseAddMutation(context)
+            '-'.toInt() -> parseSubtractionMutation(context)
+            '='.toInt() -> parseSetMutation(context)
+            else -> throw QueryParseException("Unknown operator. Expected one of '+', '-', or '=' but got ${runeToStr(c)}")
+        }
     }
 
     // add-mutation := ws* '+' ws* (add-list | node-children)
@@ -319,7 +327,7 @@ class OperationParser {
     fun parseAddMutation(context: KDLParseContext): Mutation {
         var c = context.read()
         if (c != '+'.toInt()) {
-            throw KDLInternalException("Expected '-' at start of subtract mutation, but got '${runeToStr(c)}'")
+            throw KDLInternalException("Expected '+' at start of add mutation, but got '${runeToStr(c)}'")
         }
 
         val props: Map<String, KDLValue> = mutableMapOf()
@@ -447,12 +455,67 @@ class OperationParser {
         return emptyChild to deleteChild
     }
 
-    // set-mutation := ws* '=' ws* (identifier-predicate '=' value) | node-children
+    // set-mutation := ws* '=' ws* set-item set-list?
+    // set-item := value | identifier-predicate '=' value | '=' identifier | node-children
+    // set-list :=  set-item (ws+ set-list)?
     fun parseSetMutation(context: KDLParseContext): Mutation {
+        var c = context.read()
+        if (c != '='.toInt()) {
+            throw KDLInternalException("Expected '=', but found '${runeToStr(c)}'")
+        }
+
+        val builder = SetMutation.builder()
+        var foundChild = false
+        var foundId = false
+
+        consumeWhitespace(context)
+        c = context.peek()
+        while (c != EOF) {
+            when {
+                c == '='.toInt() -> {
+                    if (foundId) {
+                        throw QueryParseException("Only one identifier specification is allowed in a set mutation")
+                    }
+
+                    context.read()
+                    builder.setIdentifier(Optional.of(kdlParser.parseIdentifier(context)))
+                }
+                c == '{'.toInt() -> {
+                    if (foundChild) {
+                        throw QueryParseException("Only one child specification is allowed in a set mutation")
+                    }
+
+                    context.read()
+                    builder.setChild(Optional.of(kdlParser.parseDocument(context, false)))
+                    foundChild = true
+                }
+                isValidNumericStart(c) -> {
+                    builder.addArg(kdlParser.parseNumber(context)))
+                }
+                else -> parseSetMutationItem(context, builder)
+            }
+
+            consumeWhitespace(context)
+            c = context.peek()
+        }
+
+        return builder.build()
+    }
+
+    // This is a mess. We could be parsing any of the following:
+    // str
+    // raw_str
+    // literal
+    // bare_id = value
+    // str = value
+    // raw_str = value
+    // regex = value
+    // raw_regex = value
+    fun parseSetMutationItem(context: KDLParseContext, builder: SetMutation.Builder) {
 
     }
 
-    fun consumeWhitespace(context: KDLParseContext) {
+    private fun consumeWhitespace(context: KDLParseContext) {
         var c = context.peek()
         while (isUnicodeWhitespace(c)) {
             context.read()
@@ -460,7 +523,7 @@ class OperationParser {
         }
     }
 
-    fun runeToStr(c: Int): String =
+    private fun runeToStr(c: Int): String =
             if (c <= Char.MAX_VALUE.toInt()) {
                 "${c.toChar()}"
             } else if (c == EOF) {

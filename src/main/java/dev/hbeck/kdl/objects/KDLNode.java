@@ -315,6 +315,11 @@ public class KDLNode implements KDLObject {
             return this;
         }
 
+        public Builder clearArgs() {
+            args.clear();
+            return this;
+        }
+
         public KDLNode build() {
             Objects.requireNonNull(identifier, "Identifier must be set");
 

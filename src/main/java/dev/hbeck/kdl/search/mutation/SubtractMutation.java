@@ -4,7 +4,9 @@ import dev.hbeck.kdl.objects.KDLDocument;
 import dev.hbeck.kdl.objects.KDLNode;
 import dev.hbeck.kdl.objects.KDLProperty;
 import dev.hbeck.kdl.objects.KDLValue;
+import dev.hbeck.kdl.parse.KDLInternalException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -60,5 +62,44 @@ public class SubtractMutation implements Mutation {
         }
 
         return Optional.of(builder.build());
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private final List<Predicate<KDLValue>> argPredicates = new ArrayList<>();
+        private final List<Predicate<KDLProperty>> propPredicates = new ArrayList<>();
+        private boolean emptyChild = false;
+        private boolean deleteChild = false;
+
+        public Builder addArg(Predicate<KDLValue> predicate) {
+            argPredicates.add(predicate);
+            return this;
+        }
+
+        public Builder addProp(Predicate<KDLProperty> predicate) {
+            propPredicates.add(predicate);
+            return this;
+        }
+
+        public Builder deleteChild() {
+            this.deleteChild = true;
+            return this;
+        }
+
+        public Builder emptyChild() {
+            this.emptyChild = true;
+            return this;
+        }
+
+        public SubtractMutation build() {
+            if (emptyChild && deleteChild) {
+                throw new KDLInternalException("Only one of empty child and delete child may be specified");
+            }
+
+            return new SubtractMutation(argPredicates, propPredicates, emptyChild, deleteChild);
+        }
     }
 }
