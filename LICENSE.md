@@ -7,6 +7,8 @@ kdl4j
 by [Hannah Kolbeck](https://github.com/hkolbeck/kdl4j) is licensed under a
 [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
 
+---
+
 The .kdl test cases in https://github.com/hkolbeck/kdl4j/tree/trunk/src/test/resources/test_cases are licensed under a Creative Commons 0 Public Domain License:
 
 [![CC0](http://i.creativecommons.org/p/zero/1.0/88x31.png)](http://creativecommons.org/publicdomain/zero/1.0/)   
