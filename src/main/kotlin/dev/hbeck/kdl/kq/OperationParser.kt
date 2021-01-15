@@ -2,10 +2,9 @@ package dev.hbeck.kdl.kq
 
 import dev.hbeck.kdl.kq.QueryCharClasses.Companion.isNumericPredicateStart
 import dev.hbeck.kdl.objects.KDLBoolean
-import dev.hbeck.kdl.objects.KDLDocument
 import dev.hbeck.kdl.objects.KDLNull
-import dev.hbeck.kdl.objects.KDLObject
 import dev.hbeck.kdl.objects.KDLProperty
+import dev.hbeck.kdl.objects.KDLString
 import dev.hbeck.kdl.objects.KDLValue
 import dev.hbeck.kdl.parse.CharClasses.isUnicodeWhitespace
 import dev.hbeck.kdl.parse.CharClasses.isValidBareIdChar
@@ -15,7 +14,6 @@ import dev.hbeck.kdl.parse.KDLInternalException
 import dev.hbeck.kdl.parse.KDLParseContext
 import dev.hbeck.kdl.parse.KDLParser.EOF
 import dev.hbeck.kdl.parse.KDLParserFacade
-import dev.hbeck.kdl.search.Operation
 import dev.hbeck.kdl.search.Search
 import dev.hbeck.kdl.search.mutation.AddMutation
 import dev.hbeck.kdl.search.mutation.Mutation
@@ -30,7 +28,6 @@ import java.util.*
 import java.util.function.Predicate
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
-import kotlin.collections.LinkedHashMap
 
 /**
  * Parses Operation objects, using the following grammar:
@@ -233,7 +230,7 @@ class OperationParser {
     // raw-regex := 'r' raw-regex-hash
     // raw-regex-hash := ('#' raw-regex-hash '#') | raw-regex-slashes
     // raw-regex-slashes := '/' .* '/'
-    fun parseRawRegexOrString(context: KDLParseContext): Predicate<String> {
+    private fun parseRawRegexOrString(context: KDLParseContext): StringPredicate {
         var c = context.read()
         if (c != 'r'.toInt()) {
             throw KDLInternalException("Raw regex should start with 'r' but found \\u{$c}")
@@ -250,12 +247,12 @@ class OperationParser {
             '/'.toInt() -> {
                 val regexStr = parseRaw(context, c, hashDepth)
                 try {
-                    Pattern.compile(regexStr).asPredicate()
+                    StringPredicate.RegexPredicate(Pattern.compile(regexStr))
                 } catch (e: PatternSyntaxException) {
                     throw QueryParseException("Failed to parse regex '$regexStr': ${e.localizedMessage}")
                 }
             }
-            '"'.toInt() -> Predicate.isEqual(parseRaw(context, c, hashDepth))
+            '"'.toInt() -> StringPredicate.LiteralStringPredicate(parseRaw(context, c, hashDepth))
             EOF -> throw QueryParseException("Input exhausted when parsing raw regex or string")
             else -> throw QueryParseException("Malformed raw regex or string, expected '/' or '\"' but found '\\u{$c}'")
         }
@@ -314,7 +311,7 @@ class OperationParser {
     // mutation := add-mutation | sub-mutation | set-mutation
     fun parseMutation(context: KDLParseContext): Mutation {
         consumeWhitespace(context)
-        return when (val c =context.peek()) {
+        return when (val c = context.peek()) {
             '+'.toInt() -> parseAddMutation(context)
             '-'.toInt() -> parseSubtractionMutation(context)
             '='.toInt() -> parseSetMutation(context)
@@ -330,9 +327,7 @@ class OperationParser {
             throw KDLInternalException("Expected '+' at start of add mutation, but got '${runeToStr(c)}'")
         }
 
-        val props: Map<String, KDLValue> = mutableMapOf()
-        val args: List<KDLValue> = mutableListOf()
-        var child: Optional<KDLDocument> = Optional.empty()
+        val builder = AddMutation.builder()
         var readChild = false
 
         consumeWhitespace(context)
@@ -345,13 +340,13 @@ class OperationParser {
                     }
 
                     readChild = true
-                    child = Optional.of(kdlParser.parseDocument(context, false))
+                    builder.setChild(kdlParser.parseDocument(context, false))
                 }
                 else -> {
-                    when(val argOrProp = kdlParser.parseArgOrProp(context)) {
-                        is KDLProperty -> props.plus(argOrProp.key to argOrProp.value)
-                        is KDLValue -> args.plus(argOrProp)
-                        else -> throw QueryParseException("")
+                    when (val argOrProp = kdlParser.parseArgOrProp(context)) {
+                        is KDLProperty -> builder.addProp(argOrProp.key, argOrProp.value)
+                        is KDLValue -> builder.addArg(argOrProp)
+                        else -> throw QueryParseException("Expected argument or property, but found '${argOrProp.toKDL()}'")
                     }
                 }
             }
@@ -360,7 +355,7 @@ class OperationParser {
             c = context.peek()
         }
 
-        return AddMutation(args, props, child)
+        return builder.build()
     }
 
     // sub-mutation := ws* '-' ws* subtraction sub-list
@@ -372,12 +367,10 @@ class OperationParser {
             throw KDLInternalException("Expected '-' at start of subtract mutation, but got '${runeToStr(c)}'")
         }
 
-        val argPredicates: List<Predicate<KDLValue>> = mutableListOf()
-        val propPredicates: List<Predicate<KDLProperty>> = mutableListOf()
-        var emptyChild = false
-        var deleteChild = false
+        val builder = SubtractMutation.builder()
         var foundChildSubtraction = false
         var foundSplatArgPropDeletion = false
+        var foundArgOrPropSubtraction = false
 
         consumeWhitespace(context)
         c = context.peek()
@@ -388,13 +381,11 @@ class OperationParser {
                         throw QueryParseException("Only one child clause is allowed in subtraction mutation");
                     }
 
-                    val (emptyChildRet, deleteChildRet) = parseChildSubtraction(context)
-                    emptyChild = emptyChildRet
-                    deleteChild = deleteChildRet
+                    parseChildSubtraction(context, builder)
                     foundChildSubtraction = true
                 }
                 '['.toInt() -> {
-                    if (argPredicates.isNotEmpty() || propPredicates.isNotEmpty()) {
+                    if (foundArgOrPropSubtraction) {
                         throw QueryParseException("")
                     }
 
@@ -403,8 +394,8 @@ class OperationParser {
                         throw QueryParseException("")
                     }
 
-                    argPredicates.plus(Predicate { true })
-                    propPredicates.plus(Predicate { true })
+                    builder.addArg { true }
+                    builder.addProp { true }
 
                     foundSplatArgPropDeletion = true
                 }
@@ -414,12 +405,11 @@ class OperationParser {
                         throw QueryParseException("")
                     }
 
+                    foundArgOrPropSubtraction = true
                     when (pred) {
-                        is ArgPredicate -> argPredicates.plus(pred.predicate)
+                        is ArgPredicate -> builder.addArg(pred.predicate)
                         is PropPredicate ->
-                            propPredicates.plus(
-                                    Predicate { prop -> pred.keyPredicate.test(prop.key) && pred.valuePredicate.test(prop.value) }
-                            )
+                            builder.addProp { prop -> pred.keyPredicate.test(prop.key) && pred.valuePredicate.test(prop.value) }
                         else -> throw QueryParseException("Expected prop predicate or arg predicate but found ${pred.javaClass.simpleName}")
                     }
                 }
@@ -429,11 +419,11 @@ class OperationParser {
             c = context.peek()
         }
 
-        return SubtractMutation(argPredicates, propPredicates, emptyChild, deleteChild)
+        return
     }
 
     // childSubtraction
-    fun parseChildSubtraction(context: KDLParseContext): Pair<Boolean, Boolean> {
+    fun parseChildSubtraction(context: KDLParseContext, builder: SubtractMutation.Builder): Pair<Boolean, Boolean> {
         var c = context.read()
         if (c != '{'.toInt()) {
             throw KDLInternalException("Expected '{', but found '${runeToStr(c)}'")
@@ -512,7 +502,69 @@ class OperationParser {
     // regex = value
     // raw_regex = value
     fun parseSetMutationItem(context: KDLParseContext, builder: SetMutation.Builder) {
+        var c = context.peek()
+        val propOrValue = when {
+            c == '"'.toInt() -> {
+                StringPredicate.LiteralStringPredicate(kdlParser.parseEscapedString(context))
+            }
+            c == '/'.toInt() -> {
+                parseEscapedRegex(context)
+            }
+            isValidBareIdStart(c) -> {
+                when (c) {
+                    'r'.toInt() -> {
+                        parseRawRegexOrString(context)
+                    }
+                    else -> {
+                        when (val bareIdentifierOrLiteral = parseBareIdentifierOrLiteral(context)) {
+                            "true" -> {
+                                builder.addArg(KDLBoolean.TRUE)
+                                return
+                            }
+                            "false" -> {
+                                builder.addArg(KDLBoolean.FALSE)
+                                return
+                            }
+                            "null" -> {
+                                builder.addArg(KDLNull.INSTANCE)
+                                return
+                            }
+                            else -> {
+                                StringPredicate.LiteralStringPredicate(bareIdentifierOrLiteral)
+                            }
+                        }
+                    }
+                }
+            }
+            else -> throw QueryParseException("Expected one of: literal, regex, string, or identifier, but found ${runeToStr(c)}")
+        }
 
+        c = context.peek()
+        when (c) {
+            '='.toInt() -> {
+                context.read()
+                val value = kdlParser.parseValue(context)
+                builder.addProp(propOrValue, value)
+            }
+            else -> {
+                when (propOrValue) {
+                    is StringPredicate.LiteralStringPredicate -> builder.addArg(KDLString.from(propOrValue.str))
+                    is StringPredicate.RegexPredicate -> throw QueryParseException("Regex arguments are not allowed in set mutations")
+                }
+            }
+        }
+    }
+
+    private sealed class StringPredicate : Predicate<String> {
+        data class LiteralStringPredicate(val str: String) : StringPredicate() {
+            override fun test(t: String): Boolean = str == t
+        }
+
+        data class RegexPredicate(val pat: Pattern) : StringPredicate() {
+            private val pred: Predicate<String> = pat.asPredicate();
+
+            override fun test(t: String): Boolean = pred.test(t)
+        }
     }
 
     private fun consumeWhitespace(context: KDLParseContext) {

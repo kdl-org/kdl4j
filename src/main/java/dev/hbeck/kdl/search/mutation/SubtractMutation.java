@@ -17,7 +17,7 @@ public class SubtractMutation implements Mutation {
     private final boolean emptyChild;
     private final boolean deleteChild;
 
-    public SubtractMutation(List<Predicate<KDLValue>> argPredicates, List<Predicate<KDLProperty>> propPredicates, boolean emptyChild, boolean deleteChild) {
+    private SubtractMutation(List<Predicate<KDLValue>> argPredicates, List<Predicate<KDLProperty>> propPredicates, boolean emptyChild, boolean deleteChild) {
         if (emptyChild && deleteChild) {
             throw new IllegalArgumentException("Only one of emptyChild and deleteChild may be set.");
         }
