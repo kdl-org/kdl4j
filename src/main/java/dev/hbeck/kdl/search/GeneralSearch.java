@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
-public class GeneralSearch implements Search<Mutation> {
+public class GeneralSearch implements Search {
     private final NodePredicate predicate;
     private final int minDepth;
     private final int maxDepth;

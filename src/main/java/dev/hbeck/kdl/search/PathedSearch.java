@@ -12,7 +12,7 @@ import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.TreeMap;
 
-public class PathedSearch implements Search<Mutation>{
+public class PathedSearch implements Search {
     private final NavigableMap<Integer, NodePredicate> path;
 
     private PathedSearch(NavigableMap<Integer, NodePredicate> path) {
