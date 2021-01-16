@@ -39,12 +39,45 @@ import java.util.regex.PatternSyntaxException
 
 /**
  * Parses Operation objects, using the following grammar:
- * operation :=  search ws* mutation?
  *
- * search := general-search | pathed-search | root
+ * operation :=  (search ws* mutation?) | (root ('+' child-nodes))
+ *
+ * search := general-search | pathed-search
  * root := '{}'
+ * general-search := '*' node-predicate?
+ * pathed-search := '.' node-predicate pathed-search?
  *
+ * node-predicate := identifier-predicate? predicates?
+ * identifier-predicate := bare-identifier | string | regex
  *
+ * content-predicates := '[' content-predicate ']'
+ * content-predicate := ('(' compound-expr ')') | atom --- May omit parens around outermost
+ * compound-expr := and-expr | or-expr
+ * and-expr := content-predicate '&' content-predicate ('&' content-predicate)*
+ * or-expr := content-predicate '|' content-predicate ('|' content-predicate)*
+ * atom := child-predicate | prop-or-arg-predicate
+ *
+ * child-predicate := '{' (general-search | pathed-search) '}'
+ * prop-or-arg-predicate := value | regex | numeric-predicate | property-predicate
+ * property-predicate := identifier-predicate ( '=' value | '~' regex | numeric-predicate | '=*')
+ *
+ * numeric-predicate := ('=' | '<' | '>') number
+ *
+ * regex := escaped-regex | raw-regex
+ * escaped-regex := '/' character* '/'
+ *
+ * mutation := add-mutation | sub-mutation | set-mutation
+ *
+ * add-mutation := ws* '+' ws* (add-list | node-children)
+ * add-list := (value | prop) (ws+ add-list)?
+ *
+ * sub-mutation := ws* '-' ws* subtraction sub-list
+ * subtraction := (value | regex | numeric-predicate | property-predicate | '{' '*'? '}' |  '[*]')
+ * sub-list := (ws+ subtraction sub-list)?
+ *
+ * set-mutation := ws* '=' ws* set-item set-list?
+ * set-item := value | identifier-predicate '=' value | '=' identifier | node-children
+ * set-list :=  set-item (ws+ set-list)?
  */
 class OperationParser {
     private val kdlParser = KDLParserFacade()
@@ -56,6 +89,15 @@ class OperationParser {
         consumeWhitespace(context)
         val search = parseSearch(context)
         val mutation = parseMutation(context)
+
+        if (search is RootSearch) {
+            if (mutation !is AddMutation) {
+                throw QueryParseException("")
+            }
+
+
+        }
+
         return search to mutation
     }
 
