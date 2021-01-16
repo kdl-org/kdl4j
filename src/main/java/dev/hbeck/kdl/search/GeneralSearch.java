@@ -10,33 +10,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Predicate;
 
 public class GeneralSearch implements Search<Mutation> {
     private final NodePredicate predicate;
+    private final int minDepth;
+    private final int maxDepth;
 
-    private int minDepth = 0;
-    private int maxDepth = Integer.MAX_VALUE;
-
-    public GeneralSearch(NodePredicate predicate) {
+    public GeneralSearch(NodePredicate predicate, int minDepth, int maxDepth) {
         this.predicate = predicate;
-    }
-
-    public GeneralSearch setMinDepth(int minDepth) {
         this.minDepth = minDepth;
-        return this;
-    }
-
-    public GeneralSearch setMaxDepth(int maxDepth) {
         this.maxDepth = maxDepth;
-        return this;
     }
 
     public List<KDLNode> listAll(KDLDocument document, boolean trim) {
-        return Collections.unmodifiableList(listAll(document, trim, 0, new ArrayList<>()));
+        final ArrayList<KDLNode> nodes = new ArrayList<>();
+        listAll(document, trim, 0, nodes);
+        return Collections.unmodifiableList(nodes);
     }
 
-    private List<KDLNode> listAll(KDLDocument doc, boolean trim, int depth, List<KDLNode> nodes) {
+    private void listAll(KDLDocument doc, boolean trim, int depth, List<KDLNode> nodes) {
         if (depth <= maxDepth) {
             for (KDLNode node : doc.getNodes()) {
                 if (minDepth <= depth && predicate.test(node)) {
@@ -51,22 +43,20 @@ public class GeneralSearch implements Search<Mutation> {
                 node.getChild().ifPresent(ch -> listAll(ch, trim, depth + 1, nodes));
             }
         }
-
-        return nodes;
     }
 
     public KDLDocument filter(KDLDocument document) {
         return filter(document, 0).orElse(KDLDocument.empty());
     }
 
-    private Optional<KDLDocument> filter(KDLDocument doc, int depth) {
+    private Optional<KDLDocument> filter(KDLDocument document, int depth) {
         if (depth > maxDepth) {
             return Optional.empty();
         }
 
         final KDLDocument.Builder builder = KDLDocument.builder();
-        for (KDLNode node : doc.getNodes()) {
-            final Optional<KDLDocument> newChild = node.getChild().flatMap(ch -> filter(ch, depth + 1));
+        for (KDLNode node : document.getNodes()) {
+            final Optional<KDLDocument> newChild = node.getChild().flatMap(doc -> filter(doc, depth + 1));
             if (newChild.isPresent()) {
                 builder.addNode(node.toBuilder().setChild(newChild).build());
             } else if (predicate.test(node)) {
@@ -93,7 +83,7 @@ public class GeneralSearch implements Search<Mutation> {
 
         final KDLDocument.Builder docBuilder = KDLDocument.builder();
         for (KDLNode node : doc.getNodes()) {
-            if (depth >= minDepth && nodeMatches(node)) {
+            if (depth >= minDepth && predicate.test(node)) {
                 if (node.getChild().isPresent()) {
                     final Optional<KDLDocument> newChild = node.getChild().flatMap(ch -> mutate(fun, ch, depth + 1));
                     final KDLNode newNode = node.toBuilder().setChild(newChild).build();
@@ -115,11 +105,36 @@ public class GeneralSearch implements Search<Mutation> {
         }
     }
 
-    public static <T> Predicate<T> any() {
-        return v -> true;
+    public static Builder builder() {
+        return new Builder();
     }
 
-    public static GeneralSearch of(KDLDocument document) {
-        return new GeneralSearch(document);
+    public static class Builder {
+        private NodePredicate predicate = null;
+        private int minDepth = 0;
+        private int maxDepth = Integer.MAX_VALUE;
+
+        public Builder setPredicate(NodePredicate predicate) {
+            this.predicate = predicate;
+            return this;
+        }
+
+        public Builder setMinDepth(int minDepth) {
+            this.minDepth = minDepth;
+            return this;
+        }
+
+        public Builder setMaxDepth(int maxDepth) {
+            this.maxDepth = maxDepth;
+            return this;
+        }
+
+        public GeneralSearch build() {
+            if (minDepth < 0 || maxDepth < 0) {
+                throw new IllegalArgumentException("Min depth and max depth must be greater than 0");
+            }
+
+            return new GeneralSearch(predicate, minDepth, maxDepth);
+        }
     }
 }
