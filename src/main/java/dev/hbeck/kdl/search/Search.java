@@ -6,10 +6,10 @@ import dev.hbeck.kdl.search.mutation.Mutation;
 
 import java.util.List;
 
-public interface Search<M extends Mutation> {
+public interface Search {
     KDLDocument filter(KDLDocument document);
 
     List<KDLNode> listAll(KDLDocument document, boolean trim);
 
-    KDLDocument mutate(KDLDocument document, M mutation);
+    KDLDocument mutate(KDLDocument document, Mutation mutation);
 }

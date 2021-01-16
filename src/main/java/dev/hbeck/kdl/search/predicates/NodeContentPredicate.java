@@ -5,4 +5,8 @@ import dev.hbeck.kdl.objects.KDLNode;
 import java.util.function.Predicate;
 
 public interface NodeContentPredicate extends Predicate<KDLNode> {
+
+    static NodeContentPredicate any() {
+        return node -> true;
+    }
 }
