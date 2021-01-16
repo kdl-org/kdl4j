@@ -2,6 +2,7 @@ package dev.hbeck.kdl.kq
 
 import dev.hbeck.kdl.kq.QueryCharClasses.Companion.isNumericPredicateStart
 import dev.hbeck.kdl.objects.KDLBoolean
+import dev.hbeck.kdl.objects.KDLDocument
 import dev.hbeck.kdl.objects.KDLNull
 import dev.hbeck.kdl.objects.KDLProperty
 import dev.hbeck.kdl.objects.KDLString
@@ -14,13 +15,17 @@ import dev.hbeck.kdl.parse.KDLInternalException
 import dev.hbeck.kdl.parse.KDLParseContext
 import dev.hbeck.kdl.parse.KDLParser.EOF
 import dev.hbeck.kdl.parse.KDLParserFacade
+import dev.hbeck.kdl.search.GeneralSearch
+import dev.hbeck.kdl.search.PathedSearch
 import dev.hbeck.kdl.search.Search
 import dev.hbeck.kdl.search.mutation.AddMutation
 import dev.hbeck.kdl.search.mutation.Mutation
 import dev.hbeck.kdl.search.mutation.SetMutation
 import dev.hbeck.kdl.search.mutation.SubtractMutation
 import dev.hbeck.kdl.search.predicates.ArgPredicate
+import dev.hbeck.kdl.search.predicates.ChildPredicate
 import dev.hbeck.kdl.search.predicates.NodeContentPredicate
+import dev.hbeck.kdl.search.predicates.NodePredicate
 import dev.hbeck.kdl.search.predicates.PropPredicate
 import java.io.StringReader
 import java.lang.StringBuilder
@@ -72,39 +77,96 @@ class OperationParser {
 
     // * search := general-search | pathed-search | root
     // * root := '{}'
-    // * general-search := '*' node-predicate?
     fun parseSearch(context: KDLParseContext) {
 
     }
 
-    // * pathed-search := '.' (node-predicate pathed-search?)?
-    fun parsePathedSearch(context: KDLParseContext) {
+    // * general-search := '*' node-predicate?
+    fun parseGeneralSearch(context: KDLParseContext): (KDLDocument) -> Search {
+        var c = context.read()
+        if (c != '*'.toInt()) {
+            throw KDLInternalException("")
+        }
+
+        val predicate = parseNodePredicate(context)
+
 
     }
 
-    // node-predicate := identifier-predicate? prop-and-arg-predicates? child-predicate?
-    fun parseNodePredicate(context: KDLParseContext) {
-        val c = context.read()
-        if (c != '.'.toInt()) {
-            throw KDLInternalException("Expected '.' at start of node predicate, but found ")
+    // * pathed-search := '.' (node-predicate pathed-search?)?
+    fun parsePathedSearch(context: KDLParseContext): (KDLDocument) -> Search {
+
+    }
+
+    // node-predicate := identifier-predicate? predicates?
+    fun parseNodePredicate(context: KDLParseContext): NodePredicate {
+        var c = context.peek()
+        when (c) {
+            '.'.toInt(), EOF -> return NodePredicate.any()
+            '['.toInt() -> {
+                return NodePredicate({ true }, parseContentPredicates(context))
+            }
+            else -> {
+                context.read()
+                val idPredicate = parseIdentifierPredicate(context)
+                c = context.peek()
+                when {
+                    c == '.'.toInt() || c == EOF || isUnicodeWhitespace(c) -> return NodePredicate(idPredicate, { true })
+                    c == '['.toInt() -> {
+                        return NodePredicate(idPredicate, parseContentPredicates(context))
+                    }
+                    else -> throw QueryParseException("")
+                }
+            }
         }
     }
 
 
     // * identifier-predicate := bare-indentifier | string | regex
-    fun parseIdentifierPredicate(context: KDLParseContext) {
+    fun parseIdentifierPredicate(context: KDLParseContext): Predicate<String> {
 
     }
 
-    // * prop-and-arg-predicates := '[' (prop-or-arg-predicate* | '*' ']'
-    // * prop-or-arg-predicate-list := (ws* prop-or-arg-predicate? ws*) | (prop-or-arg-predicate ws prop-or-arg-predicate-list)
-    fun parsePropAndArgPredicates(context: KDLParseContext) {
+    // content-predicates := '[' content-predicate ']'
+    // content-predicate := ('(' compound-expr ')') | atom --- May omit parens around outermost
+    // compound-expr := and-expr | or-expr
+    // and-expr := content-predicate '&' content-predicate ('&' content-predicate)*
+    // or-expr := content-predicate '|' content-predicate ('|' content-predicate)*
+    // atom := child-predicate | prop-or-arg-predicate
+    fun parseContentPredicates(context: KDLParseContext): NodeContentPredicate {
 
     }
 
-    // * child-predicate := '{' (general-search | pathed-search) '}'
-    fun parseChildPredicate(context: KDLParseContext) {
+    // child-predicate := '{' (general-search | pathed-search) '}'
+    fun parseChildPredicate(context: KDLParseContext): ChildPredicate {
+        var c = context.read()
+        if (c != '{'.toInt()) {
+            throw KDLInternalException("")
+        }
 
+        consumeWhitespace(context)
+        c = context.peek()
+        val predicate = when (c) {
+            '.'.toInt() -> {
+                ChildPredicate.pathedSearch(parsePathedSearch(context))
+            }
+            '*'.toInt() -> {
+                ChildPredicate.generalSearch(parseGeneralSearch(context))
+            }
+            '}'.toInt() -> {
+                context.read()
+                ChildPredicate.empty()
+            }
+            else -> throw QueryParseException("Couldn't parse child predicate. Expected one of '.', '*', or '}', but found '${runeToStr(c)}'")
+        }
+
+        consumeWhitespace(context)
+        c = context.read()
+        if (c != '}'.toInt()) {
+            throw QueryParseException("")
+        }
+
+        return predicate
     }
 
     // prop-or-arg-predicate := value | regex | numeric-predicate | property-predicate
@@ -181,9 +243,9 @@ class OperationParser {
         val c = context.read()
         val number = kdlParser.parseNumber(context).asBigDecimal
         return when (c) {
-            '='.toInt() -> Predicate { value: KDLValue -> value.isNumber && number.equals(value.asNumber.get().asBigDecimal) }
-            '>'.toInt() -> Predicate { value: KDLValue -> value.isNumber && number.compareTo(value.asNumber.get().asBigDecimal) < 0 }
-            '<'.toInt() -> Predicate { value: KDLValue -> value.isNumber && number.compareTo(value.asNumber.get().asBigDecimal) > 0 }
+            '='.toInt() -> Predicate { value: KDLValue -> value.isNumber && number == value.asNumber.get().asBigDecimal }
+            '>'.toInt() -> Predicate { value: KDLValue -> value.isNumber && value.asNumber.get().asBigDecimal > number }
+            '<'.toInt() -> Predicate { value: KDLValue -> value.isNumber && value.asNumber.get().asBigDecimal < number }
             else -> throw KDLInternalException("Expected '=', '>', or '<' but got \\u{$c}")
         }
     }
@@ -374,6 +436,11 @@ class OperationParser {
 
         consumeWhitespace(context)
         c = context.peek()
+        if (c == '.'.toInt()) {
+            // The 'delete node' case is represented by all fields of the subtraction being empty
+            return builder.build();
+        }
+
         while (c != EOF) {
             when (c) {
                 '{'.toInt() -> {
