@@ -20,7 +20,7 @@ public class TestGeneralSearch {
         final KDLDocument document = KDLDocument.builder().addNode(node).build();
 
         final List<KDLNode> found = document.search()
-                .findAll();
+                .listAll();
 
         assertThat(found, equalTo(Collections.singletonList(node)));
     }
@@ -36,7 +36,7 @@ public class TestGeneralSearch {
 
         final List<KDLNode> found = document.search()
                 .forNodeId("a")
-                .findAll();
+                .listAll();
 
         assertThat(found, equalTo(Collections.singletonList(node1)));
     }
@@ -63,7 +63,7 @@ public class TestGeneralSearch {
         final List<KDLNode> found = document.search()
                 .setMaxDepth(1)
                 .setMinDepth(1)
-                .findAll();
+                .listAll();
 
         assertThat(found, equalTo(Collections.singletonList(expected)));
     }
@@ -82,7 +82,7 @@ public class TestGeneralSearch {
 
         final List<KDLNode> found = document.search()
                 .forProperty("key", GeneralSearch.any())
-                .findAll();
+                .listAll();
 
         assertThat(found, equalTo(Collections.singletonList(node1)));
     }
@@ -101,7 +101,7 @@ public class TestGeneralSearch {
 
         final List<KDLNode> found = document.search()
                 .forProperty(GeneralSearch.any(), KDLString.from("val"))
-                .findAll();
+                .listAll();
 
         assertThat(found, equalTo(Collections.singletonList(node1)));
     }
@@ -122,7 +122,7 @@ public class TestGeneralSearch {
 
         final List<KDLNode> found = document.search()
                 .forProperty(GeneralSearch.any(), KDLString.from("val"))
-                .findAll();
+                .listAll();
 
         assertThat(found, equalTo(Collections.singletonList(node2)));
     }
@@ -151,7 +151,7 @@ public class TestGeneralSearch {
                 .forProperty("key", KDLString.from("val"))
                 .forProperty("key2", KDLValue.from("val2"))
                 .matchAllPropPredicates()
-                .findAll();
+                .listAll();
 
         assertThat(found, equalTo(Collections.singletonList(node2)));
     }
@@ -180,7 +180,7 @@ public class TestGeneralSearch {
                 .forArg(KDLValue.from("val"))
                 .forArg(KDLValue.from("val2"))
                 .matchAllArgPredicates()
-                .findAll();
+                .listAll();
 
         assertThat(found, equalTo(Collections.singletonList(node2)));
     }

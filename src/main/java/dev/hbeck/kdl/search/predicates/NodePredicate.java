@@ -1,33 +1,24 @@
 package dev.hbeck.kdl.search.predicates;
 
 import dev.hbeck.kdl.objects.KDLNode;
-import dev.hbeck.kdl.search.GeneralSearch;
 
 import java.util.function.Predicate;
 
 public class NodePredicate implements Predicate<KDLNode> {
     private final Predicate<String> identifierPredicate;
-    private final Predicate<Boolean> childPredicate;
-    private final Predicate<KDLNode> nodeContentPredicate;
+    private final NodeContentPredicate contentPredicate;
 
-    public NodePredicate(Predicate<String> identifierPredicate, Predicate<Boolean> childPredicate, Predicate<KDLNode> nodeContentPredicate) {
+    public NodePredicate(Predicate<String> identifierPredicate, NodeContentPredicate contentPredicate) {
         this.identifierPredicate = identifierPredicate;
-        this.childPredicate = childPredicate;
-        this.nodeContentPredicate = nodeContentPredicate;
+        this.contentPredicate = contentPredicate;
     }
 
     @Override
     public boolean test(KDLNode node) {
-        if (!identifierPredicate.test(node.getIdentifier())) {
-            return false;
-        } else if (!nodeContentPredicate.test(node)) {
-            return false;
-        } else {
-            return childPredicate.test(node.getChild().isPresent());
-        }
+        return identifierPredicate.test(node.getIdentifier()) && contentPredicate.test(node);
     }
 
     public static NodePredicate any() {
-        return new NodePredicate(GeneralSearch.any(), GeneralSearch.any(), GeneralSearch.any());
+        return new NodePredicate(id -> true, node -> true);
     }
 }

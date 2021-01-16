@@ -2,15 +2,14 @@ package dev.hbeck.kdl.search;
 
 import dev.hbeck.kdl.objects.KDLDocument;
 import dev.hbeck.kdl.objects.KDLNode;
+import dev.hbeck.kdl.search.mutation.Mutation;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
 
-public interface Search {
-    KDLDocument filter();
+public interface Search<M extends Mutation> {
+    KDLDocument filter(KDLDocument document);
 
-    List<KDLNode> findAll();
+    List<KDLNode> listAll(KDLDocument document, boolean trim);
 
-    KDLDocument mutate(Function<KDLNode, Optional<KDLNode>>);
+    KDLDocument mutate(KDLDocument document, M mutation);
 }

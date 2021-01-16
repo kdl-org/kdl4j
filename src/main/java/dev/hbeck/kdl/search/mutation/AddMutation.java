@@ -21,6 +21,18 @@ public class AddMutation implements Mutation {
         this.child = child;
     }
 
+    public List<KDLValue> getArgs() {
+        return args;
+    }
+
+    public Map<String, KDLValue> getProps() {
+        return props;
+    }
+
+    public Optional<KDLDocument> getChild() {
+        return child;
+    }
+
     @Override
     public Optional<KDLNode> apply(KDLNode node) {
         final KDLNode.Builder builder = node.toBuilder();
