@@ -5,7 +5,7 @@ import dev.hbeck.kdl.objects.KDLNode;
 import dev.hbeck.kdl.objects.KDLValue;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,10 +14,10 @@ import java.util.function.Predicate;
 public class SetMutation implements Mutation {
     private final Optional<String> identifier;
     private final List<KDLValue> args;
-    private final LinkedHashMap<Predicate<String>, KDLValue> props;
+    private final Map<String, KDLValue> props;
     private final Optional<Optional<KDLDocument>> child;
 
-    private SetMutation(Optional<String> identifier, List<KDLValue> args, LinkedHashMap<Predicate<String>, KDLValue> props, Optional<Optional<KDLDocument>> child) {
+    private SetMutation(Optional<String> identifier, List<KDLValue> args, Map<String, KDLValue> props, Optional<Optional<KDLDocument>> child) {
         this.identifier = identifier;
         this.args = args;
         this.props = props;
@@ -35,12 +35,9 @@ public class SetMutation implements Mutation {
             builder.addAllArgs(args);
         }
 
-        for (Map.Entry<Predicate<String>, KDLValue> set : props.entrySet()) {
-            for (String propKey : node.getProps().keySet()) {
-                if (set.getKey().test(propKey)) {
-                    builder.addProp(propKey, set.getValue());
-                }
-            }
+        if (!props.isEmpty()) {
+            builder.clearProps();
+            builder.addAllProps(props);
         }
 
         return Optional.of(builder.build());
@@ -52,7 +49,7 @@ public class SetMutation implements Mutation {
 
     public static class Builder {
         private final List<KDLValue> args = new ArrayList<>();
-        private final LinkedHashMap<Predicate<String>, KDLValue> props = new LinkedHashMap<>();
+        private final Map<String, KDLValue> props = new HashMap<>();
         private Optional<String> identifier = Optional.empty();
         private Optional<Optional<KDLDocument>> child = Optional.empty();
 
@@ -61,7 +58,7 @@ public class SetMutation implements Mutation {
             return this;
         }
 
-        public Builder addProp(Predicate<String> key, KDLValue value) {
+        public Builder addProp(String key, KDLValue value) {
             props.put(key, value);
             return this;
         }
