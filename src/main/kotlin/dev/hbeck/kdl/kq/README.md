@@ -1,6 +1,6 @@
-# KQL: KDL Query Language
+# KDLQL: KDL Query Language
 
-Any document language needs a simple way of making alterations. KQL is largely based on the query language implemented
+Any document language needs a simple way of making alterations. KDLQL is largely based on the query language implemented
 by the UNIX `jq` tool for working with JSON. There are however major modifications to match KDL's differing semantics.
 
 ## Basic Operation
