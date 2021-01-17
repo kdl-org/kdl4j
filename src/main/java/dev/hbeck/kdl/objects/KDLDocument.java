@@ -1,11 +1,6 @@
 package dev.hbeck.kdl.objects;
 
 import dev.hbeck.kdl.print.PrintConfig;
-import dev.hbeck.kdl.search.Operation;
-import dev.hbeck.kdl.search.GeneralSearch;
-import dev.hbeck.kdl.search.mutation.AddMutation;
-import dev.hbeck.kdl.search.mutation.Mutation;
-import dev.hbeck.kdl.search.predicates.NodePredicate;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -26,36 +21,6 @@ public class KDLDocument implements KDLObject {
 
     public List<KDLNode> getNodes() {
         return nodes;
-    }
-
-    public GeneralSearch search() {
-        return GeneralSearch.of(this);
-    }
-
-    public KDLDocument apply(Operation operation) {
-        return apply(operation, 0);
-    }
-
-    private KDLDocument apply(Operation operation, int depth) {
-        final Builder builder = KDLDocument.builder();
-
-        final NodePredicate nodePredicate = operation.getPath().get(depth);
-        for (KDLNode node : nodes) {
-            if (nodePredicate.test(node)) {
-                if (depth == operation.getDepth()) {
-                    if (operation.getMutation().isPresent()) {
-                        operation.getMutation().get().apply(node).ifPresent(builder::addNode);
-                    } else {
-                        builder.addNode(node);
-                    }
-                } else if (node.getChild().isPresent()) {
-                    final KDLNode newNode = node.toBuilder().setChild(node.getChild().get().apply(operation, depth + 1)).build();
-                    builder.addNode(newNode);
-                }
-            }
-        }
-
-        return builder.build();
     }
 
     @Override
@@ -104,32 +69,6 @@ public class KDLDocument implements KDLObject {
             }
             writer.write(printConfig.getNewline());
         }
-    }
-
-    public KDLDocument applyOperation(Operation operation) {
-        if (operation.getDepth() == 0) {
-            if (operation.getMutation().isPresent()) {
-                final Mutation mutation = operation.getMutation().get();
-                if (mutation instanceof AddMutation) {
-                    final AddMutation addMutation = (AddMutation) mutation;
-                    final KDLNode.builder().setChild(this).setIdentifier("")
-
-                    addMutation.
-
-                } else {
-                    throw new IllegalArgumentException("Only add mutations are allowed on the root document");
-                }
-            } else {
-                return this;
-            }
-        }
-
-        return applyOperation(operation, this, 0);
-    }
-
-    private KDLDocument applyOperation(Operation operation, KDLDocument doc, int depth) {
-
-        final NodePredicate nodePredicate = operation.getPath().getOrDefault(depth, NodePredicate.any());
     }
 
     public Builder toBuilder() {

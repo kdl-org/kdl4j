@@ -6,7 +6,6 @@ import dev.hbeck.kdl.search.mutation.Mutation;
 import dev.hbeck.kdl.search.predicates.NodePredicate;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.NavigableMap;
 import java.util.Optional;
@@ -49,13 +48,13 @@ public class PathedSearch implements Search {
     }
 
     @Override
-    public List<KDLNode> listAll(KDLDocument document, boolean trim) {
+    public KDLDocument list(KDLDocument document, boolean trim) {
         final ArrayList<KDLNode> nodes = new ArrayList<>();
-        listAll(document, trim, 0, nodes);
-        return Collections.unmodifiableList(nodes);
+        list(document, trim, 0, nodes);
+        return KDLDocument.builder().addNodes(nodes).build();
     }
 
-    private void listAll(KDLDocument document, boolean trim, int depth, List<KDLNode> nodes) {
+    private void list(KDLDocument document, boolean trim, int depth, List<KDLNode> nodes) {
         final NodePredicate predicate = path.get(depth);
         if (predicate == null) {
             return;
@@ -72,7 +71,7 @@ public class PathedSearch implements Search {
                 nodes.add(nodeBuilder.build());
             }
 
-            node.getChild().ifPresent(ch -> listAll(ch, trim, depth + 1, nodes));
+            node.getChild().ifPresent(ch -> list(ch, trim, depth + 1, nodes));
         }
     }
 
