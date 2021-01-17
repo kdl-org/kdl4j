@@ -28,7 +28,7 @@ matched is anything but a string, the match will fail. String predicates come in
 
 * Literals: Matches strings whose text is exactly the same as the specified predicate. Can be bare strings in the case of 
   identifiers and property keys, escaped, or raw. Note that this comparison ignores whether the string was specified using
-  raw or escaped strings.
+  raw or escaped strings. Comparisons are case-sensitive.
 * Regular Expressions: Similar to strings, regexes can be escaped or raw. Escaped regexes are surrounded by `/` characters,
   while raw regexes are preceeded by an `r`, then any number of `#`, then a `/` and followed by a `/`, and then the same 
   number of `#`. Regular expressions use Java's `Pattern` syntax outlined 
