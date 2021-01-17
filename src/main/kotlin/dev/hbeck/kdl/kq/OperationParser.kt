@@ -23,62 +23,24 @@ import dev.hbeck.kdl.search.mutation.AddMutation
 import dev.hbeck.kdl.search.mutation.Mutation
 import dev.hbeck.kdl.search.mutation.SetMutation
 import dev.hbeck.kdl.search.mutation.SubtractMutation
+import dev.hbeck.kdl.search.predicates.AnyContentPredicate
 import dev.hbeck.kdl.search.predicates.ArgPredicate
 import dev.hbeck.kdl.search.predicates.ChildPredicate
 import dev.hbeck.kdl.search.predicates.ConjunctionPredicate
 import dev.hbeck.kdl.search.predicates.DisjunctionPredicate
+import dev.hbeck.kdl.search.predicates.EmptyContentPredicate
+import dev.hbeck.kdl.search.predicates.NegatedPredicate
 import dev.hbeck.kdl.search.predicates.NodeContentPredicate
 import dev.hbeck.kdl.search.predicates.NodePredicate
 import dev.hbeck.kdl.search.predicates.PropPredicate
 import java.io.StringReader
+import java.lang.ArithmeticException
 import java.lang.StringBuilder
 import java.util.*
 import java.util.function.Predicate
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
 
-/**
- * Parses Operation objects, using the following grammar:
- *
- * operation :=  (search ws* mutation?) | (root ('+' child-nodes))
- *
- * search := general-search | pathed-search
- * root := '{}'
- * general-search := '*' node-predicate?
- * pathed-search := '.' node-predicate pathed-search?
- *
- * node-predicate := identifier-predicate? predicates?
- * identifier-predicate := bare-identifier | string | regex
- *
- * content-predicates := '[' content-predicate ']'
- * content-predicate := ('(' compound-expr ')') | atom --- May omit parens around outermost
- * compound-expr := and-expr | or-expr
- * and-expr := content-predicate '&' content-predicate ('&' content-predicate)*
- * or-expr := content-predicate '|' content-predicate ('|' content-predicate)*
- * atom := child-predicate | prop-or-arg-predicate
- *
- * child-predicate := '{' (general-search | pathed-search) '}'
- * prop-or-arg-predicate := value | regex | numeric-predicate | property-predicate
- * property-predicate := identifier-predicate ( '=' value | '~' regex | numeric-predicate | '=*')
- *
- * numeric-predicate := ('=' | '<' | '>') number
- *
- * regex := escaped-regex | raw-regex
- * escaped-regex := '/' character* '/'
- *
- * mutation := add-mutation | sub-mutation | set-mutation
- *
- * add-mutation := ws* '+' ws* (add-list | node-children)
- * add-list := (value | prop) (ws+ add-list)?
- *
- * sub-mutation := ws* '-' ws* subtraction sub-list
- * subtraction := (value | regex | numeric-predicate | property-predicate | '{' '*'? '}' |  '[*]')
- * sub-list := (ws+ subtraction sub-list)?
- *
- * set-mutation := ws* '=' ws* set-item set-list?
- * set-item := value | identifier-predicate '=' value | '=' identifier | node-children
- * set-list :=  set-item (ws+ set-list)?
- */
 class OperationParser {
     private val kdlParser = KDLParserFacade()
 
@@ -120,16 +82,71 @@ class OperationParser {
         }
     }
 
-    // general-search := '*' node-predicate?
+    // general-search := '*' depth? node-predicate?
     fun parseGeneralSearch(context: KDLParseContext): GeneralSearch {
-        val c = context.read()
+        var c = context.read()
         if (c != '*'.toInt()) {
             throw KDLInternalException("")
         }
 
-        val predicate = parseNodePredicate(context)
+        val builder = GeneralSearch.builder()
 
-        return GeneralSearch.builder().setPredicate(predicate).build()
+        c = context.peek()
+        if (c == '{'.toInt()) {
+            try {
+                parseDepthRange(context, builder)
+            } catch (e: ArithmeticException) {
+                throw QueryParseException("MinDepth/MaxDepth must be positive integers")
+            }
+        }
+
+        builder.setPredicate(parseNodePredicate(context))
+
+        return builder.build()
+    }
+
+    // depth := '{' number? ',' number? '}'
+    fun parseDepthRange(context: KDLParseContext, builder: GeneralSearch.Builder) {
+        var c = context.read()
+        if (c != '{'.toInt()) {
+            throw KDLInternalException("")
+        }
+
+        consumeWhitespace(context)
+        c = context.peek()
+        when {
+            c == ','.toInt() -> {
+                context.read()
+            }
+            isValidNumericStart(c) -> {
+                builder.setMinDepth(kdlParser.parseNumber(context).asBigDecimal.intValueExact())
+                consumeWhitespace(context)
+                c = context.read()
+                if (c != ','.toInt()) {
+                    throw QueryParseException("")
+                }
+            }
+            c == EOF -> throw QueryParseException("")
+            else -> throw QueryParseException("")
+        }
+
+        consumeWhitespace(context)
+        c = context.peek()
+        when {
+            c == '}'.toInt() -> {
+                context.read()
+            }
+            isValidNumericStart(c) -> {
+                builder.setMaxDepth(kdlParser.parseNumber(context).asBigDecimal.intValueExact())
+                consumeWhitespace(context)
+                c = context.read()
+                if (c != '}'.toInt()) {
+                    throw QueryParseException("")
+                }
+            }
+            c == EOF -> throw QueryParseException("")
+            else -> throw QueryParseException("")
+        }
     }
 
     // pathed-search := '.' node-predicate pathed-search?
@@ -177,7 +194,6 @@ class OperationParser {
             }
         }
     }
-
 
     // identifier-predicate := bare-identifier | string | regex
     fun parseIdentifierPredicate(context: KDLParseContext): Predicate<String> {
@@ -230,9 +246,18 @@ class OperationParser {
         c = context.peek()
         return when (c) {
             '('.toInt() -> parseContentPredicates(context, true, UNKNOWN)
+            '*'.toInt() -> {
+                context.read()
+                consumeWhitespace(context)
+                c = context.read()
+                if (c != ']'.toInt()) {
+                    throw QueryParseException("")
+                }
+                AnyContentPredicate()
+            }
             ']'.toInt() -> {
                 context.read()
-                NodeContentPredicate.any()
+                EmptyContentPredicate()
             }
             EOF -> throw QueryParseException("")
             else -> parseContentPredicates(context, false, UNKNOWN)
@@ -312,6 +337,10 @@ class OperationParser {
     fun parseChildArgOrPropPredicate(context: KDLParseContext): NodeContentPredicate {
         return when (context.peek()) {
             '{'.toInt() -> parseChildPredicate(context)
+            '!'.toInt() -> {
+                context.read()
+                NegatedPredicate(parseChildArgOrPropPredicate(context))
+            }
             EOF -> throw QueryParseException("")
             else -> return parsePropOrArgPredicate(context)
         }
@@ -487,20 +516,20 @@ class OperationParser {
 
         return when (c) {
             '/'.toInt() -> {
-                val regexStr = parseRaw(context, c, hashDepth)
+                val regexStr = parseRawRegexOrString(context, c, hashDepth)
                 try {
                     StringPredicate.RegexPredicate(Pattern.compile(regexStr))
                 } catch (e: PatternSyntaxException) {
                     throw QueryParseException("Failed to parse regex '$regexStr': ${e.localizedMessage}")
                 }
             }
-            '"'.toInt() -> StringPredicate.LiteralStringPredicate(parseRaw(context, c, hashDepth))
+            '"'.toInt() -> StringPredicate.LiteralStringPredicate(parseRawRegexOrString(context, c, hashDepth))
             EOF -> throw QueryParseException("Input exhausted when parsing raw regex or string")
             else -> throw QueryParseException("Malformed raw regex or string, expected '/' or '\"' but found '\\u{$c}'")
         }
     }
 
-    fun parseRaw(context: KDLParseContext, terminator: Int, hashDepth: Int): String {
+    fun parseRawRegexOrString(context: KDLParseContext, terminator: Int, hashDepth: Int): String {
         val stringBuilder = StringBuilder()
         while (true) {
             var c = context.read()
@@ -737,28 +766,22 @@ class OperationParser {
         return builder.build()
     }
 
-    // This is a mess. We could be parsing any of the following:
-    // str
-    // raw_str
-    // literal
-    // bare_id = value
-    // str = value
-    // raw_str = value
-    // regex = value
-    // raw_regex = value
     fun parseSetMutationItem(context: KDLParseContext, builder: SetMutation.Builder) {
         var c = context.peek()
         val propOrValue = when {
             c == '"'.toInt() -> {
-                StringPredicate.LiteralStringPredicate(kdlParser.parseEscapedString(context))
-            }
-            c == '/'.toInt() -> {
-                parseEscapedRegex(context)
+                kdlParser.parseEscapedString(context)
             }
             isValidBareIdStart(c) -> {
                 when (c) {
                     'r'.toInt() -> {
-                        parseRawRegexOrString(context)
+                        context.read()
+                        c = context.peek()
+                        context.unread('r'.toInt())
+                        if (c == '"'.toInt() || c == '#'.toInt()) {
+                            parseBareIdentifierOrLiteral(context)
+                        }
+                        kdlParser.parseRawString(context)
                     }
                     else -> {
                         when (val bareIdentifierOrLiteral = parseBareIdentifierOrLiteral(context)) {
@@ -775,13 +798,13 @@ class OperationParser {
                                 return
                             }
                             else -> {
-                                StringPredicate.LiteralStringPredicate(bareIdentifierOrLiteral)
+                                bareIdentifierOrLiteral
                             }
                         }
                     }
                 }
             }
-            else -> throw QueryParseException("Expected one of: literal, regex, string, or identifier, but found ${runeToStr(c)}")
+            else -> throw QueryParseException("Expected one of: literal, string, or identifier, but found ${runeToStr(c)}")
         }
 
         c = context.peek()
@@ -791,12 +814,7 @@ class OperationParser {
                 val value = kdlParser.parseValue(context)
                 builder.addProp(propOrValue, value)
             }
-            else -> {
-                when (propOrValue) {
-                    is StringPredicate.LiteralStringPredicate -> builder.addArg(KDLString.from(propOrValue.str))
-                    is StringPredicate.RegexPredicate -> throw QueryParseException("Regex arguments are not allowed in set mutations")
-                }
-            }
+            else -> builder.addArg(KDLString.from(propOrValue))
         }
     }
 
