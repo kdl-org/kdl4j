@@ -136,7 +136,7 @@ Examples:
 
 * `.` - Returns the root document with all children empty
 * `...` - Returns the full document up to three levels deep
-* `.mynode./^a.*/.["arg"]` - Matches branches where the first level node is named `mynode`, the second level's name starts
+* `.mynode./^a/.["arg"]` - Matches branches where the first level node is named `mynode`, the second level's name starts
   with `a`, and the third level has an argument `"arg"`
   
 
@@ -181,12 +181,12 @@ matching with predicates if exact argument or property values aren't known.
 
 Examples:
 
-* `* - /^a.*/` - Remove all arguments starting with `a` from every node in the tree
+* `* - /^a/` - Remove all arguments starting with `a` from every node in the tree
 * `*to-be-deleted - .` - Removes every node named `to-be-deleted` from the tree
 * `.node.node2 - [*]` - Removes all arguments and properties from nodes down the specified path
 * `. - {*}` - Empties, but doesn't remove, all children of nodes at the root
 * `. - {}` - Deletes the children of every node at the root
-* `* - /^a.*/=*` - Removes any properties whose key starts with `a` from the tree regardless of their value
+* `* - /^a/=*` - Removes any properties whose key starts with `a` from the tree regardless of their value
 * `* - null /.*/=null` - Removes all null arguments and properties from every node in the tree
 
 
