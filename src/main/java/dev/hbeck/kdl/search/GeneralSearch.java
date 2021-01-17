@@ -6,7 +6,6 @@ import dev.hbeck.kdl.search.mutation.Mutation;
 import dev.hbeck.kdl.search.predicates.NodePredicate;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
@@ -22,13 +21,13 @@ public class GeneralSearch implements Search {
         this.maxDepth = maxDepth;
     }
 
-    public List<KDLNode> listAll(KDLDocument document, boolean trim) {
+    public KDLDocument list(KDLDocument document, boolean trim) {
         final ArrayList<KDLNode> nodes = new ArrayList<>();
-        listAll(document, trim, 0, nodes);
-        return Collections.unmodifiableList(nodes);
+        list(document, trim, 0, nodes);
+        return KDLDocument.builder().addNodes(nodes).build();
     }
 
-    private void listAll(KDLDocument doc, boolean trim, int depth, List<KDLNode> nodes) {
+    private void list(KDLDocument doc, boolean trim, int depth, List<KDLNode> nodes) {
         if (depth <= maxDepth) {
             for (KDLNode node : doc.getNodes()) {
                 if (minDepth <= depth && predicate.test(node)) {
@@ -40,7 +39,7 @@ public class GeneralSearch implements Search {
                     nodes.add(nodeBuilder.build());
                 }
 
-                node.getChild().ifPresent(ch -> listAll(ch, trim, depth + 1, nodes));
+                node.getChild().ifPresent(ch -> list(ch, trim, depth + 1, nodes));
             }
         }
     }

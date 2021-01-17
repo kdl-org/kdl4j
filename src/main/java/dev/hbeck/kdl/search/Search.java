@@ -1,5 +1,9 @@
 package dev.hbeck.kdl.search;
 
-public interface Search {
+import dev.hbeck.kdl.objects.KDLDocument;
 
+public interface Search {
+    KDLDocument filter(KDLDocument document);
+
+    KDLDocument list(KDLDocument document, boolean trim);
 }

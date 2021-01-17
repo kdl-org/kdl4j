@@ -6,7 +6,6 @@ import dev.hbeck.kdl.search.mutation.AddMutation;
 import dev.hbeck.kdl.search.mutation.Mutation;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,11 +18,13 @@ public class RootSearch implements Search {
     }
 
     @Override
-    public List<KDLNode> listAll(KDLDocument document, boolean trim) {
-        return Collections.unmodifiableList(listAll(document, trim, new ArrayList<>()));
+    public KDLDocument list(KDLDocument document, boolean trim) {
+        final ArrayList<KDLNode> nodes = new ArrayList<>();
+        list(document, trim, nodes);
+        return KDLDocument.builder().addNodes(nodes).build();
     }
 
-    private List<KDLNode> listAll(KDLDocument document, boolean trim, List<KDLNode> nodes) {
+    private void list(KDLDocument document, boolean trim, List<KDLNode> nodes) {
         for (KDLNode node : document.getNodes()) {
             final KDLNode.Builder nodeBuilder = node.toBuilder();
             if (trim) {
@@ -31,10 +32,8 @@ public class RootSearch implements Search {
             }
 
             nodes.add(nodeBuilder.build());
-            nodes.addAll(node.getChild().map(doc -> listAll(doc, trim)).orElse(Collections.emptyList()));
+            node.getChild().ifPresent(doc -> list(doc, trim, nodes));
         }
-
-        return nodes;
     }
 
     @Override
