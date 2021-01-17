@@ -61,8 +61,8 @@ match. The key can be matched by either a string or a regex, while the value can
 
 Examples:
 
-* `mykey="myvalue` - Matches if key and value match exactly
-* `/.*/="somevalue` - Matches any property with the string value `somevalue`
+* `mykey="myvalue"` - Matches if key and value match exactly
+* `/.*/="somevalue"` - Matches any property with the string value `somevalue`
 * `r"myrawkey">100` - Matches if a property exists with key `mykey` and a numeric value greater than 100
 * `r/^\w+$/~/^\\w+$/` - Matches if both key and value are composed of nothing but "word" characters
 * `mykey=*` - Matches if a property exists with the key `mykey` and any value of any type
