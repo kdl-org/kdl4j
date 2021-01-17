@@ -220,7 +220,10 @@ numeric-predicate := ( '=' | '<' | '>' ) number
 
 regex := escaped-regex | raw-regex
 escaped-regex := '/' character* '/'
-
+raw-regex := 'r' raw-regex-hash
+raw-regex-hash := ('#' raw-regex-hash '#') | raw-regex-slashes
+raw-regex-slashes := '/' .* '/'
+    
 mutation := add-mutation | sub-mutation | set-mutation
 
 add-mutation := ws* '+' ws* add-list? ( ws+ node-children )?
