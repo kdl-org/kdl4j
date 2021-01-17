@@ -187,6 +187,7 @@ Examples:
 * `. - {*}` - Empties, but doesn't remove, all children of nodes at the root
 * `. - {}` - Deletes the children of every node at the root
 * `* - /^a.*/=*` - Removes any properties whose key starts with `a` from the tree regardless of their value
+* `* - null /.*/=null` - Removes all null arguments and properties from every node in the tree
 
 
 ## Full Specification
