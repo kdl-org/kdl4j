@@ -34,10 +34,10 @@ public class SubtractMutation implements Mutation {
             return Optional.empty();
         }
 
-        final KDLNode.Builder builder = node.toBuilder();
+        final KDLNode.Builder builder = KDLNode.builder().setIdentifier(node.getIdentifier());
         for (KDLValue arg : node.getArgs()) {
             for (Predicate<KDLValue> argPredicate : argPredicates) {
-                if (argPredicate.test(arg)) {
+                if (!argPredicate.test(arg)) {
                     builder.addArg(arg);
                 }
             }
@@ -55,7 +55,7 @@ public class SubtractMutation implements Mutation {
             }
         }
 
-        if (emptyChild) {
+        if (emptyChild && node.getChild().isPresent()) {
             builder.setChild(KDLDocument.empty());
         } else if (!deleteChild) {
             builder.setChild(node.getChild());

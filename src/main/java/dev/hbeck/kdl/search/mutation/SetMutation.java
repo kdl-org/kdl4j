@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 public class SetMutation implements Mutation {
     private final Optional<String> identifier;
@@ -68,8 +67,8 @@ public class SetMutation implements Mutation {
             return this;
         }
 
-        public Builder setIdentifier(Optional<String> identifier) {
-            this.identifier = identifier;
+        public Builder setIdentifier(String identifier) {
+            this.identifier = Optional.of(identifier);
             return this;
         }
 

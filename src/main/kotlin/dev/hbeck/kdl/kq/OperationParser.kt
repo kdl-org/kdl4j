@@ -4,12 +4,14 @@ import dev.hbeck.kdl.kq.OperationParser.ExprType.*
 import dev.hbeck.kdl.kq.QueryCharClasses.Companion.isNumericPredicateStart
 import dev.hbeck.kdl.objects.KDLBoolean
 import dev.hbeck.kdl.objects.KDLNull
+import dev.hbeck.kdl.objects.KDLNumber
 import dev.hbeck.kdl.objects.KDLProperty
 import dev.hbeck.kdl.objects.KDLString
 import dev.hbeck.kdl.objects.KDLValue
 import dev.hbeck.kdl.parse.CharClasses.isUnicodeWhitespace
 import dev.hbeck.kdl.parse.CharClasses.isValidBareIdChar
 import dev.hbeck.kdl.parse.CharClasses.isValidBareIdStart
+import dev.hbeck.kdl.parse.CharClasses.isValidDecimalChar
 import dev.hbeck.kdl.parse.CharClasses.isValidNumericStart
 import dev.hbeck.kdl.parse.KDLInternalException
 import dev.hbeck.kdl.parse.KDLParseContext
@@ -425,8 +427,10 @@ class OperationParser {
                 if (c == '*'.toInt()) {
                     Predicate { true }
                 } else {
-                    val value = kdlParser.parseValue(context)
-                    Predicate { other -> value == other }
+                    when (val value = kdlParser.parseValue(context)) {
+                        is KDLNumber -> Predicate { other  -> other.isNumber && value.asBigDecimal == other.asNumber.get().asBigDecimal }
+                        else -> Predicate { other -> value == other }
+                    }
                 }
             }
             '>'.toInt(), '<'.toInt() -> parseNumericPredicate(context)
@@ -741,7 +745,7 @@ class OperationParser {
                     }
 
                     context.read()
-                    builder.setIdentifier(Optional.of(kdlParser.parseIdentifier(context)))
+                    builder.setIdentifier(kdlParser.parseIdentifier(context))
                     foundId = true
                 }
                 c == '{'.toInt() -> {
