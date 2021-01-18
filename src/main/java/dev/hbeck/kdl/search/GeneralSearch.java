@@ -7,6 +7,7 @@ import dev.hbeck.kdl.search.predicates.NodePredicate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -104,6 +105,28 @@ public class GeneralSearch implements Search {
         }
     }
 
+    @Override
+    public boolean anyMatch(KDLDocument document) {
+        return anyMatch(document, 0);
+    }
+
+    private boolean anyMatch(KDLDocument document, int depth) {
+        if (depth > maxDepth) {
+            return false;
+        }
+
+
+        for (KDLNode node : document.getNodes()) {
+            if (depth >= minDepth && predicate.test(node)) {
+                return true;
+            } else if (node.getChild().map(ch -> anyMatch(ch, depth + 1)).orElse(false)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
@@ -133,6 +156,7 @@ public class GeneralSearch implements Search {
                 throw new IllegalArgumentException("Min depth and max depth must be greater than 0");
             }
 
+            Objects.requireNonNull(predicate, "Predicate must be set");
             return new GeneralSearch(predicate, minDepth, maxDepth);
         }
     }

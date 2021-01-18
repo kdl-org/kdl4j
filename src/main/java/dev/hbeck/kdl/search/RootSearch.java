@@ -54,4 +54,9 @@ public class RootSearch implements Search {
                     .build();
         }
     }
+
+    @Override
+    public boolean anyMatch(KDLDocument document) {
+        return !document.getNodes().isEmpty();
+    }
 }

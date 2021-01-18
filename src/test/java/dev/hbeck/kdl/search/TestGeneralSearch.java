@@ -2,153 +2,477 @@ package dev.hbeck.kdl.search;
 
 import dev.hbeck.kdl.objects.KDLDocument;
 import dev.hbeck.kdl.objects.KDLNode;
-import dev.hbeck.kdl.objects.KDLValue;
 import dev.hbeck.kdl.parse.KDLParser;
-import dev.hbeck.kdl.search.mutation.AddMutation;
 import dev.hbeck.kdl.search.mutation.Mutation;
-import dev.hbeck.kdl.search.mutation.SetMutation;
-import dev.hbeck.kdl.search.mutation.SubtractMutation;
+import dev.hbeck.kdl.search.predicates.NodePredicate;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Optional;
 
+import static dev.hbeck.kdl.search.NodeIDMatcher.hasId;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
-@RunWith(Parameterized.class)
 public class TestGeneralSearch {
     private static final KDLParser parser = new KDLParser();
 
-    @Parameterized.Parameters(name = "{0} -> [{2}, {4}, {6}]")
-    public static List<Object[]> getCases() {
-        final ArrayList<Object[]> cases = new ArrayList<>();
+    @Mock
+    public Mutation mutation;
 
-        // Empty -> Empty
-        cases.add(new Object[]{"", GeneralSearch.builder().build(),
-                "", true,
-                "",
-                "", SubtractMutation.builder()
-                        .addArg(it -> true)
-                        .addProp(prop -> true)
-                        .deleteChild().build()
-        });
-        cases.add(new Object[]{"", GeneralSearch.builder().build(),
-                "", true,
-                "",
-                "", AddMutation.builder()
-                        .addArg(KDLValue.from("arg"))
-                        .addProp("key", KDLValue.from(10))
-                        .setChild(KDLDocument.empty())
-                        .build()
-        });
-        cases.add(new Object[]{"", GeneralSearch.builder().build(),
-                "", true,
-                "",
-                "", AddMutation.builder()
-                        .addArg(KDLValue.from("arg"))
-                        .addProp("key", KDLValue.from(10))
-                        .setChild(KDLDocument.builder()
-                                .addNode(KDLNode.builder().setIdentifier("identifier").build())
-                                .build())
-                        .build()
-        });
-        cases.add(new Object[]{"", GeneralSearch.builder().build(),
-                "", true,
-                "",
-                "", SetMutation.builder()
-                        .addArg(KDLValue.from("arg"))
-                        .addProp("key", KDLValue.from("o"))
-                        .build()
-        });
-        cases.add(new Object[]{"", GeneralSearch.builder().build(),
-                "", false,
-                "",
-                "", SubtractMutation.builder()
-                        .addArg(it -> true)
-                        .addProp(prop -> true)
-                        .deleteChild().build()
-        });
-        cases.add(new Object[]{"", GeneralSearch.builder().build(),
-                "", false,
-                "",
-                "", AddMutation.builder()
-                        .addArg(KDLValue.from("arg"))
-                        .addProp("key", KDLValue.from(10))
-                        .setChild(KDLDocument.empty())
-                        .build()
-        });
-        cases.add(new Object[]{"", GeneralSearch.builder().build(),
-                "", false,
-                "", SetMutation.builder()
-                        .addArg(KDLValue.from("arg"))
-                        .addProp("key", KDLValue.from("o"))
-                        .build()
-        });
+    @Mock
+    public NodePredicate predicate;
 
-        // Addition, no predicate
-        cases.add(new Object[]{"node", GeneralSearch.builder().build(),
-                "node", true,
-                "node",
-                "node \"arg\" key=10 {}", AddMutation.builder()
-                        .addArg(KDLValue.from("arg"))
-                        .addProp("key", KDLValue.from(10))
-                        .setChild(KDLDocument.empty())
-                        .build()
-        });
-        cases.add(new Object[]{"node1 {node2;}; node3", GeneralSearch.builder().build(),
-                "node1; node2; node3;", true,
-                "node1 {node2;}; node3",
-                "node1 10 {node2 10;}; node3 10", AddMutation.builder()
-                .addArg(KDLValue.from(10))
-                .build()
-        });
-        cases.add(new Object[]{"node1 {node2;}; node3", GeneralSearch.builder().build(),
-                "node1 {node2;}; node2; node3;", false,
-                "node1 {node2;}; node3",
-                "node1 10 {node2 10;}; node3 10", AddMutation.builder()
-                .addArg(KDLValue.from(10))
-                .build()
-        });
-
-        // Addition, predicate
-        // Addition, depth, predicate
-        // Addition, depth, no predicate
-        // Addition, add to child
-
-        // Subtraction, no predicate
-        // Subtraction, predicate
-        // Subtraction, set child
-        
-        return cases;
-    }
-
-    private final String input;
-    private final GeneralSearch search;
-    private final String filterOutput;
-    private final boolean trim;
-    private final String listOutput;
-    private final String mutateOutput;
-    private final Mutation mutation;
-
-    public TestGeneralSearch(String input, GeneralSearch search, String filterOutput, boolean trim, String listOutput, String mutateOutput, Mutation mutation) {
-        this.input = input;
-        this.search = search;
-        this.filterOutput = filterOutput;
-        this.trim = trim;
-        this.listOutput = listOutput;
-        this.mutateOutput = mutateOutput;
-        this.mutation = mutation;
+    @Before
+    public void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void test() {
-        final KDLDocument inputDoc = parser.parse(input);
+    public void testMutateEmpty() {
+        final KDLDocument inputDoc = KDLDocument.empty();
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
 
-        assertThat(search.filter(inputDoc), equalTo(parser.parse(filterOutput)));
-        assertThat(search.list(inputDoc, trim), equalTo(parser.parse(listOutput)));
-        assertThat(search.mutate(inputDoc, mutation), equalTo(parser.parse(mutateOutput)));
+        assertThat(search.mutate(inputDoc, mutation), equalTo(inputDoc));
+        verifyNoInteractions(mutation);
+    }
+
+    @Test
+    public void testMutateEmptyWithPredicate() {
+        final KDLDocument inputDoc = KDLDocument.empty();
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(inputDoc));
+        verifyNoInteractions(mutation);
+    }
+
+    @Test
+    public void testMutateNothingMatchesPredicate() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node4;}; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(inputDoc));
+        verifyNoInteractions(mutation);
+    }
+
+    @Test
+    public void testMutateRootNodeMatchesPredicateDelete() {
+        final KDLDocument inputDoc = parser.parse("node1; node2; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node2")))).thenReturn(true);
+        when(mutation.apply(any())).thenReturn(Optional.empty());
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(parser.parse("node1; node3")));
+        verify(mutation, times(1)).apply(argThat(hasId("node2")));
+    }
+
+    @Test
+    public void testMutateBranchNodeMatchesPredicateDelete() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node4 {node5;};}; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
+        when(mutation.apply(any())).thenReturn(Optional.empty());
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(parser.parse("node1; node2; node3")));
+        verify(mutation, times(1)).apply(argThat(hasId("node4")));
+    }
+
+    @Test
+    public void testMutateLeafNodeMatchesPredicateDelete() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node4;}; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
+        when(mutation.apply(any())).thenReturn(Optional.empty());
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(parser.parse("node1; node2; node3")));
+        verify(mutation, times(1)).apply(argThat(hasId("node4")));
+    }
+
+    @Test
+    public void testMutateEverythingMatchesPredicate() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node4 {node5;};}; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(true);
+        when(mutation.apply(any())).thenAnswer(invocation -> {
+            final KDLNode node = invocation.getArgument(0);
+            return Optional.of(node.toBuilder().addArg(1).build());
+        });
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(parser.parse("node1 1; node2 1 {node4 1 {node5 1;};}; node3 1")));
+        verify(mutation, times(5)).apply(any());
+        verifyNoMoreInteractions(mutation);
+    }
+
+    @Test
+    public void testMutateRootNodeMatchesPredicate() {
+        final KDLDocument inputDoc = parser.parse("node1; node2; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node2")))).thenReturn(true);
+        when(mutation.apply(any())).thenAnswer(invocation -> {
+            final KDLNode node = invocation.getArgument(0);
+            return Optional.of(node.toBuilder().addArg(1).build());
+        });
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(parser.parse("node1; node2 1; node3")));
+        verify(mutation, times(1)).apply(argThat(hasId("node2")));
+    }
+
+    @Test
+    public void testMutateBranchNodeMatchesPredicate() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node4 {node5;};}; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
+        when(mutation.apply(any())).thenAnswer(invocation -> {
+            final KDLNode node = invocation.getArgument(0);
+            return Optional.of(node.toBuilder().addArg(1).build());
+        });
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(parser.parse("node1; node2 {node4 1 {node5;};}; node3")));
+        verify(mutation, times(1)).apply(argThat(hasId("node4")));
+    }
+
+    @Test
+    public void testMutateLeafNodeMatchesPredicate() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node4;}; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
+        when(mutation.apply(any())).thenAnswer(invocation -> {
+            final KDLNode node = invocation.getArgument(0);
+            return Optional.of(node.toBuilder().addArg(1).build());
+        });
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(parser.parse("node1; node2 {node4 1;}; node3")));
+        verify(mutation, times(1)).apply(argThat(hasId("node4")));
+    }
+
+    @Test
+    public void testMutateEverythingMatchesPredicateAddChild() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node4 {node5;};}; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(true);
+        when(mutation.apply(any())).thenAnswer(invocation -> {
+            final KDLNode node = invocation.getArgument(0);
+            final KDLDocument.Builder docBuilder = KDLDocument.builder();
+            node.getChild().ifPresent(ch -> docBuilder.addNodes(ch.getNodes()));
+            docBuilder.addNode(KDLNode.builder().setIdentifier("added").build());
+
+            return Optional.of(node.toBuilder().setChild(docBuilder.build()).build());
+        });
+
+        assertThat(search.mutate(inputDoc, mutation),
+                equalTo(parser.parse("node1 {added;}; node2 {node4 {node5 {added;}; added;}; added;}; node3 {added;}")));
+        verify(mutation, times(5)).apply(any());
+        verifyNoMoreInteractions(mutation);
+    }
+
+    @Test
+    public void testMutateRootNodeMatchesPredicateAddChild() {
+        final KDLDocument inputDoc = parser.parse("node1; node2; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node2")))).thenReturn(true);
+        when(mutation.apply(any())).thenAnswer(invocation -> {
+            final KDLNode node = invocation.getArgument(0);
+            final KDLDocument.Builder docBuilder = KDLDocument.builder();
+            node.getChild().ifPresent(ch -> docBuilder.addNodes(ch.getNodes()));
+            docBuilder.addNode(KDLNode.builder().setIdentifier("added").build());
+
+            return Optional.of(node.toBuilder().setChild(docBuilder.build()).build());
+        });
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(parser.parse("node1; node2 {added;}; node3")));
+        verify(mutation, times(1)).apply(argThat(hasId("node2")));
+    }
+
+    @Test
+    public void testMutateBranchNodeMatchesPredicateAddChild() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node4 {node5;};}; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
+        when(mutation.apply(any())).thenAnswer(invocation -> {
+            final KDLNode node = invocation.getArgument(0);
+            final KDLDocument.Builder docBuilder = KDLDocument.builder();
+            node.getChild().ifPresent(ch -> docBuilder.addNodes(ch.getNodes()));
+            docBuilder.addNode(KDLNode.builder().setIdentifier("added").build());
+
+            return Optional.of(node.toBuilder().setChild(docBuilder.build()).build());
+        });
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(parser.parse("node1; node2 {node4 {node5; added;};}; node3")));
+        verify(mutation, times(1)).apply(argThat(hasId("node4")));
+    }
+
+    @Test
+    public void testMutateLeafNodeMatchesPredicateAddChild() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node4;}; node3");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
+        when(mutation.apply(any())).thenAnswer(invocation -> {
+            final KDLNode node = invocation.getArgument(0);
+            final KDLDocument.Builder docBuilder = KDLDocument.builder();
+            node.getChild().ifPresent(ch -> docBuilder.addNodes(ch.getNodes()));
+            docBuilder.addNode(KDLNode.builder().setIdentifier("added").build());
+
+            return Optional.of(node.toBuilder().setChild(docBuilder.build()).build());
+        });
+
+        assertThat(search.mutate(inputDoc, mutation), equalTo(parser.parse("node1; node2 {node4 {added;};}; node3")));
+        verify(mutation, times(1)).apply(argThat(hasId("node4")));
+    }
+
+    @Test
+    public void testFilterEmpty() {
+        final KDLDocument inputDoc = KDLDocument.empty();
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(true);
+
+        assertThat(search.filter(inputDoc), equalTo(KDLDocument.empty()));
+    }
+
+    @Test
+    public void testFilterNothingMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3;}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+
+        assertThat(search.filter(inputDoc), equalTo(KDLDocument.empty()));
+    }
+
+    @Test
+    public void testFilterRootNodeMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3;}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node2")))).thenReturn(true);
+
+        assertThat(search.filter(inputDoc), equalTo(parser.parse("node2")));
+    }
+
+    @Test
+    public void testFilterBranchNodeMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node3")))).thenReturn(true);
+
+        assertThat(search.filter(inputDoc), equalTo(parser.parse("node2 {node3;}")));
+    }
+
+    @Test
+    public void testFilterLeafNodeMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
+
+        assertThat(search.filter(inputDoc), equalTo(parser.parse("node2 {node3 {node4;};}")));
+    }
+
+    @Test
+    public void testFilterEverythingMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(true);
+
+        assertThat(search.filter(inputDoc), equalTo(parser.parse("node1; node2 {node3 {node4;};}")));
+    }
+
+    @Test
+    public void testListEmpty() {
+        final KDLDocument inputDoc = KDLDocument.empty();
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(true);
+
+        assertThat(search.list(inputDoc, false), equalTo(KDLDocument.empty()));
+    }
+
+    @Test
+    public void testListNothingMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+
+        assertThat(search.list(inputDoc, false), equalTo(KDLDocument.empty()));
+    }
+
+    @Test
+    public void testListNothingMatchesTrim() {
+        final KDLDocument inputDoc = parser.parse("node1; node2");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+
+        assertThat(search.list(inputDoc, true), equalTo(KDLDocument.empty()));
+    }
+
+    @Test
+    public void testListEverythingMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3;}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(true);
+
+        assertThat(search.list(inputDoc, false), equalTo(parser.parse("node1; node2 {node3;}; node3")));
+    }
+
+    @Test
+    public void testListEverythingMatchesTrim() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3;}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(true);
+
+        assertThat(search.list(inputDoc, true), equalTo(parser.parse("node1; node2; node3")));
+    }
+
+    @Test
+    public void testListRootNodeMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node2")))).thenReturn(true);
+
+        assertThat(search.list(inputDoc, false), equalTo(parser.parse("node2 {node3 {node4;};}")));
+    }
+
+    @Test
+    public void testListRootNodeMatchesTrim() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node2")))).thenReturn(true);
+
+        assertThat(search.list(inputDoc, true), equalTo(parser.parse("node2")));
+    }
+
+    @Test
+    public void testListBranchNodeMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node3")))).thenReturn(true);
+
+        assertThat(search.list(inputDoc, false), equalTo(parser.parse("node3 {node4;}")));
+    }
+
+    @Test
+    public void testListBranchNodeMatchesTrim() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node3")))).thenReturn(true);
+
+        assertThat(search.list(inputDoc, true), equalTo(parser.parse("node3")));
+    }
+
+    @Test
+    public void testListLeafNodeMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
+
+        assertThat(search.list(inputDoc, false), equalTo(parser.parse("node4")));
+    }
+
+    @Test
+    public void testListLeafNodeMatchesTrim() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
+
+        assertThat(search.list(inputDoc, true), equalTo(parser.parse("node4")));
+    }
+
+    @Test
+    public void testAnyMatchEmpty() {
+        final KDLDocument inputDoc = KDLDocument.empty();
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(true);
+
+        assertFalse(search.anyMatch(inputDoc));
+        verifyNoInteractions(predicate);
+    }
+
+    @Test
+    public void testAnyMatchNothingMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+
+        assertFalse(search.anyMatch(inputDoc));
+        verify(predicate, times(1)).test(argThat(hasId("node1")));
+        verify(predicate, times(1)).test(argThat(hasId("node2")));
+    }
+
+    @Test
+    public void testAnyMatchEverythingMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(true);
+
+        assertTrue(search.anyMatch(inputDoc));
+        verify(predicate, never()).test(argThat(hasId("node2")));
+    }
+
+    @Test
+    public void testAnyMatchRootNodeMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node2")))).thenReturn(true);
+
+        assertTrue(search.anyMatch(inputDoc));
+        verify(predicate, times(1)).test(argThat(hasId("node1")));
+        verify(predicate, times(1)).test(argThat(hasId("node2")));
+        verify(predicate, never()).test(argThat(hasId("node3")));
+        verify(predicate, never()).test(argThat(hasId("node4")));
+    }
+
+    @Test
+    public void testAnyMatchBranchNodeMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node3")))).thenReturn(true);
+
+        assertTrue(search.anyMatch(inputDoc));
+        verify(predicate, times(1)).test(argThat(hasId("node1")));
+        verify(predicate, times(1)).test(argThat(hasId("node2")));
+        verify(predicate, times(1)).test(argThat(hasId("node3")));
+        verify(predicate, never()).test(argThat(hasId("node4")));
+    }
+
+    @Test
+    public void testAnyMatchLeafNodeMatches() {
+        final KDLDocument inputDoc = parser.parse("node1; node2 {node3 {node4;};}");
+        final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
+        when(predicate.test(any())).thenReturn(false);
+        when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
+
+        assertTrue(search.anyMatch(inputDoc));
+        verify(predicate, times(1)).test(argThat(hasId("node1")));
+        verify(predicate, times(1)).test(argThat(hasId("node2")));
+        verify(predicate, times(1)).test(argThat(hasId("node3")));
+        verify(predicate, times(1)).test(argThat(hasId("node4")));
     }
 }

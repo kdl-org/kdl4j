@@ -1,6 +1,5 @@
 package dev.hbeck.kdl.search.predicates;
 
-import dev.hbeck.kdl.objects.KDLDocument;
 import dev.hbeck.kdl.objects.KDLNode;
 import dev.hbeck.kdl.search.Search;
 
@@ -24,12 +23,7 @@ public class ChildPredicate implements NodeContentPredicate {
             return !node.getChild().isPresent() || node.getChild().get().getNodes().isEmpty();
         }
 
-        if (!node.getChild().isPresent() || node.getChild().get().getNodes().isEmpty()) {
-            return false;
-        } else {
-            final KDLDocument found = search.get().list(node.getChild().get(), true);
-            return !found.getNodes().isEmpty();
-        }
+        return node.getChild().map(ch -> search.get().anyMatch(ch)).orElse(false);
     }
 
     public static ChildPredicate empty() {
