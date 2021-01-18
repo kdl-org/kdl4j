@@ -24,6 +24,7 @@ tasks.jacocoTestReport {
 
 dependencies {
     testImplementation("junit", "junit", "4.12")
+    testImplementation("org.mockito", "mockito-core", "3.7.7")
     implementation(kotlin("stdlib-jdk8"))
 }
 val compileKotlin: KotlinCompile by tasks
