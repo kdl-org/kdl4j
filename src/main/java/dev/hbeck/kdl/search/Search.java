@@ -9,4 +9,6 @@ public interface Search {
     KDLDocument list(KDLDocument document, boolean trim);
 
     KDLDocument mutate(KDLDocument document, Mutation mutation);
+
+    boolean anyMatch(KDLDocument document);
 }

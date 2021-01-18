@@ -102,7 +102,7 @@ class OperationParser {
             }
         }
 
-        builder.setPredicate(parseNodePredicate(context))
+        builder.setPredicate(parseNodePredicate(context, false))
 
         return builder.build()
     }
@@ -153,20 +153,19 @@ class OperationParser {
 
     // pathed-search := '.' node-predicate pathed-search?
     fun parsePathedSearch(context: KDLParseContext): PathedSearch {
-        var c = context.read()
+        var c = context.peek()
         if (c != '.'.toInt()) {
             throw KDLInternalException("")
         }
 
         val builder = PathedSearch.builder()
         consumeWhitespace(context)
-        c = context.peek()
         while (true) {
             when (c) {
                 '-'.toInt(), '+'.toInt(), '='.toInt(), EOF -> return builder.build()
                 '.'.toInt() -> {
                     context.read()
-                    parseNodePredicate(context)
+                    builder.addLevel(parseNodePredicate(context, true))
                 }
                 else -> throw QueryParseException("")
             }
@@ -177,10 +176,17 @@ class OperationParser {
     }
 
     // node-predicate := identifier-predicate? predicates?
-    fun parseNodePredicate(context: KDLParseContext): NodePredicate {
+    fun parseNodePredicate(context: KDLParseContext, pathed: Boolean): NodePredicate {
         var c = context.peek()
         when (c) {
-            '.'.toInt(), EOF -> return NodePredicate.any()
+            '.'.toInt() -> {
+                if (!pathed) {
+                    throw QueryParseException("")
+                } else {
+                    return NodePredicate.any()
+                }
+            }
+            EOF -> return NodePredicate.any()
             '['.toInt() -> {
                 return NodePredicate({ true }, parseContentPredicates(context))
             }

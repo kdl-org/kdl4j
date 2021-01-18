@@ -112,6 +112,29 @@ public class PathedSearch implements Search {
         }
     }
 
+    @Override
+    public boolean anyMatch(KDLDocument document) {
+        return anyMatch(document, 0);
+    }
+
+    private boolean anyMatch(KDLDocument document, int depth) {
+        final NodePredicate predicate = path.get(depth);
+        if (predicate == null) {
+            return false;
+        }
+
+        final Integer maxKey = path.ceilingKey(Integer.MAX_VALUE);
+        for (KDLNode node : document.getNodes()) {
+            if (depth == maxKey && predicate.test(node)) {
+                return true;
+            } else if (node.getChild().map(ch -> anyMatch(ch, depth + 1)).orElse(false)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static Builder builder() {
         return new Builder();
     }
