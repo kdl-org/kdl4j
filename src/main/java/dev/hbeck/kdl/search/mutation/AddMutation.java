@@ -12,13 +12,19 @@ import java.util.Optional;
 
 public class AddMutation implements Mutation {
     private final List<KDLValue> args;
+    private final Map<Integer, KDLValue> positionalArgs;
     private final Map<String, KDLValue> props;
     private final Optional<KDLDocument> child;
 
-    private AddMutation(List<KDLValue> args, Map<String, KDLValue> props, Optional<KDLDocument> child) {
+    private AddMutation(List<KDLValue> args, Map<Integer, KDLValue> positionalArgs, Map<String, KDLValue> props, Optional<KDLDocument> child) {
         this.args = args;
+        this.positionalArgs = positionalArgs;
         this.props = props;
         this.child = child;
+    }
+
+    public Map<Integer, KDLValue> getPositionalArgs() {
+        return positionalArgs;
     }
 
     public List<KDLValue> getArgs() {
@@ -36,6 +42,10 @@ public class AddMutation implements Mutation {
     @Override
     public Optional<KDLNode> apply(KDLNode node) {
         final KDLNode.Builder builder = node.toBuilder();
+
+        for (Map.Entry<Integer, KDLValue> positionalArg : positionalArgs.entrySet()) {
+            builder.insertArgAt(positionalArg.getKey(), positionalArg.getValue());
+        }
 
         builder.addAllArgs(args);
         for (String key : props.keySet()) {
@@ -57,6 +67,7 @@ public class AddMutation implements Mutation {
     }
 
     public static class Builder {
+        private final Map<Integer, KDLValue> positionalArgs = new HashMap<>();
         private final List<KDLValue> args = new ArrayList<>();
         private final Map<String, KDLValue> props = new HashMap<>();
         private Optional<KDLDocument> child = Optional.empty();
@@ -76,8 +87,13 @@ public class AddMutation implements Mutation {
             return this;
         }
 
+        public Builder addPositionalArg(int position, KDLValue arg) {
+            this.positionalArgs.put(position, arg);
+            return this;
+        }
+
         public AddMutation build() {
-            return new AddMutation(args, props, child);
+            return new AddMutation(args, positionalArgs, props, child);
         }
     }
 }
