@@ -79,6 +79,7 @@ Examples:
 * `>10` - Matches if any numeric argument is less than 10
 * `.[0]="arg"` Matches if the first argument is the literal string `"arg"` 
 
+
 #### Child Predicates
 
 Child predicates match nodes based on the contents of their children:
@@ -86,6 +87,7 @@ Child predicates match nodes based on the contents of their children:
 * `{}` - Matches if the node has an empty or absent child
 * `{ search }` - Search can either be Pathed or General. The node matches if the search finds any matching nodes in the
   child document
+
 
 ### Node Predicates
 
@@ -124,8 +126,8 @@ The only mutation supported on root searches is additions with only a child.
 Denoted by `*` followed by an optional min/max depth specification `{minDepth, maxDepth}`, followed by an optional node 
 predicate. Searches the document at least `minDepth` and at most `maxDepth` levels deep for nodes matching the predicate.
 If a mutation is specified, it will be applied to each matching node, and the full document tree will be returned. If no
-mutation is specified, the tree will be trimmed such that each leaf matches predicate and is at most `maxDepth` levels
-deep.
+mutation is specified, the tree will be trimmed such that each branch contains a node matching predicate that is at most
+`maxDepth` levels deep.
 
 Examples:
 
@@ -228,8 +230,9 @@ or-expr := content-predicate ws* '|' ws* content-predicate ( ws* '|' ws* content
 atom := '!'? ( child-predicate | prop-or-arg-predicate )
 
 child-predicate := '{' ws* ( general-search | pathed-search ) ws* '}'
-prop-or-arg-predicate := value | regex | numeric-predicate | property-predicate
+prop-or-arg-predicate := value | regex | numeric-predicate | property-predicate | positional-arg-predicate
 property-predicate := identifier-predicate ( '=' value | '~' regex | numeric-predicate | '=*' )
+positional-arg-predicate := .'[' number ']' ( '=' value | '~' regex | numeric-predicate | '=*' ) 
 
 numeric-predicate := ( '=' | '<' | '>' ) number
 
@@ -240,15 +243,16 @@ raw-regex-hash := ('#' raw-regex-hash '#') | raw-regex-slashes
 raw-regex-slashes := '/' .* '/'
     
 mutation := add-mutation | sub-mutation | set-mutation
+positional-arg-mutation := '.[' number ']=' value 
 
 add-mutation := ws* '+' ws* add-list? ( ws+ node-children )?
-add-list := ( value | prop ) ( ws+ add-list )?
+add-list := ( value | prop | positional-arg-mutation) ( ws+ add-list )?
 
 sub-mutation := ws* '-' ws* ( subtraction sub-list? | '.' ) 
-subtraction := ( value | regex | numeric-predicate | property-predicate | '{' '*'? '}' |  '[*]' )
+subtraction := ( value | positional-arg-mutation | regex | numeric-predicate | property-predicate | '{' '*'? '}' |  '[*]' )
 sub-list := ws+ subtraction sub-list?
 
 set-mutation := ws* '=' ws* set-item set-list?
-set-item := value | identifier '=' value | '=' identifier | node-children
+set-item := value | positional-arg-mutation | identifier '=' value | '=' identifier | node-children
 set-list :=  set-item ( ws+ set-list )?
 ```
