@@ -444,7 +444,7 @@ public class TestPathedSearch {
                 .build();
         when(predicate1.test(any())).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(KDLDocument.empty()));
+        assertThat(search.filter(inputDoc, true), equalTo(KDLDocument.empty()));
         verifyNoInteractions(predicate1);
     }
 
@@ -458,7 +458,7 @@ public class TestPathedSearch {
         when(predicate1.test(any())).thenReturn(true);
         when(predicate2.test(any())).thenReturn(false);
 
-        assertThat(search.filter(inputDoc), equalTo(KDLDocument.empty()));
+        assertThat(search.filter(inputDoc, true), equalTo(KDLDocument.empty()));
         verify(predicate1, times(1)).test(argThat(hasId("node1")));
         verify(predicate1, times(1)).test(argThat(hasId("node2")));
         verify(predicate2, times(1)).test(argThat(hasId("node3")));
@@ -475,7 +475,7 @@ public class TestPathedSearch {
         when(predicate1.test(any())).thenReturn(true);
         when(predicate2.test(any())).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(parser.parse("node2 {node3;}")));
+        assertThat(search.filter(inputDoc, true), equalTo(parser.parse("node2 {node3;}")));
         verify(predicate1, times(1)).test(argThat(hasId("node1")));
         verify(predicate1, times(1)).test(argThat(hasId("node2")));
         verify(predicate2, times(1)).test(argThat(hasId("node3")));
@@ -490,7 +490,7 @@ public class TestPathedSearch {
                 .build();
         when(predicate1.test(any())).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(parser.parse("node1; node2")));
+        assertThat(search.filter(inputDoc, true), equalTo(parser.parse("node1; node2")));
         verify(predicate1, times(1)).test(argThat(hasId("node1")));
         verify(predicate1, times(1)).test(argThat(hasId("node2")));
         verifyNoMoreInteractions(predicate1, predicate2);
@@ -506,7 +506,7 @@ public class TestPathedSearch {
         when(predicate1.test(any())).thenReturn(true);
         when(predicate2.test(any())).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(parser.parse("node2 {node3;}")));
+        assertThat(search.filter(inputDoc, true), equalTo(parser.parse("node2 {node3;}")));
         verify(predicate1, times(1)).test(argThat(hasId("node1")));
         verify(predicate1, times(1)).test(argThat(hasId("node2")));
         verify(predicate2, times(1)).test(argThat(hasId("node3")));
@@ -525,7 +525,7 @@ public class TestPathedSearch {
         when(predicate2.test(any())).thenReturn(true);
         when(predicate3.test(any())).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(parser.parse("node2 {node3 {node4;};}")));
+        assertThat(search.filter(inputDoc, true), equalTo(parser.parse("node2 {node3 {node4;};}")));
         verify(predicate1, times(1)).test(argThat(hasId("node1")));
         verify(predicate1, times(1)).test(argThat(hasId("node2")));
         verify(predicate2, times(1)).test(argThat(hasId("node3")));
@@ -545,7 +545,7 @@ public class TestPathedSearch {
         when(predicate2.test(any())).thenReturn(true);
         when(predicate3.test(any())).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(parser.parse("node2 {node3 {node4;};}; node5 {node6 {node7;};}")));
+        assertThat(search.filter(inputDoc, true), equalTo(parser.parse("node2 {node3 {node4;};}; node5 {node6 {node7;};}")));
         verify(predicate1, times(1)).test(argThat(hasId("node1")));
         verify(predicate1, times(1)).test(argThat(hasId("node2")));
         verify(predicate1, times(1)).test(argThat(hasId("node5")));

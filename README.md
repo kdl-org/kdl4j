@@ -21,31 +21,26 @@ final KDLDocument documentFromReader = parser.parse(new FileReader("some/file.kd
 `KDLDocument` objects, and all descendants of `KDLObject`, are immutable and threadsafe, though that is not true of their 
 `Builder` objects. If you need to make changes to a `KDLDocument`, use the `filter()` and `mutate()` functions explained below.
 
-### Searching
+### Searching and Mutating Documents
 
-The `Search` class allows for quick location of nodes in the document tree. Nodes match if all of the below are true:
+Several utilities are provided for finding nodes in documents. Each presents the same interface, but the way they search
+the document differs. There are three search types:
 
-* Matches at least one identifier predicate
-* Matches at least one argument predicate if specified, or all of them if `matchAllArgs()` is set
-* Matches at least one property predicate if specified, or all of them if `matchAllProps()` is set
-* Falls within the bounds of `minDepth` and `maxDepth` if either or both are set
+* RootSearch - Searches entirely at the root, primarily used for mutations to the root as discussed below
+* GeneralSearch - Searches for nodes anywhere in the tree matching a single, possibly compound, node predicate
+* PathedSearch - Searches for nodes down a specified path. At each level a different node predicate can be specified
 
-```java
-final List<KDLNode> matchingNodes = document.search()
-        .forNodeId("mynode") //Literal, can specify multiple
-        .forNodeId(node -> nodeId.startsWith("my")) // Predicate    
-        .forProperty("prop", KDLString.from("val")) // Either prop or val can also be predicates, can specify multiple
-        .forArg(KDLBoolean.TRUE) // Can also be a predicate, can specify multiple
-        .matchAllPropPredicates() // Otherwise, node will match if any props match as well as identifier
-        .matchAllArgPredicates() // Otherwise, node will match if any args match as well as identifier
-        .setMinDepth(1) // 0 is the root document
-        .setMaxDepth(1) // With the above, searches only the children of children of the root document
-        .search(); // execute the search
-```
+Each provides four methods for searching or mutating documents:
 
-In a addition, the `Search` object exposes two more functions: `filter()` and `mutate(fun)`. These are called instead of
-the final `search()`, and either remove all nodes not matching the specified predicates or allow mutation of all matching
-nodes. Both return a new `KDLDocument`.
+* `anyMatch(document)` - Returns true if any node matches the search, false otherwise
+* `filter(document, trim)` - Removes all nodes from the tree not on a branch that matches the predicates of the search. if
+  `trim` is set, removes all their non-matching children
+* `list(document, trim)` - Produces a new document with all matching nodes at the root. If `trim` is set, removes all
+  their non-matching children
+* `mutate(document, mutation)` - Applies a provided `Mutation` to every matching node in the tree, depth first.
+
+There are 3 types of `Mutations` provided, and users may provide custom mutations. Provided are `AddMutation`, 
+`SubtractMutation`, and `SetMutation`. Each performs functions hinted at by the name. See individual javadocs for details.
 
 ### Printing
 

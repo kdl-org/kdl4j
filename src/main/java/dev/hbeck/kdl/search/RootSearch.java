@@ -2,21 +2,38 @@ package dev.hbeck.kdl.search;
 
 import dev.hbeck.kdl.objects.KDLDocument;
 import dev.hbeck.kdl.objects.KDLNode;
-import dev.hbeck.kdl.search.mutation.AddMutation;
 import dev.hbeck.kdl.search.mutation.Mutation;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * A "Search" that operates purely on the root with no predicates. Primarily used for applying mutations to the root.
+ */
 public class RootSearch implements Search {
     private static final KDLNode EMPTY_NODE = KDLNode.builder().setIdentifier("empty").build();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public KDLDocument filter(KDLDocument document) {
-        return document;
+    public KDLDocument filter(KDLDocument document, boolean trim) {
+        if (trim) {
+            final KDLDocument.Builder builder = KDLDocument.builder();
+            for (KDLNode node : document.getNodes()) {
+                builder.addNode(node.toBuilder().setChild(Optional.empty()).build());
+            }
+            return builder.build();
+        } else {
+            return document;
+        }
+
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public KDLDocument list(KDLDocument document, boolean trim) {
         final ArrayList<KDLNode> nodes = new ArrayList<>();
@@ -36,23 +53,16 @@ public class RootSearch implements Search {
         }
     }
 
+    /**
+     * Applies mutation to a temporary, empty node. If the resulting node is present and has a child, any nodes
+     * contained in it are added to the root and the result returned. All other aspects of the returned node are ignored.
+     */
     @Override
     public KDLDocument mutate(KDLDocument document, Mutation mutation) {
-        if (!(mutation instanceof AddMutation)) {
-            throw new IllegalArgumentException("Only AddMutations are allowed in RootSearch.mutate()");
-        }
-        final AddMutation addMutation = (AddMutation) mutation;
-
-        if (!addMutation.getArgs().isEmpty() || !addMutation.getProps().isEmpty()) {
-            throw new IllegalArgumentException("AddMutation on the root can only contain child alterations");
-        } else if (!addMutation.getChild().isPresent() || addMutation.getChild().get().getNodes().isEmpty()) {
-            return document;
-        } else {
-            final KDLNode result = mutation.apply(EMPTY_NODE).orElse(EMPTY_NODE);
-            return document.toBuilder()
-                    .addNodes(result.getChild().orElse(KDLDocument.empty()).getNodes())
-                    .build();
-        }
+        final KDLNode result = mutation.apply(EMPTY_NODE).orElse(EMPTY_NODE);
+        return document.toBuilder()
+                .addNodes(result.getChild().orElse(KDLDocument.empty()).getNodes())
+                .build();
     }
 
     @Override

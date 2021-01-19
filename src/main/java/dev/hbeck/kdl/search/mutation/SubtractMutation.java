@@ -7,12 +7,22 @@ import dev.hbeck.kdl.objects.KDLValue;
 import dev.hbeck.kdl.parse.KDLInternalException;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 
+/**
+ * Mutation removing contents of a node or the node itself.
+ *
+ * Args are removed if their index is included in positionalArgs or are matched by an argPredicate
+ * Properties are removed if they match a predicate in propPredicates
+ * Only one of emptyChild and deleteChild may be set.
+ *  - If set, emptyChild will remove all contents from the node's child, leaving an empty child
+ *  - If set, deleteChild will remove the child entirely
+ */
 public class SubtractMutation implements Mutation {
     private final Set<Integer> positionalArgs;
     private final List<Predicate<KDLValue>> argPredicates;
@@ -35,7 +45,7 @@ public class SubtractMutation implements Mutation {
 
     @Override
     public Optional<KDLNode> apply(KDLNode node) {
-        if (argPredicates.isEmpty() && propPredicates.isEmpty() && !emptyChild && !deleteChild) {
+        if (argPredicates.isEmpty() && propPredicates.isEmpty() && positionalArgs.isEmpty() && !emptyChild && !deleteChild) {
             return Optional.empty();
         }
 
@@ -70,6 +80,10 @@ public class SubtractMutation implements Mutation {
         }
 
         return Optional.of(builder.build());
+    }
+
+    public static SubtractMutation deleteNodeMutation() {
+        return new SubtractMutation(Collections.emptySet(), Collections.emptyList(), Collections.emptyList(), false, false);
     }
 
     public static Builder builder() {

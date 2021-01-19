@@ -18,6 +18,10 @@ public class NodePredicate implements Predicate<KDLNode> {
         return identifierPredicate.test(node.getIdentifier()) && contentPredicate.test(node);
     }
 
+    public static NodePredicate hasName(String name) {
+        return new NodePredicate(Predicate.isEqual(name), NodeContentPredicate.any());
+    }
+
     public static NodePredicate any() {
         return new NodePredicate(id -> true, node -> true);
     }
