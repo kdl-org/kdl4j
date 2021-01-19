@@ -26,10 +26,10 @@ object KQ {
         val document: KDLDocument = try {
             documentParser.parse(InputStreamReader(System.`in`))
         } catch (e: KDLParseException) {
-            System.err.printf("Error reading document stream: %s%n", e.localizedMessage)
+            System.err.printf("Parse error: %s%n", e.localizedMessage)
             exitProcess(2)
         } catch (e: IOException) {
-            System.err.printf("Parse error: %s%n", e.localizedMessage)
+            System.err.printf("Error reading document stream: %s%n", e.localizedMessage)
             exitProcess(3)
         }
 
