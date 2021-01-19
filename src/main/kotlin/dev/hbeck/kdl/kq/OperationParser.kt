@@ -11,7 +11,6 @@ import dev.hbeck.kdl.objects.KDLValue
 import dev.hbeck.kdl.parse.CharClasses.isUnicodeWhitespace
 import dev.hbeck.kdl.parse.CharClasses.isValidBareIdChar
 import dev.hbeck.kdl.parse.CharClasses.isValidBareIdStart
-import dev.hbeck.kdl.parse.CharClasses.isValidDecimalChar
 import dev.hbeck.kdl.parse.CharClasses.isValidNumericStart
 import dev.hbeck.kdl.parse.KDLInternalException
 import dev.hbeck.kdl.parse.KDLParseContext
@@ -34,10 +33,12 @@ import dev.hbeck.kdl.search.predicates.EmptyContentPredicate
 import dev.hbeck.kdl.search.predicates.NegatedPredicate
 import dev.hbeck.kdl.search.predicates.NodeContentPredicate
 import dev.hbeck.kdl.search.predicates.NodePredicate
+import dev.hbeck.kdl.search.predicates.PositionalArgPredicate
 import dev.hbeck.kdl.search.predicates.PropPredicate
 import java.io.StringReader
 import java.lang.ArithmeticException
 import java.lang.StringBuilder
+import java.math.BigDecimal
 import java.util.*
 import java.util.function.Predicate
 import java.util.regex.Pattern
@@ -396,6 +397,7 @@ class OperationParser {
                 Predicate.isEqual(str)
             }
             c == '/'.toInt() -> parseEscapedRegex(context)
+            c == '.'.toInt() -> return parsePositionalArgPredicate(context)
             isValidNumericStart(c) -> {
                 val number = kdlParser.parseNumber(context)
                 return ArgPredicate { value: KDLValue -> value.isNumber && value == number }
@@ -431,7 +433,7 @@ class OperationParser {
                 context.read()
                 c = context.peek()
                 if (c == '*'.toInt()) {
-                    Predicate { true }
+                    Predicate { it != KDLNull.INSTANCE }
                 } else {
                     when (val value = kdlParser.parseValue(context)) {
                         is KDLNumber -> Predicate { other  -> other.isNumber && value.asBigDecimal == other.asNumber.get().asBigDecimal }
@@ -457,6 +459,70 @@ class OperationParser {
         return PropPredicate(strPredicate, valuePredicate)
     }
 
+    fun parsePositionalArgPredicate(context: KDLParseContext): NodeContentPredicate {
+        val index = parsePositionalArgPosition(context)
+
+        var c = context.peek()
+        val valuePredicate = when (c) {
+            '='.toInt() -> {
+                context.read()
+                c = context.peek()
+                if (c == '*'.toInt()) {
+                    Predicate { it != KDLNull.INSTANCE }
+                } else {
+                    when (val value = kdlParser.parseValue(context)) {
+                        is KDLNumber -> Predicate { other  -> other.isNumber && value.asBigDecimal == other.asNumber.get().asBigDecimal }
+                        else -> Predicate { other -> value == other }
+                    }
+                }
+            }
+            '>'.toInt(), '<'.toInt() -> parseNumericPredicate(context)
+            '~'.toInt() -> {
+                context.read()
+                c = context.peek()
+                val regex = when (c) {
+                    'r'.toInt() -> parseRawRegexOrString(context)
+                    '/'.toInt() -> parseEscapedRegex(context)
+                    else -> throw QueryParseException("Expected 'r' or '/' at start of regex, found \\u{$c}")
+                }
+
+                Predicate { other -> other.isString && regex.test(other.asString.value) }
+            }
+            else -> throw QueryParseException("")
+        }
+
+        return PositionalArgPredicate(index, valuePredicate)
+    }
+
+    fun parsePositionalArgPosition(context: KDLParseContext): Int {
+        val c = context.read()
+        if (c != '.'.toInt()) {
+            throw KDLInternalException("")
+        }
+
+        if (context.read() != '['.toInt()) {
+            throw QueryParseException("")
+        }
+
+        consumeWhitespace(context)
+        val indexUnchecked = kdlParser.parseNumber(context)
+        val index = try {
+            if (indexUnchecked.asBigDecimal < BigDecimal.ZERO) {
+                throw QueryParseException("")
+            }
+            indexUnchecked.asBigDecimal.intValueExact()
+        } catch (e: ArithmeticException) {
+            throw QueryParseException("")
+        }
+
+        consumeWhitespace(context)
+        if (context.read() != ']'.toInt()) {
+            throw QueryParseException("")
+        }
+
+        return index
+    }
+
     // numeric-predicate := ('=' | '<' | '>') number
     fun parseNumericPredicate(context: KDLParseContext): Predicate<KDLValue> {
         val c = context.read()
@@ -465,7 +531,7 @@ class OperationParser {
             '='.toInt() -> Predicate { value: KDLValue -> value.isNumber && number == value.asNumber.get().asBigDecimal }
             '>'.toInt() -> Predicate { value: KDLValue -> value.isNumber && value.asNumber.get().asBigDecimal > number }
             '<'.toInt() -> Predicate { value: KDLValue -> value.isNumber && value.asNumber.get().asBigDecimal < number }
-            else -> throw KDLInternalException("Expected '=', '>', or '<' but got \\u{$c}")
+            else -> throw KDLInternalException("Expected '=', '>', or '<' but got '${runeToStr(c)}'")
         }
     }
 
@@ -589,6 +655,17 @@ class OperationParser {
         return stringBuilder.toString()
     }
 
+    fun parsePositionalArgMutation(context: KDLParseContext): Pair<Int, KDLValue> {
+        val index = parsePositionalArgPosition(context)
+
+        val c = context.read()
+        if (c != '='.toInt()) {
+            throw KDLInternalException("Expected '+' at start of add mutation, but got '${runeToStr(c)}'")
+        }
+
+        return index to kdlParser.parseValue(context)
+    }
+
     // mutation := add-mutation | sub-mutation | set-mutation
     fun parseMutation(context: KDLParseContext): Mutation? {
         consumeWhitespace(context)
@@ -623,6 +700,10 @@ class OperationParser {
 
                     readChild = true
                     builder.setChild(kdlParser.parseDocument(context, false))
+                }
+                '.'.toInt() -> {
+                    val (index, value) = parsePositionalArgMutation(context)
+                    builder.addPositionalArg(index, value)
                 }
                 else -> {
                     when (val argOrProp = kdlParser.parseArgOrProp(context)) {
@@ -685,6 +766,9 @@ class OperationParser {
                     builder.addProp { true }
 
                     foundSplatArgPropDeletion = true
+                }
+                '.'.toInt() -> {
+                    builder.deleteArgAt(parsePositionalArgPosition(context))
                 }
                 else -> {
                     val pred = parsePropOrArgPredicate(context)
@@ -762,6 +846,10 @@ class OperationParser {
                     context.read()
                     builder.setChild(Optional.of(kdlParser.parseDocument(context, false)))
                     foundChild = true
+                }
+                c == '.'.toInt() -> {
+                    val (index, value) = parsePositionalArgMutation(context)
+                    builder.addPositionalArg(index, value)
                 }
                 isValidNumericStart(c) -> {
                     builder.addArg(kdlParser.parseNumber(context))

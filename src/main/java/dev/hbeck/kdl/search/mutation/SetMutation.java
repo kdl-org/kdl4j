@@ -12,12 +12,16 @@ import java.util.Optional;
 
 public class SetMutation implements Mutation {
     private final Optional<String> identifier;
+    private final Map<Integer, KDLValue> positionalArgs;
     private final List<KDLValue> args;
     private final Map<String, KDLValue> props;
     private final Optional<Optional<KDLDocument>> child;
 
-    private SetMutation(Optional<String> identifier, List<KDLValue> args, Map<String, KDLValue> props, Optional<Optional<KDLDocument>> child) {
+    private SetMutation(Optional<String> identifier, Map<Integer, KDLValue> positionalArgs, List<KDLValue> args,
+                        Map<String, KDLValue> props, Optional<Optional<KDLDocument>> child) {
+
         this.identifier = identifier;
+        this.positionalArgs = positionalArgs;
         this.args = args;
         this.props = props;
         this.child = child;
@@ -31,8 +35,13 @@ public class SetMutation implements Mutation {
 
         if (!args.isEmpty()) {
             builder.clearArgs();
-            builder.addAllArgs(args);
         }
+
+        for (Map.Entry<Integer, KDLValue> positionalArg : positionalArgs.entrySet()) {
+            builder.insertArgAt(positionalArg.getKey(), positionalArg.getValue());
+        }
+
+        builder.addAllArgs(args);
 
         if (!props.isEmpty()) {
             builder.clearProps();
@@ -47,6 +56,7 @@ public class SetMutation implements Mutation {
     }
 
     public static class Builder {
+        private final Map<Integer, KDLValue> positionalArgs = new HashMap<>();
         private final List<KDLValue> args = new ArrayList<>();
         private final Map<String, KDLValue> props = new HashMap<>();
         private Optional<String> identifier = Optional.empty();
@@ -72,8 +82,13 @@ public class SetMutation implements Mutation {
             return this;
         }
 
+        public Builder addPositionalArg(int position, KDLValue arg) {
+            this.positionalArgs.put(position, arg);
+            return this;
+        }
+
         public SetMutation build() {
-            return new SetMutation(identifier, args, props, child);
+            return new SetMutation(identifier, positionalArgs, args, props, child);
         }
     }
 }

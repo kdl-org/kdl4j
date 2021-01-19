@@ -164,6 +164,18 @@ public class KDLNode implements KDLObject {
             return this;
         }
 
+        public Builder insertArgAt(int position, KDLValue value) {
+            if (position < args.size()) {
+                args.add(position, value);
+            } else {
+                while (args.size() < position - 1) {
+                    args.add(KDLNull.INSTANCE);
+                }
+                args.add(value);
+            }
+            return this;
+        }
+
         public Builder removeArgIf(Predicate<KDLValue> argPredicate) {
             args.removeIf(argPredicate);
             return this;
