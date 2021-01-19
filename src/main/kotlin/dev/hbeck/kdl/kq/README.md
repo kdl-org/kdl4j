@@ -65,8 +65,19 @@ Examples:
 * `/.*/="somevalue"` - Matches any property with the string value `somevalue`
 * `r"myrawkey">100` - Matches if a property exists with key `mykey` and a numeric value greater than 100
 * `r/^\w+$/~/^\\w+$/` - Matches if both key and value are composed of nothing but "word" characters
-* `mykey=*` - Matches if a property exists with the key `mykey` and any value of any type
+* `mykey=*` - Matches if a property exists with the key `mykey` and any value of any non-null type
 
+
+#### Argument Predicates
+
+Argument predicates can be positional or general. A general argument predicate matches if any argument matches, positional
+if the argument at the given position exists and matches.
+
+Examples:
+
+* `"arg"` - Matches if any argument is the literal string `"arg"`, regardless of position
+* `>10` - Matches if any numeric argument is less than 10
+* `.[0]="arg"` Matches if the first argument is the literal string `"arg"` 
 
 #### Child Predicates
 
