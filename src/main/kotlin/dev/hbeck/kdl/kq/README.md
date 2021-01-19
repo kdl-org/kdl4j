@@ -170,6 +170,7 @@ Examples:
 * `*mynode = =yournode` - Renames every node with the identifier `mynode` to `yournode`
 * `*[prop=*] = prop2="val2"` - Clear the properties of every node with a property named `prop` and set the properties to
   `prop2="val2"`
+* `.mynode = .[0]=10` - Sets the value of the first argument to `10`, replacing any value that was there.  
 
 
 ### Addition
@@ -184,6 +185,8 @@ Examples:
 * `. + {subnode}` - Adds a node named `subnode` to the child of every node in the root document
 * `*mynode + "arg"` - Adds an argument `"arg"` to every node in the tree with the identifier `mynode`
 * `{} + {first-level-node "arg"; another-node "arg2"}` - Adds two new nodes to the root document
+* `.mynode + .[0]=10` - Adds an argument `10` to the head of the argument list. All other arguments slide right.
+
 
 ### Subtraction
 
@@ -199,6 +202,7 @@ Examples:
 * `. - {}` - Deletes the children of every node at the root
 * `* - /^a/=*` - Removes any properties whose key starts with `a` from the tree regardless of their value
 * `* - null /.*/=null` - Removes all null arguments and properties from every node in the tree
+* `.mynode - .[0]` - Deletes the first argument to a node
 
 
 ## Full Specification
