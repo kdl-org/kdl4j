@@ -29,13 +29,18 @@ public class PathedSearch implements Search {
             return Optional.empty();
         }
 
+        final Integer maxKey = path.floorKey(Integer.MAX_VALUE);
         final KDLDocument.Builder builder = KDLDocument.builder();
         for (KDLNode node : document.getNodes()) {
-            final Optional<KDLDocument> newChild = node.getChild().flatMap(ch -> filter(ch, depth + 1));
-            if (newChild.isPresent()) {
-                builder.addNode(node.toBuilder().setChild(newChild).build());
-            } else if (predicate.test(node)) {
-                builder.addNode(node.toBuilder().setChild(Optional.empty()).build());
+            if (predicate.test(node)) {
+                if (depth == maxKey) {
+                    builder.addNode(node.toBuilder().setChild(Optional.empty()).build());
+                } else {
+                    final Optional<KDLDocument> newChild = node.getChild().flatMap(ch -> filter(ch, depth + 1));
+                    if (newChild.isPresent()) {
+                        builder.addNode(node.toBuilder().setChild(newChild).build());
+                    }
+                }
             }
         }
 
@@ -60,18 +65,19 @@ public class PathedSearch implements Search {
             return;
         }
 
-        final Integer maxKey = path.ceilingKey(Integer.MAX_VALUE);
+        final Integer maxKey = path.floorKey(Integer.MAX_VALUE);
         for (KDLNode node : document.getNodes()) {
-            if (depth == maxKey && predicate.test(node)) {
-                final KDLNode.Builder nodeBuilder = node.toBuilder();
-                if (trim) {
-                    nodeBuilder.setChild(Optional.empty());
+            if (predicate.test(node)) {
+                if (depth == maxKey) {
+                    if (trim) {
+                        nodes.add(node.toBuilder().setChild(Optional.empty()).build());
+                    } else {
+                        nodes.add(node);
+                    }
+                } else {
+                    node.getChild().ifPresent(ch -> list(ch, trim, depth + 1, nodes));
                 }
-
-                nodes.add(nodeBuilder.build());
             }
-
-            node.getChild().ifPresent(ch -> list(ch, trim, depth + 1, nodes));
         }
     }
 
@@ -86,21 +92,19 @@ public class PathedSearch implements Search {
             return Optional.of(document);
         }
 
-        final Integer maxKey = path.ceilingKey(Integer.MAX_VALUE);
-
+        final Integer maxKey = path.floorKey(Integer.MAX_VALUE);
         final KDLDocument.Builder docBuilder = KDLDocument.builder();
         for (KDLNode node : document.getNodes()) {
-            if (depth == maxKey && predicate.test(node)) {
-                if (node.getChild().isPresent()) {
-                    final Optional<KDLDocument> newChild = node.getChild().flatMap(ch -> mutate(ch, mutation, depth + 1));
-                    final KDLNode newNode = node.toBuilder().setChild(newChild).build();
-                    mutation.apply(newNode).ifPresent(docBuilder::addNode);
-                } else {
+            if (predicate.test(node)) {
+                if (depth == maxKey) {
                     mutation.apply(node).ifPresent(docBuilder::addNode);
+                } else {
+                    final KDLNode.Builder nodeBuilder = node.toBuilder();
+                    node.getChild().ifPresent(ch -> nodeBuilder.setChild(mutate(ch, mutation, depth + 1)));
+                    docBuilder.addNode(nodeBuilder.build());
                 }
             } else {
-                final Optional<KDLDocument> newChild = node.getChild().flatMap(ch -> mutate(ch, mutation, depth + 1));
-                docBuilder.addNode(node.toBuilder().setChild(newChild).build());
+                docBuilder.addNode(node);
             }
         }
 
@@ -123,12 +127,14 @@ public class PathedSearch implements Search {
             return false;
         }
 
-        final Integer maxKey = path.ceilingKey(Integer.MAX_VALUE);
+        final Integer maxKey = path.floorKey(Integer.MAX_VALUE);
         for (KDLNode node : document.getNodes()) {
-            if (depth == maxKey && predicate.test(node)) {
-                return true;
-            } else if (node.getChild().map(ch -> anyMatch(ch, depth + 1)).orElse(false)) {
-                return true;
+            if (predicate.test(node)) {
+                if (depth == maxKey) {
+                    return true;
+                } else if (node.getChild().map(ch -> anyMatch(ch, depth +1)).orElse(false)) {
+                    return true;
+                }
             }
         }
 
