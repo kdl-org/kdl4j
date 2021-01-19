@@ -34,7 +34,7 @@ object KQ {
         }
 
         val result = try {
-            mutation?.let { search.mutate(document, mutation) } ?: search.filter(document)
+            mutation?.let { search.mutate(document, mutation) } ?: search.filter(document, false)
         } catch (e: Exception) {
             System.err.println("Search or mutation failed: '${e.localizedMessage}'")
             exitProcess(4)

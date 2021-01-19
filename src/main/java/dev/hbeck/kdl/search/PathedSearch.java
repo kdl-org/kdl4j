@@ -11,6 +11,10 @@ import java.util.NavigableMap;
 import java.util.Optional;
 import java.util.TreeMap;
 
+/**
+ * Searches for nodes where the path to a node matches a series of predicates. The first predicate provided is used
+ * to filter nodes at the root, second to filter nodes that are children of the nodes at the root, and so on.
+ */
 public class PathedSearch implements Search {
     private final NavigableMap<Integer, NodePredicate> path;
 
@@ -18,12 +22,15 @@ public class PathedSearch implements Search {
         this.path = path;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
-    public KDLDocument filter(KDLDocument document) {
-        return filter(document, 0).orElse(KDLDocument.empty());
+    public KDLDocument filter(KDLDocument document, boolean trim) {
+        return filter(document, 0, trim).orElse(KDLDocument.empty());
     }
 
-    private Optional<KDLDocument> filter(KDLDocument document, int depth) {
+    private Optional<KDLDocument> filter(KDLDocument document, int depth, boolean trim) {
         final NodePredicate predicate = path.get(depth);
         if (predicate == null) {
             return Optional.empty();
@@ -34,9 +41,13 @@ public class PathedSearch implements Search {
         for (KDLNode node : document.getNodes()) {
             if (predicate.test(node)) {
                 if (depth == maxKey) {
-                    builder.addNode(node.toBuilder().setChild(Optional.empty()).build());
+                    if (trim) {
+                        builder.addNode(node.toBuilder().setChild(Optional.empty()).build());
+                    } else {
+                        builder.addNode(node);
+                    }
                 } else {
-                    final Optional<KDLDocument> newChild = node.getChild().flatMap(ch -> filter(ch, depth + 1));
+                    final Optional<KDLDocument> newChild = node.getChild().flatMap(ch -> filter(ch, depth + 1, trim));
                     if (newChild.isPresent()) {
                         builder.addNode(node.toBuilder().setChild(newChild).build());
                     }
@@ -52,6 +63,9 @@ public class PathedSearch implements Search {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public KDLDocument list(KDLDocument document, boolean trim) {
         final ArrayList<KDLNode> nodes = new ArrayList<>();
@@ -81,6 +95,9 @@ public class PathedSearch implements Search {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public KDLDocument mutate(KDLDocument document, Mutation mutation) {
         return mutate(document, mutation, 0).orElse(KDLDocument.empty());
@@ -116,6 +133,9 @@ public class PathedSearch implements Search {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean anyMatch(KDLDocument document) {
         return anyMatch(document, 0);

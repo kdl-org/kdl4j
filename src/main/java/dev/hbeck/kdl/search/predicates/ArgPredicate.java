@@ -5,6 +5,9 @@ import dev.hbeck.kdl.objects.KDLValue;
 
 import java.util.function.Predicate;
 
+/**
+ * Matches nodes based on applying a given predicate to all arguments, returning true if any match.
+ */
 public class ArgPredicate implements NodeContentPredicate {
     private final Predicate<KDLValue> predicate;
 

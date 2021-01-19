@@ -10,6 +10,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Mutation adding fields to a node
+ *  - If any positional args are specified, they will be inserted and other args shifted right to accommodate.
+ *  - If any other args are specified, they'll be added to the right side of the argument list.
+ *  - If any properties are specified, they'll be added to the properties of the map, overwriting any previous values
+ *    if an existing key is specified.
+ *  - If a child is specified, any nodes in the child will be appended to the existing child if one exists. If none exists,
+ *    the child will be set to the provided child.
+ */
 public class AddMutation implements Mutation {
     private final List<KDLValue> args;
     private final Map<Integer, KDLValue> positionalArgs;

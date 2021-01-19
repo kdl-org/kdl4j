@@ -10,6 +10,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * Mutation setting various fields of a node.
+ *  - If identifier is provided, will set the node's name to the provided value
+ *  - If any non-positional args are provided the argument list of the node will be cleared and replaced by the provided
+ *    arguments. Note that if positional arguments are provided the clear will occur prior to any arguments being set,
+ *    then the positional arguments will be set, then any non-positional arguments appended to the right side.
+ *  - If any (position, value) pairs are in positionalArgs, then the arguments at the specified index will be set to the
+ *    provided value. If the current list is smaller than position, the argument list will be right-padded with 'null'
+ *    values to allow the position to be set.
+ *  - If any properties are specified in props, the key=value pair will be set on the node, or added if it wasn't present.
+ *  - If child is provided, the current child will be discarded and replaced be the provided one.
+ */
 public class SetMutation implements Mutation {
     private final Optional<String> identifier;
     private final Map<Integer, KDLValue> positionalArgs;

@@ -36,7 +36,7 @@ public class TestGeneralSearch {
     public NodePredicate predicate;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
@@ -288,7 +288,7 @@ public class TestGeneralSearch {
         final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
         when(predicate.test(any())).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(KDLDocument.empty()));
+        assertThat(search.filter(inputDoc, true), equalTo(KDLDocument.empty()));
     }
 
     @Test
@@ -297,7 +297,7 @@ public class TestGeneralSearch {
         final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
         when(predicate.test(any())).thenReturn(false);
 
-        assertThat(search.filter(inputDoc), equalTo(KDLDocument.empty()));
+        assertThat(search.filter(inputDoc, true), equalTo(KDLDocument.empty()));
     }
 
     @Test
@@ -307,7 +307,7 @@ public class TestGeneralSearch {
         when(predicate.test(any())).thenReturn(false);
         when(predicate.test(argThat(hasId("node2")))).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(parser.parse("node2")));
+        assertThat(search.filter(inputDoc, true), equalTo(parser.parse("node2")));
     }
 
     @Test
@@ -317,7 +317,7 @@ public class TestGeneralSearch {
         when(predicate.test(any())).thenReturn(false);
         when(predicate.test(argThat(hasId("node3")))).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(parser.parse("node2 {node3;}")));
+        assertThat(search.filter(inputDoc, true), equalTo(parser.parse("node2 {node3;}")));
     }
 
     @Test
@@ -327,7 +327,7 @@ public class TestGeneralSearch {
         when(predicate.test(any())).thenReturn(false);
         when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(parser.parse("node2 {node3 {node4;};}")));
+        assertThat(search.filter(inputDoc, true), equalTo(parser.parse("node2 {node3 {node4;};}")));
     }
 
     @Test
@@ -338,7 +338,7 @@ public class TestGeneralSearch {
         when(predicate.test(argThat(hasId("node4")))).thenReturn(true);
         when(predicate.test(argThat(hasId("node5")))).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(parser.parse("node2 {node3 {node4; node5;};}")));
+        assertThat(search.filter(inputDoc, true), equalTo(parser.parse("node2 {node3 {node4; node5;};}")));
     }
 
     @Test
@@ -347,7 +347,7 @@ public class TestGeneralSearch {
         final GeneralSearch search = GeneralSearch.builder().setPredicate(predicate).build();
         when(predicate.test(any())).thenReturn(true);
 
-        assertThat(search.filter(inputDoc), equalTo(parser.parse("node1; node2 {node3 {node4;};}")));
+        assertThat(search.filter(inputDoc, true), equalTo(parser.parse("node1; node2 {node3 {node4;};}")));
     }
 
     @Test

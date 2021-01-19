@@ -11,6 +11,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 
+/**
+ * Searches through an entire document, bounded by depth limitations, for nodes matching a single predicate.
+ */
 public class GeneralSearch implements Search {
     private final NodePredicate predicate;
     private final int minDepth;
@@ -22,6 +25,10 @@ public class GeneralSearch implements Search {
         this.maxDepth = maxDepth;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public KDLDocument list(KDLDocument document, boolean trim) {
         final ArrayList<KDLNode> nodes = new ArrayList<>();
         list(document, trim, 0, nodes);
@@ -45,22 +52,30 @@ public class GeneralSearch implements Search {
         }
     }
 
-    public KDLDocument filter(KDLDocument document) {
-        return filter(document, 0).orElse(KDLDocument.empty());
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public KDLDocument filter(KDLDocument document, boolean trim) {
+        return filter(document, 0, trim).orElse(KDLDocument.empty());
     }
 
-    private Optional<KDLDocument> filter(KDLDocument document, int depth) {
+    private Optional<KDLDocument> filter(KDLDocument document, int depth, boolean trim) {
         if (depth > maxDepth) {
             return Optional.empty();
         }
 
         final KDLDocument.Builder builder = KDLDocument.builder();
         for (KDLNode node : document.getNodes()) {
-            final Optional<KDLDocument> newChild = node.getChild().flatMap(doc -> filter(doc, depth + 1));
+            final Optional<KDLDocument> newChild = node.getChild().flatMap(doc -> filter(doc, depth + 1, trim));
             if (newChild.isPresent()) {
                 builder.addNode(node.toBuilder().setChild(newChild).build());
             } else if (predicate.test(node)) {
-                builder.addNode(node.toBuilder().setChild(Optional.empty()).build());
+                if (trim) {
+                    builder.addNode(node.toBuilder().setChild(Optional.empty()).build());
+                } else {
+                    builder.addNode(node);
+                }
             }
         }
 
@@ -72,6 +87,10 @@ public class GeneralSearch implements Search {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public KDLDocument mutate(KDLDocument document, Mutation fun) {
         return mutate(fun, document, 0).orElse(KDLDocument.empty());
     }
@@ -105,6 +124,9 @@ public class GeneralSearch implements Search {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean anyMatch(KDLDocument document) {
         return anyMatch(document, 0);

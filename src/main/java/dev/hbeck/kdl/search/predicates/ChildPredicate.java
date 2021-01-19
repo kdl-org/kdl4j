@@ -6,9 +6,7 @@ import dev.hbeck.kdl.search.Search;
 import java.util.Optional;
 
 /**
- * We need to represent 2 types of child searches:
- * - Searches for nodes with missing or empty children
- * - Searches for nodes with any children matching a Search
+ * Matches nodes based on the contents, or absence, of a child
  */
 public class ChildPredicate implements NodeContentPredicate {
     private final Optional<Search> search;

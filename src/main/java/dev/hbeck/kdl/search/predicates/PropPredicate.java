@@ -5,6 +5,9 @@ import dev.hbeck.kdl.objects.KDLValue;
 
 import java.util.function.Predicate;
 
+/**
+ * Predicate matching a KDLNode property
+ */
 public class PropPredicate implements NodeContentPredicate {
     private final Predicate<String> keyPredicate;
     private final Predicate<KDLValue> valuePredicate;
