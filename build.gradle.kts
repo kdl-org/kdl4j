@@ -4,7 +4,6 @@ plugins {
     java
     jacoco
     `maven-publish`
-    kotlin("jvm") version "1.4.30-M1"
 }
 
 group = "dev.hbeck.kdl"
@@ -12,7 +11,6 @@ version = "0.1.0"
 
 repositories {
     mavenCentral()
-    maven("https://dl.bintray.com/kotlin/kotlin-eap")
 }
 
 publishing {
