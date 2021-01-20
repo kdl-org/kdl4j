@@ -4,6 +4,8 @@ A Java implementation of a parser for the [KDL Document Language](https://github
 
 ## Status
 
+![Gradle CI](https://github.com/hkolbeck/kdl4j/workflows/Gradle%20CI/badge.svg)
+
 This project is beta-quality. It's been extensively tested, but the spec it implements is still in flux.
 
 ## Usage
