@@ -143,7 +143,7 @@ public class KDLParseContext {
         stringBuilder.append("Line ").append(lineNumber).append(":\n")
                 .append(line).append('\n');
 
-        for (int i = 0; i < positionInLine; i++) {
+        for (int i = 0; i < positionInLine - 1; i++) {
             stringBuilder.append('-');
         }
 

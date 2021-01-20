@@ -2,18 +2,23 @@ package dev.hbeck.kdl.kq
 
 import dev.hbeck.kdl.kq.OperationParser.ExprType.*
 import dev.hbeck.kdl.kq.QueryCharClasses.Companion.isNumericPredicateStart
+import dev.hbeck.kdl.kq.QueryCharClasses.Companion.isValidQueryBareIdChar
+import dev.hbeck.kdl.kq.QueryCharClasses.Companion.isValidQueryBareIdStart
 import dev.hbeck.kdl.objects.KDLBoolean
 import dev.hbeck.kdl.objects.KDLNull
 import dev.hbeck.kdl.objects.KDLNumber
 import dev.hbeck.kdl.objects.KDLProperty
 import dev.hbeck.kdl.objects.KDLString
 import dev.hbeck.kdl.objects.KDLValue
+import dev.hbeck.kdl.parse.CharClasses
 import dev.hbeck.kdl.parse.CharClasses.isUnicodeWhitespace
 import dev.hbeck.kdl.parse.CharClasses.isValidBareIdChar
 import dev.hbeck.kdl.parse.CharClasses.isValidBareIdStart
 import dev.hbeck.kdl.parse.CharClasses.isValidNumericStart
 import dev.hbeck.kdl.parse.KDLInternalException
 import dev.hbeck.kdl.parse.KDLParseContext
+import dev.hbeck.kdl.parse.KDLParseException
+import dev.hbeck.kdl.parse.KDLParser
 import dev.hbeck.kdl.parse.KDLParser.EOF
 import dev.hbeck.kdl.parse.KDLParserFacade
 import dev.hbeck.kdl.search.GeneralSearch
@@ -35,6 +40,7 @@ import dev.hbeck.kdl.search.predicates.NodeContentPredicate
 import dev.hbeck.kdl.search.predicates.NodePredicate
 import dev.hbeck.kdl.search.predicates.PositionalArgPredicate
 import dev.hbeck.kdl.search.predicates.PropPredicate
+import java.io.IOException
 import java.io.StringReader
 import java.lang.ArithmeticException
 import java.lang.StringBuilder
@@ -50,19 +56,31 @@ class OperationParser {
     fun parse(raw: String): Pair<Search, Mutation?> = parse(KDLParseContext(StringReader(raw)))
 
     // operation :=  search ws* mutation?
-    fun parse(context: KDLParseContext): Pair<Search, Mutation?> {
-        consumeWhitespace(context)
-        val search = parseSearch(context)
-        val mutation = parseMutation(context)
+    fun parse(context: KDLParseContext): Pair<Search, Mutation?> =
+            try {
+                consumeWhitespace(context)
+                val search = parseSearch(context)
+                val mutation = parseMutation(context)
 
-        if (search is RootSearch) {
-            if (mutation !is AddMutation) {
-                throw QueryParseException("If a root search '{}' is used, only addition is supported, and only a child will have any effect")
+                mutation?.let {
+                    if (search is RootSearch) {
+                        if (it !is AddMutation) {
+                            throw QueryParseException("If a root search '{}' is used, only addition is supported, and only a child will have any effect")
+                        }
+                    }
+                }
+
+                search to mutation
+            } catch (e: QueryParseException) {
+                val message = String.format("%s\n%s", e.message, context.errorLocationAndInvalidateContext)
+                throw KDLParseException(message, e)
+            } catch (e: IOException) {
+                throw IOException(context.errorLocationAndInvalidateContext, e)
+            } catch (e: KDLInternalException) {
+                throw KDLInternalException(context.errorLocationAndInvalidateContext, e)
+            } catch (t: Throwable) {
+                throw KDLInternalException(String.format("Unexpected exception:\n%s", context.errorLocationAndInvalidateContext), t)
             }
-        }
-
-        return search to mutation
-    }
 
     // search := general-search | pathed-search | root
     // root := '{}'
@@ -70,8 +88,8 @@ class OperationParser {
         consumeWhitespace(context)
         var c = context.peek()
         return when (c) {
-            '.'.toInt() -> parsePathedSearch(context)
-            '*'.toInt() -> parseGeneralSearch(context)
+            '.'.toInt() -> parsePathedSearch(context, false)
+            '*'.toInt() -> parseGeneralSearch(context, false)
             '{'.toInt() -> {
                 context.read()
                 c = context.read()
@@ -87,7 +105,7 @@ class OperationParser {
     }
 
     // general-search := '*' depth? node-predicate?
-    fun parseGeneralSearch(context: KDLParseContext): GeneralSearch {
+    fun parseGeneralSearch(context: KDLParseContext, inSubSearch: Boolean): GeneralSearch {
         var c = context.read()
         if (c != '*'.toInt()) {
             throw KDLInternalException("Expected general search to start with '*', but found '${runeToStr(c)}'")
@@ -104,7 +122,7 @@ class OperationParser {
             }
         }
 
-        builder.setPredicate(parseNodePredicate(context, false))
+        builder.setPredicate(parseNodePredicate(context, false, inSubSearch))
 
         return builder.build()
     }
@@ -154,7 +172,7 @@ class OperationParser {
     }
 
     // pathed-search := '.' node-predicate pathed-search?
-    fun parsePathedSearch(context: KDLParseContext): PathedSearch {
+    fun parsePathedSearch(context: KDLParseContext, inSubSearch: Boolean): PathedSearch {
         var c = context.peek()
         if (c != '.'.toInt()) {
             throw KDLInternalException("Expected pathed search to start with '.', but found '${runeToStr(c)}'")
@@ -167,7 +185,14 @@ class OperationParser {
                 '-'.toInt(), '+'.toInt(), '='.toInt(), EOF -> return builder.build()
                 '.'.toInt() -> {
                     context.read()
-                    builder.addLevel(parseNodePredicate(context, true))
+                    builder.addLevel(parseNodePredicate(context, true, inSubSearch))
+                }
+                '}'.toInt() -> {
+                    if (inSubSearch) {
+                        return builder.build()
+                    } else {
+                        throw QueryParseException("Expected a predicate or the end of the query, but found '}'")
+                    }
                 }
                 else -> throw QueryParseException("Expected a predicate or the end of the query, but found '${runeToStr(c)}'")
             }
@@ -178,7 +203,8 @@ class OperationParser {
     }
 
     // node-predicate := identifier-predicate? predicates?
-    fun parseNodePredicate(context: KDLParseContext, pathed: Boolean): NodePredicate {
+    fun parseNodePredicate(context: KDLParseContext, pathed: Boolean, inSubSearch: Boolean): NodePredicate {
+        consumeWhitespace(context)
         var c = context.peek()
         when (c) {
             '.'.toInt() -> {
@@ -192,6 +218,20 @@ class OperationParser {
             '['.toInt() -> {
                 return NodePredicate({ true }, parseContentPredicates(context))
             }
+            '}'.toInt() -> {
+                if (inSubSearch) {
+                    return NodePredicate.any()
+                } else {
+                    throw QueryParseException("Expected '.', '[' or and identifier while parsing node predicate, but found '}'")
+                }
+            }
+            '+'.toInt(), '-'.toInt(), '='.toInt() -> {
+                if (inSubSearch) {
+                    throw QueryParseException("Mutations are not allowed in sub-searches")
+                } else {
+                    return NodePredicate.any()
+                }
+            }
             else -> {
                 val idPredicate = parseIdentifierPredicate(context)
                 consumeWhitespace(context)
@@ -199,6 +239,20 @@ class OperationParser {
                 return when (c) {
                     '.'.toInt(), EOF -> NodePredicate(idPredicate, NodeContentPredicate.any())
                     '['.toInt() -> NodePredicate(idPredicate, parseContentPredicates(context))
+                    '}'.toInt() -> {
+                        if (inSubSearch) {
+                            NodePredicate(idPredicate, NodeContentPredicate.any())
+                        } else {
+                            throw QueryParseException("Expected '.', '[', or the end of input following node predicate, but found '}'")
+                        }
+                    }
+                    '+'.toInt(), '-'.toInt(), '='.toInt() -> {
+                        if (inSubSearch) {
+                            throw QueryParseException("Mutations are not allowed in sub-searches")
+                        } else {
+                            return NodePredicate(idPredicate, NodeContentPredicate.any())
+                        }
+                    }
                     else -> throw QueryParseException("Expected '.', '[', or the end of input following node predicate, but found '${runeToStr(c)}'")
                 }
             }
@@ -220,24 +274,40 @@ class OperationParser {
                 if (c == 'r'.toInt()) {
                     context.read()
                     c = context.peek()
-                    context.unread(c)
                     context.unread('r'.toInt())
                     when (c) {
                         '#'.toInt(), '"'.toInt(), '/'.toInt() -> parseRawRegexOrString(context)
                         else -> {
-                            val expected = kdlParser.parseBareIdentifier(context)
+                            val expected = parseBareIdentifier(context)
                             Predicate { it == expected }
                         }
                     }
 
                 } else {
-                    val expected = kdlParser.parseBareIdentifier(context)
+                    val expected = parseBareIdentifier(context)
                     Predicate { it == expected }
                 }
             }
             c == EOF -> throw KDLInternalException("Expected regex, but found the end of input")
             else -> throw QueryParseException("Expected an identifier or regex at start of node predicate, but found '${runeToStr(c)}'")
         }
+    }
+
+    fun parseBareIdentifier(context: KDLParseContext): String {
+        var c = context.read()
+        if (!isValidQueryBareIdStart(c)) {
+            throw KDLParseException("Illegal character at start of bare identifier")
+        } else if (c == EOF) {
+            throw KDLInternalException("EOF when a bare identifer expected")
+        }
+        val stringBuilder = StringBuilder()
+        stringBuilder.appendCodePoint(c)
+        c = context.peek()
+        while (isValidQueryBareIdChar(c) && c != EOF) {
+            stringBuilder.appendCodePoint(context.read())
+            c = context.peek()
+        }
+        return stringBuilder.toString()
     }
 
     // content-predicates := '[' content-predicate ']'
@@ -255,7 +325,6 @@ class OperationParser {
         consumeWhitespace(context)
         c = context.peek()
         return when (c) {
-            '('.toInt() -> parseContentPredicates(context, true, UNKNOWN)
             '*'.toInt() -> {
                 context.read()
                 consumeWhitespace(context)
@@ -270,7 +339,16 @@ class OperationParser {
                 EmptyContentPredicate()
             }
             EOF -> throw QueryParseException("Ran out of input while parsing node content predicate")
-            else -> parseContentPredicates(context, false, UNKNOWN)
+            else -> {
+                val predicates = parseContentPredicates(context, UNKNOWN)
+                consumeWhitespace(context)
+                c = context.read()
+                if (c != ']'.toInt()) {
+                    throw QueryParseException("Expected ']' at end of node content predicates, but found '${runeToStr(c)}'")
+                }
+
+                predicates
+            }
         }
     }
 
@@ -278,63 +356,60 @@ class OperationParser {
         AND, OR, UNKNOWN
     }
 
-    fun parseContentPredicates(context: KDLParseContext, requiresClosingParen: Boolean, exprType: ExprType): NodeContentPredicate {
+    fun parseContentPredicates(context: KDLParseContext, exprType: ExprType): NodeContentPredicate {
         consumeWhitespace(context)
         var c = context.peek()
         var expr = if (c == '('.toInt()) {
             context.read()
-            if (requiresClosingParen) {
-                parseContentPredicates(context, true, UNKNOWN)
-            } else {
-                throw KDLInternalException("Found '(' at start of content predicate, but requiresClosingParen was false")
+            consumeWhitespace(context)
+            val predicates = parseContentPredicates(context, UNKNOWN)
+            consumeWhitespace(context)
+
+            c = context.read()
+            if (c != ')'.toInt()) {
+                throw QueryParseException("Expected ')' but found '${runeToStr(c)}'")
             }
+
+            predicates
         } else {
-            if (requiresClosingParen) {
-                throw KDLInternalException("Found no '(' at start of content predicate, but requiresClosingParen was true")
-            } else {
-                parseChildArgOrPropPredicate(context)
-            }
+            parseChildArgOrPropPredicate(context)
         }
 
         consumeWhitespace(context)
         c = context.peek()
         when (c) {
-            ']'.toInt() -> {
-                context.read()
-                if (requiresClosingParen) {
-                    throw QueryParseException("Unbalanced parenthesis in node content predicate")
-                } else {
-                    return expr
-                }
+            ']'.toInt(), ')'.toInt() -> {
+                return expr
             }
             '('.toInt() -> {
-                val subPredicate = parseContentPredicates(context, true, UNKNOWN)
+                context.read()
+                consumeWhitespace(context)
+                val subPredicate = parseContentPredicates(context, UNKNOWN)
+                consumeWhitespace(context)
+
+                c = context.read()
+                if (c != ')'.toInt()) {
+                    throw QueryParseException("Expected ')' but found '${runeToStr(c)}'")
+                }
+
                 expr = when (exprType) {
                     AND -> ConjunctionPredicate(expr, subPredicate)
                     OR -> DisjunctionPredicate(expr, subPredicate)
                     UNKNOWN -> throw KDLInternalException("Found '(' but current expression type is unknown")
                 }
             }
-            ')'.toInt() -> {
-                context.read()
-                if (requiresClosingParen) {
-                    return expr
-                } else {
-                    throw QueryParseException("Unbalanced parenthesis in node content predicate")
-                }
-            }
             '&'.toInt() -> {
                 context.read()
                 when (exprType) {
                     OR -> throw QueryParseException("Found '&' when only '|' allowed, use parenthesis to clarify node content predicate")
-                    UNKNOWN, AND -> expr = ConjunctionPredicate(expr, parseContentPredicates(context, requiresClosingParen, AND))
+                    UNKNOWN, AND -> expr = ConjunctionPredicate(expr, parseContentPredicates(context, AND))
                 }
             }
             '|'.toInt() -> {
                 context.read()
                 when (exprType) {
                     AND -> throw QueryParseException("Found '|' when only '&' allowed, use parenthesis to clarify node content predicate")
-                    UNKNOWN, OR -> expr = DisjunctionPredicate(expr, parseContentPredicates(context, requiresClosingParen, OR))
+                    UNKNOWN, OR -> expr = DisjunctionPredicate(expr, parseContentPredicates(context, OR))
                 }
             }
             EOF -> throw QueryParseException("Ran out of input while parsing node content predicate")
@@ -368,13 +443,12 @@ class OperationParser {
         c = context.peek()
         val predicate = when (c) {
             '.'.toInt() -> {
-                ChildPredicate(Optional.of(parsePathedSearch(context)))
+                ChildPredicate(Optional.of(parsePathedSearch(context, true)))
             }
             '*'.toInt() -> {
-                ChildPredicate(Optional.of(parseGeneralSearch(context)))
+                ChildPredicate(Optional.of(parseGeneralSearch(context, true)))
             }
             '}'.toInt() -> {
-                context.read()
                 ChildPredicate.empty()
             }
             else -> throw QueryParseException("Couldn't parse child predicate. Expected one of '.', '*', or '}', but found '${runeToStr(c)}'")
@@ -404,7 +478,7 @@ class OperationParser {
                 val number = kdlParser.parseNumber(context)
                 return ArgPredicate { value: KDLValue -> value.isNumber && value == number }
             }
-            isValidBareIdStart(c) -> {
+            isValidQueryBareIdStart(c) -> {
                 if (c == 'r'.toInt()) {
                     context.read()
                     c = context.peek()
@@ -426,7 +500,7 @@ class OperationParser {
             }
             isNumericPredicateStart(c) -> return ArgPredicate(parseNumericPredicate(context))
             c == EOF -> throw QueryParseException("Reached end of input while attempting to parse ")
-            else -> throw QueryParseException("Error parsing arg or prop predicate. Unexpected character: \\u{$c}")
+            else -> throw QueryParseException("Error parsing arg or prop predicate. Unexpected character: '${runeToStr(c)}'")
         }
 
         c = context.peek()
@@ -435,10 +509,11 @@ class OperationParser {
                 context.read()
                 c = context.peek()
                 if (c == '*'.toInt()) {
+                    context.read()
                     Predicate { it != KDLNull.INSTANCE }
                 } else {
                     when (val value = kdlParser.parseValue(context)) {
-                        is KDLNumber -> Predicate { other  -> other.isNumber && value.asBigDecimal == other.asNumber.get().asBigDecimal }
+                        is KDLNumber -> Predicate { other -> other.isNumber && value.asBigDecimal == other.asNumber.get().asBigDecimal }
                         else -> Predicate { other -> value == other }
                     }
                 }
@@ -473,7 +548,7 @@ class OperationParser {
                     Predicate { it != KDLNull.INSTANCE }
                 } else {
                     when (val value = kdlParser.parseValue(context)) {
-                        is KDLNumber -> Predicate { other  -> other.isNumber && value.asBigDecimal == other.asNumber.get().asBigDecimal }
+                        is KDLNumber -> Predicate { other -> other.isNumber && value.asBigDecimal == other.asNumber.get().asBigDecimal }
                         else -> Predicate { other -> value == other }
                     }
                 }
@@ -641,7 +716,7 @@ class OperationParser {
 
     fun parseBareIdentifierOrLiteral(context: KDLParseContext): String {
         var c = context.read()
-        if (!isValidBareIdStart(c)) {
+        if (!isValidQueryBareIdStart(c)) {
             throw QueryParseException("Illegal character at start of bare identifier or literal")
         } else if (c == EOF) {
             throw KDLInternalException("EOF when a bare identifier or literal expected")
@@ -650,7 +725,7 @@ class OperationParser {
         val stringBuilder = StringBuilder()
         stringBuilder.appendCodePoint(c)
         c = context.peek()
-        while (isValidBareIdChar(c) && c != EOF) {
+        while (isValidQueryBareIdChar(c) && c != EOF) {
             stringBuilder.appendCodePoint(context.read())
             c = context.peek()
         }
@@ -701,7 +776,7 @@ class OperationParser {
                     }
 
                     readChild = true
-                    builder.setChild(kdlParser.parseDocument(context, false))
+                    builder.setChild(kdlParser.parseChild(context))
                 }
                 '.'.toInt() -> {
                     val (index, value) = parsePositionalArgMutation(context)
@@ -740,8 +815,13 @@ class OperationParser {
         consumeWhitespace(context)
         c = context.peek()
         if (c == '.'.toInt()) {
-            // The 'delete node' case is represented by all fields of the subtraction being empty
-            return builder.build()
+            context.read()
+            if (context.peek() != '['.toInt()) {
+                // The 'delete node' case is represented by all fields of the subtraction being empty
+                return builder.build()
+            } else {
+                context.unread('.'.toInt())
+            }
         }
 
         while (c != EOF) {
@@ -760,7 +840,7 @@ class OperationParser {
                     }
 
                     context.read()
-                    if (context.read() != '*'.toInt() && context.read() != ']'.toInt()) {
+                    if (context.read() != '*'.toInt() || context.read() != ']'.toInt()) {
                         throw QueryParseException("Read '[', but it wasn't followed by '*]'")
                     }
 
@@ -805,7 +885,7 @@ class OperationParser {
         c = context.read()
         when (c) {
             '*'.toInt() -> {
-                if (context.peek() != '}'.toInt()) {
+                if (context.read() != '}'.toInt()) {
                     throw QueryParseException("Expected '}', but found '${runeToStr(c)}'")
                 }
                 builder.emptyChild()

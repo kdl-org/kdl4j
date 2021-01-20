@@ -53,10 +53,15 @@ public class SubtractMutation implements Mutation {
 
         for (int i = 0; i < node.getArgs().size(); i++) {
             if (!positionalArgs.contains(i)) {
+                boolean matchesAny = false;
                 for (Predicate<KDLValue> argPredicate : argPredicates) {
-                    if (!argPredicate.test(node.getArgs().get(i))) {
-                        builder.addArg(node.getArgs().get(i));
+                    if (argPredicate.test(node.getArgs().get(i))) {
+                        matchesAny = true;
                     }
+                }
+
+                if (!matchesAny) {
+                    builder.addArg(node.getArgs().get(i));
                 }
             }
         }
