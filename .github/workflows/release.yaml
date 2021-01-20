@@ -28,5 +28,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+        # The GITHUB_REF tag comes in the format 'refs/tags/xxx'.
+        # If we split on '/' and take the 3rd value,
+        # we can get the release name.
         run: |
-          ./gradlew -Pversion=0.1.0 publish
+          NEW_VERSION=$(echo "${GITHUB_REF}" | cut -d "/" -f3)
+          echo "New version: ${NEW_VERSION}"
+          echo "Github username: ${GITHUB_ACTOR}"
+          ./gradlew -Pversion=${NEW_VERSION} publish
