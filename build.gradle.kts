@@ -1,6 +1,7 @@
 plugins {
     java
     jacoco
+    `maven-publish`
 }
 
 group = "dev.hbeck.kdl"
@@ -8,6 +9,25 @@ version = "0.1.0"
 
 repositories {
     mavenCentral()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("default") {
+            from(components["java"])
+        }
+    }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/hkolbeck/kdl4j")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
 
 tasks.jacocoTestReport {
