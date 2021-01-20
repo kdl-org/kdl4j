@@ -2,7 +2,6 @@ package dev.hbeck.kdl.search;
 
 import dev.hbeck.kdl.objects.KDLDocument;
 import dev.hbeck.kdl.objects.KDLNode;
-import dev.hbeck.kdl.objects.KDLString;
 import dev.hbeck.kdl.parse.KDLParser;
 import dev.hbeck.kdl.print.PrintConfig;
 import dev.hbeck.kdl.search.mutation.AddMutation;
@@ -49,21 +48,6 @@ public class TestRootSearch {
                                 .setIdentifier("node1")
                                 .build())
                         .build())
-                .build())});
-
-        cases.add(new Object[]{"node1; node2", Optional.empty(), false, Optional.of(AddMutation.builder()
-                .addArg(KDLString.empty())
-                .addProp("key", KDLString.empty())
-                .setChild(KDLDocument.builder()
-                        .addNode(KDLNode.builder()
-                                .setIdentifier("node1")
-                                .build())
-                        .build())
-                .build())});
-        cases.add(new Object[]{"node1; node2", Optional.empty(), false, Optional.of(AddMutation.builder()
-                .addProp("key", KDLString.empty()))});
-        cases.add(new Object[]{"node1; node2", Optional.empty(), false, Optional.of(AddMutation.builder()
-                .addArg(KDLString.empty())
                 .build())});
 
         cases.add(new Object[]{"", Optional.of(""), false, Optional.empty()});

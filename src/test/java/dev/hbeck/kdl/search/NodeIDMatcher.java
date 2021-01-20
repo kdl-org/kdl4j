@@ -12,6 +12,10 @@ public class NodeIDMatcher implements ArgumentMatcher<KDLNode>{
 
     @Override
     public boolean matches(KDLNode argument) {
+        if (argument == null) {
+            return false;
+        }
+
         return id.equals(argument.getIdentifier());
     }
 

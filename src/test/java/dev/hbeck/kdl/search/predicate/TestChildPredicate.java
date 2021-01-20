@@ -15,7 +15,6 @@ import java.util.Optional;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -79,10 +78,10 @@ public class TestChildPredicate {
                 .setChild(child)
                 .build();
 
-        when(search.list(any(), anyBoolean())).thenReturn(KDLDocument.empty());
+        when(search.anyMatch(any())).thenReturn(false);
 
         assertFalse(predicate.test(node));
-        verify(search, times(1)).list(eq(child), eq(true));
+        verify(search, times(1)).anyMatch(eq(child));
         verifyNoMoreInteractions(search);
     }
 
@@ -96,10 +95,10 @@ public class TestChildPredicate {
                 .setChild(child)
                 .build();
 
-        when(search.list(any(), anyBoolean())).thenReturn(child);
+        when(search.anyMatch(any())).thenReturn(true);
 
         assertTrue(predicate.test(node));
-        verify(search, times(1)).list(eq(child), eq(true));
+        verify(search, times(1)).anyMatch(eq(child));
         verifyNoMoreInteractions(search);
     }
 }
