@@ -4,6 +4,7 @@ import dev.hbeck.kdl.print.PrintConfig;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -59,10 +60,10 @@ public class KDLNull extends KDLValue<Void> {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof KDLNull;
+        return obj instanceof KDLNull && Objects.equals(type, ((KDLNull) obj).type);
     }
 
     public int hashCode() {
-        return 0;
+        return Objects.hash(type);
     }
 }

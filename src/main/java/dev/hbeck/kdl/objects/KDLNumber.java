@@ -195,20 +195,28 @@ public class KDLNumber extends KDLValue<BigDecimal> {
         return Optional.ofNullable(parsed).map(bd -> from(bd, radix, type));
     }
 
+    public static KDLNumber from(long val, int radix, Optional<String> type) {
+        return new KDLNumber(new BigDecimal(val), radix, type);
+    }
+
     public static KDLNumber from(long val, int radix) {
-        return new KDLNumber(new BigDecimal(val), radix);
+        return from(val, radix, Optional.empty());
     }
 
     public static KDLNumber from(long val) {
         return from(val, 10);
     }
 
-    public static KDLNumber from(double val, int radix) {
-        return new KDLNumber(new BigDecimal(val), radix);
+    public static KDLNumber from(double val, int radix, Optional<String> type) {
+        return new KDLNumber(new BigDecimal(val), radix, type);
     }
 
-    public static KDLNumber from(double bigDecimal) {
-        return from(bigDecimal, 10);
+    public static KDLNumber from(double val, int radix) {
+        return from(val, radix, Optional.empty());
+    }
+
+    public static KDLNumber from(double val) {
+        return from(val, 10);
     }
 
     @Override
@@ -216,6 +224,7 @@ public class KDLNumber extends KDLValue<BigDecimal> {
         return "KDLNumber{" +
                 "value=" + value +
                 ", radix=" + radix +
+                ", type=" + type +
                 '}';
     }
 
@@ -224,11 +233,11 @@ public class KDLNumber extends KDLValue<BigDecimal> {
         if (this == o) return true;
         if (!(o instanceof KDLNumber)) return false;
         KDLNumber kdlNumber = (KDLNumber) o;
-        return radix == kdlNumber.radix && Objects.equals(value, kdlNumber.value);
+        return radix == kdlNumber.radix && Objects.equals(value, kdlNumber.value) && Objects.equals(type, kdlNumber.type);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value, radix);
+        return Objects.hash(value, radix, type);
     }
 }
