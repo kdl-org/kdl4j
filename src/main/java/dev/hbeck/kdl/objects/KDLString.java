@@ -11,22 +11,20 @@ import java.util.Optional;
 /**
  * A model object representing a string in a KDL document. Note that even if quoted, identifiers are not KDLStrings.
  */
-public class KDLString implements KDLValue {
-    public static final KDLString EMPTY = KDLString.from("");
-
+public class KDLString extends KDLValue<String> {
     private final String value;
 
     public KDLString(String value) {
+        this(value, Optional.empty());
+    }
+
+    public KDLString(String value, Optional<String> type) {
+        super(type);
         this.value = Objects.requireNonNull(value);
     }
 
     public String getValue() {
         return value;
-    }
-
-    @Override
-    public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
-        PrintUtil.writeStringQuotedAppropriately(writer, value, false, printConfig);
     }
 
     @Override
@@ -41,26 +39,45 @@ public class KDLString implements KDLValue {
 
     @Override
     public Optional<KDLNumber> getAsNumber() {
-        return KDLNumber.from(value);
+        return KDLNumber.from(value, type);
     }
 
     @Override
     public Optional<KDLBoolean> getAsBoolean() {
-        return Optional.empty();
+        return KDLBoolean.fromString(value, type);
+    }
+
+    @Override
+    protected void writeKDLValue(Writer writer, PrintConfig printConfig) throws IOException {
+        PrintUtil.writeStringQuotedAppropriately(writer, value, false, printConfig);
+    }
+
+    @Override
+    protected String toKDLValue() {
+        return value;
     }
 
     public static KDLString from(String val) {
-        return new KDLString(val);
+        return from(val, Optional.empty());
+    }
+
+    public static KDLString from(String val, Optional<String> type) {
+        return new KDLString(val, type);
     }
 
     public static KDLString empty() {
-        return EMPTY;
+        return empty(Optional.empty());
+    }
+
+    public static KDLString empty(Optional<String> type) {
+        return new KDLString("", type);
     }
 
     @Override
     public String toString() {
         return "KDLString{" +
                 "value='" + value + '\'' +
+                ", type=" + type +
                 '}';
     }
 
@@ -69,11 +86,11 @@ public class KDLString implements KDLValue {
         if (this == o) return true;
         if (!(o instanceof KDLString)) return false;
         KDLString kdlString = (KDLString) o;
-        return Objects.equals(value, kdlString.value);
+        return Objects.equals(value, kdlString.value) && Objects.equals(type, kdlString.getType());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return Objects.hash(value, type);
     }
 }

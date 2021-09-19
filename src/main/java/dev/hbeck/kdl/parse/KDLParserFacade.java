@@ -39,23 +39,23 @@ public class KDLParserFacade extends KDLParser {
     }
 
     @Override
-    public KDLValue parseValue(KDLParseContext context) throws IOException {
+    public KDLValue<?> parseValue(KDLParseContext context) throws IOException {
         return super.parseValue(context);
     }
 
     @Override
-    public KDLNumber parseNumber(KDLParseContext context) throws IOException {
-        return super.parseNumber(context);
+    public KDLNumber parseNumber(KDLParseContext context, Optional<String> type) throws IOException {
+        return super.parseNumber(context, type);
     }
 
     @Override
-    public KDLNumber parseNonDecimalNumber(KDLParseContext context, Predicate<Integer> legalChars, int radix) throws IOException {
-        return super.parseNonDecimalNumber(context, legalChars, radix);
+    public KDLNumber parseNonDecimalNumber(KDLParseContext context, Predicate<Integer> legalChars, int radix, Optional<String> type) throws IOException {
+        return super.parseNonDecimalNumber(context, legalChars, radix, type);
     }
 
     @Override
-    public KDLNumber parseDecimalNumber(KDLParseContext context) throws IOException {
-        return super.parseDecimalNumber(context);
+    public KDLNumber parseDecimalNumber(KDLParseContext context, Optional<String> type) throws IOException {
+        return super.parseDecimalNumber(context, type);
     }
 
     @Override

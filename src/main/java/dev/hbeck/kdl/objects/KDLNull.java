@@ -4,30 +4,29 @@ import dev.hbeck.kdl.print.PrintConfig;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
  * A model object representing the KDL 'null' value.
  */
-public class KDLNull implements KDLValue {
-    public static final KDLNull INSTANCE = new KDLNull();
+public class KDLNull extends KDLValue<Void> {
+    public KDLNull() {
+        this(Optional.empty());
+    }
 
-    private static final KDLString AS_KDL_STR = KDLString.from("null");
-
-    /**
-     * New instances should not be created, instead use the INSTANCE constant
-     */
-    private KDLNull() {
+    public KDLNull(Optional<String> type) {
+        super(type);
     }
 
     @Override
-    public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
-        writer.write("null");
+    public Void getValue() {
+        return null;
     }
 
     @Override
     public KDLString getAsString() {
-        return AS_KDL_STR;
+        return new KDLString("null", type);
     }
 
     @Override
@@ -41,6 +40,16 @@ public class KDLNull implements KDLValue {
     }
 
     @Override
+    protected void writeKDLValue(Writer writer, PrintConfig printConfig) throws IOException {
+        writer.write("null");
+    }
+
+    @Override
+    protected String toKDLValue() {
+        return "null";
+    }
+
+    @Override
     public boolean isNull() {
         return true;
     }
@@ -51,10 +60,10 @@ public class KDLNull implements KDLValue {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof KDLNull;
+        return obj instanceof KDLNull && Objects.equals(type, ((KDLNull) obj).type);
     }
 
     public int hashCode() {
-        return 0;
+        return Objects.hash(type);
     }
 }

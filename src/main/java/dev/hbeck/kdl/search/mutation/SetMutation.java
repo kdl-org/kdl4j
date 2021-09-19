@@ -24,13 +24,13 @@ import java.util.Optional;
  */
 public class SetMutation implements Mutation {
     private final Optional<String> identifier;
-    private final Map<Integer, KDLValue> positionalArgs;
-    private final List<KDLValue> args;
-    private final Map<String, KDLValue> props;
+    private final Map<Integer, KDLValue<?>> positionalArgs;
+    private final List<KDLValue<?>> args;
+    private final Map<String, KDLValue<?>> props;
     private final Optional<Optional<KDLDocument>> child;
 
-    private SetMutation(Optional<String> identifier, Map<Integer, KDLValue> positionalArgs, List<KDLValue> args,
-                        Map<String, KDLValue> props, Optional<Optional<KDLDocument>> child) {
+    private SetMutation(Optional<String> identifier, Map<Integer, KDLValue<?>> positionalArgs, List<KDLValue<?>> args,
+                        Map<String, KDLValue<?>> props, Optional<Optional<KDLDocument>> child) {
 
         this.identifier = identifier;
         this.positionalArgs = positionalArgs;
@@ -49,7 +49,7 @@ public class SetMutation implements Mutation {
             builder.clearArgs();
         }
 
-        for (Map.Entry<Integer, KDLValue> positionalArg : positionalArgs.entrySet()) {
+        for (Map.Entry<Integer, KDLValue<?>> positionalArg : positionalArgs.entrySet()) {
             builder.insertArgAt(positionalArg.getKey(), positionalArg.getValue());
         }
 
@@ -68,18 +68,18 @@ public class SetMutation implements Mutation {
     }
 
     public static class Builder {
-        private final Map<Integer, KDLValue> positionalArgs = new HashMap<>();
-        private final List<KDLValue> args = new ArrayList<>();
-        private final Map<String, KDLValue> props = new HashMap<>();
+        private final Map<Integer, KDLValue<?>> positionalArgs = new HashMap<>();
+        private final List<KDLValue<?>> args = new ArrayList<>();
+        private final Map<String, KDLValue<?>> props = new HashMap<>();
         private Optional<String> identifier = Optional.empty();
         private Optional<Optional<KDLDocument>> child = Optional.empty();
 
-        public Builder addArg(KDLValue arg) {
+        public Builder addArg(KDLValue<?> arg) {
             args.add(arg);
             return this;
         }
 
-        public Builder addProp(String key, KDLValue value) {
+        public Builder addProp(String key, KDLValue<?> value) {
             props.put(key, value);
             return this;
         }
@@ -94,7 +94,7 @@ public class SetMutation implements Mutation {
             return this;
         }
 
-        public Builder addPositionalArg(int position, KDLValue arg) {
+        public Builder addPositionalArg(int position, KDLValue<?> arg) {
             this.positionalArgs.put(position, arg);
             return this;
         }

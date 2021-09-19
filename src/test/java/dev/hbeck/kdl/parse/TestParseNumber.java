@@ -8,6 +8,7 @@ import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -68,7 +69,7 @@ public class TestParseNumber {
         final KDLParseContext context = TestUtil.strToContext(input);
 
         try {
-            final KDLNumber str = TestUtil.parser.parseNumber(context);
+            final KDLNumber str = TestUtil.parser.parseNumber(context, Optional.empty());
             assertThat(str, equalTo(expectedResult));
         } catch (KDLParseException | KDLInternalException e) {
             if (expectedResult != null) {

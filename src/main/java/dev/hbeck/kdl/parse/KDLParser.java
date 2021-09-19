@@ -157,8 +157,8 @@ public class KDLParser {
     }
 
     Optional<KDLNode> parseNode(KDLParseContext context) throws IOException {
-        final List<KDLValue> args = new ArrayList<>();
-        final Map<String, KDLValue> properties = new TreeMap<>();
+        final List<KDLValue<?>> args = new ArrayList<>();
+        final Map<String, KDLValue<?>> properties = new TreeMap<>();
         Optional<KDLDocument> child = Optional.empty();
 
         int c = context.peek();
@@ -166,6 +166,7 @@ public class KDLParser {
             return Optional.empty();
         }
 
+        final Optional<String> type = parseTypeIfPresent(context);
         final String identifier = parseIdentifier(context);
         while (true) {
             final WhitespaceResult whitespaceResult = consumeWhitespaceAndBlockComments(context);
@@ -174,15 +175,15 @@ public class KDLParser {
                 case NODE_SPACE:
                     if (c == '{') {
                         child = Optional.of(parseChild(context));
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else if (isUnicodeLinespace(c)) {
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } if (c == EOF) {
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else {
                         final KDLObject object = parseArgOrProp(context);
                         if (object instanceof KDLValue) {
-                            args.add((KDLValue) object);
+                            args.add((KDLValue<?>) object);
                         } else if (object instanceof KDLProperty) {
                             final KDLProperty property = (KDLProperty) object;
                             properties.put(property.getKey(), property.getValue());
@@ -197,21 +198,21 @@ public class KDLParser {
                 case NO_WHITESPACE:
                     if (c == '{') {
                         child = Optional.of(parseChild(context));
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else if (isUnicodeLinespace(c) || c == EOF) {
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else if (c == ';') {
                         context.read();
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else {
                         throw new KDLParseException(String.format("Unexpected character: '%s'", (char) c));
                     }
                 case END_NODE:
-                    return Optional.of(new KDLNode(identifier, properties, args, child));
+                    return Optional.of(new KDLNode(identifier, type, properties, args, child));
                 case SKIP_NEXT:
                     if (c == '{') {
                         parseChild(context); //Ignored
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else if (isUnicodeLinespace(c)) {
                         throw new KDLParseException("Unexpected skip marker before newline");
                     } else if ( c == EOF) {
@@ -253,12 +254,13 @@ public class KDLParser {
 
     KDLObject parseArgOrProp(KDLParseContext context) throws IOException {
         final KDLObject object;
+        final Optional<String> type = parseTypeIfPresent(context);
         boolean isBare = false;
         int c = context.peek();
         if (c == '"') {
-            object = new KDLString(parseEscapedString(context));
+            object = new KDLString(parseEscapedString(context), type);
         } else if (isValidNumericStart(c)) {
-            object = parseNumber(context);
+            object = parseNumber(context, type);
         } else if (isValidBareIdStart(c)) {
             String strVal;
             if (c == 'r') {
@@ -278,16 +280,16 @@ public class KDLParser {
 
             if (isBare) {
                 if ("true".equals(strVal)) {
-                    object = KDLBoolean.TRUE;
+                    object = new KDLBoolean(true, type);
                 } else if ("false".equals(strVal)) {
-                    object = KDLBoolean.FALSE;
+                    object = new KDLBoolean(false, type);
                 } else if ("null".equals(strVal)) {
-                    object = KDLNull.INSTANCE;
+                    object = new KDLNull(type);
                 } else {
-                    object = new KDLString(strVal);
+                    object = new KDLString(strVal, type);
                 }
             } else {
-                object = new KDLString(strVal);
+                object = new KDLString(strVal, type);
             }
         } else {
             throw new KDLParseException(String.format("Unexpected character: '%s'", (char) c));
@@ -296,8 +298,13 @@ public class KDLParser {
         if (object instanceof KDLString) {
             c = context.peek();
             if (c == '=') {
+                if (type.isPresent()) {
+                    throw new KDLParseException("Illegal type annotation before property, annotations should " +
+                            "follow the '=' and precede the value");
+                }
+
                 context.read();
-                final KDLValue value = parseValue(context);
+                final KDLValue<?> value = parseValue(context);
                 return new KDLProperty(((KDLString) object).getValue(), value);
             } else if (isBare) {
                 throw new KDLParseException("Arguments may not be bare");
@@ -334,14 +341,30 @@ public class KDLParser {
         return document;
     }
 
-    KDLValue parseValue(KDLParseContext context) throws IOException {
+    Optional<String> parseTypeIfPresent(KDLParseContext context) throws IOException {
+        Optional<String> type = Optional.empty();
+        int c = context.peek();
+        if (c == '(') {
+            context.read();
+            type = Optional.of(parseIdentifier(context));
+            c = context.read();
+            if (c != ')') {
+                throw new KDLParseException("Un-terminated type annotation, missing closing paren.");
+            }
+        }
+
+        return type;
+    }
+
+    KDLValue<?> parseValue(KDLParseContext context) throws IOException {
+        final Optional<String> type = parseTypeIfPresent(context);
         int c = context.peek();
         if (c == '"') {
-            return new KDLString(parseEscapedString(context));
+            return new KDLString(parseEscapedString(context), type);
         } else if (c == 'r') {
-            return new KDLString(parseRawString(context));
+            return new KDLString(parseRawString(context), type);
         } else if (isValidNumericStart(c)) {
-            return parseNumber(context);
+            return parseNumber(context, type);
         } else {
             final StringBuilder stringBuilder = new StringBuilder();
 
@@ -354,18 +377,18 @@ public class KDLParser {
             final String strVal = stringBuilder.toString();
             switch (strVal) {
                 case "true":
-                    return KDLBoolean.TRUE;
+                    return new KDLBoolean(true, type);
                 case "false":
-                    return KDLBoolean.FALSE;
+                    return new KDLBoolean(false, type);
                 case "null":
-                    return KDLNull.INSTANCE;
+                    return new KDLNull(type);
                 default:
                     throw new KDLParseException(String.format("Unknown literal in property value: '%s' Expected 'true', 'false', or 'null'", strVal));
             }
         }
     }
 
-    KDLNumber parseNumber(KDLParseContext context) throws IOException {
+    KDLNumber parseNumber(KDLParseContext context, Optional<String> type) throws IOException {
         final int radix;
         Predicate<Integer> legalChars = null;
 
@@ -394,13 +417,13 @@ public class KDLParser {
         }
 
         if (radix == 10) {
-            return parseDecimalNumber(context);
+            return parseDecimalNumber(context, type);
         } else {
-            return parseNonDecimalNumber(context, legalChars, radix);
+            return parseNonDecimalNumber(context, legalChars, radix, type);
         }
     }
 
-    KDLNumber parseNonDecimalNumber(KDLParseContext context, Predicate<Integer> legalChars, int radix) throws IOException {
+    KDLNumber parseNonDecimalNumber(KDLParseContext context, Predicate<Integer> legalChars, int radix, Optional<String> type) throws IOException {
         final StringBuilder stringBuilder = new StringBuilder();
 
         int c = context.peek();
@@ -421,11 +444,11 @@ public class KDLParser {
             throw new KDLParseException("Must include at least one digit following radix marker");
         }
 
-        return KDLNumber.from(new BigInteger(str, radix), radix);
+        return KDLNumber.from(new BigInteger(str, radix), radix, type);
     }
 
     // Unfortunately, in order to match the grammar we have to do a lot of parsing ourselves here
-    KDLNumber parseDecimalNumber(KDLParseContext context) throws IOException {
+    KDLNumber parseDecimalNumber(KDLParseContext context, Optional<String> type) throws IOException {
         final StringBuilder stringBuilder = new StringBuilder();
 
         boolean inFraction = false;
@@ -496,7 +519,7 @@ public class KDLParser {
 
         final String val = stringBuilder.toString();
         try {
-            return KDLNumber.from(new BigDecimal(val));
+            return KDLNumber.from(new BigDecimal(val), type);
         } catch (NumberFormatException e) {
             throw new KDLInternalException(String.format("Couldn't parse pre-vetted input '%s' into a BigDecimal", val), e);
         }
@@ -507,7 +530,7 @@ public class KDLParser {
         if (!isValidBareIdStart(c)) {
             throw new KDLParseException("Illegal character at start of bare identifier");
         } else if (c == EOF) {
-            throw new KDLInternalException("EOF when a bare identifer expected");
+            throw new KDLInternalException("EOF when a bare identifier expected");
         }
 
         final StringBuilder stringBuilder = new StringBuilder();

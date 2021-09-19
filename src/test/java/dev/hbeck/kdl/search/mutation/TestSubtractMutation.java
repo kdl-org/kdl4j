@@ -62,12 +62,12 @@ public class TestSubtractMutation {
     }
 
     private static Predicate<KDLProperty> eq(String key, Object val) {
-        final KDLValue kdlValue = KDLValue.from(val);
+        final KDLValue<?> kdlValue = KDLValue.from(val);
         return prop -> key.equals(prop.getKey()) && kdlValue.equals(prop.getValue());
     }
 
-    private static Predicate<KDLValue> eq(Object val) {
-        final KDLValue kdlValue = KDLValue.from(val);
+    private static Predicate<KDLValue<?>> eq(Object val) {
+        final KDLValue<?> kdlValue = KDLValue.from(val);
         return kdlValue::equals;
     }
 }

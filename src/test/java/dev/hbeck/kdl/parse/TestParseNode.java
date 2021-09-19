@@ -3,16 +3,12 @@ package dev.hbeck.kdl.parse;
 import dev.hbeck.kdl.TestUtil;
 import dev.hbeck.kdl.objects.KDLDocument;
 import dev.hbeck.kdl.objects.KDLNode;
-import dev.hbeck.kdl.objects.KDLValue;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,30 +69,5 @@ public class TestParseNode {
                 throw new KDLParseException("Expected no errors", e);
             }
         }
-    }
-
-    private static Map<String, KDLValue> map() {
-        return new HashMap<>();
-    }
-
-    private static Map<String, KDLValue> map(String key, KDLValue value) {
-        final HashMap<String, KDLValue> map = new HashMap<>();
-        map.put(key, value);
-        return map;
-    }
-
-    private static Map<String, KDLValue> map(String key1, KDLValue value1, String key2, KDLValue value2) {
-        final HashMap<String, KDLValue> map = new HashMap<>();
-        map.put(key1, value1);
-        map.put(key2, value2);
-        return map;
-    }
-
-    private static List<KDLValue> list(KDLValue... values) {
-        return Arrays.stream(values).collect(Collectors.toList());
-    }
-
-    private static List<KDLNode> nodeList(KDLNode... values) {
-        return Arrays.stream(values).collect(Collectors.toList());
     }
 }

@@ -1,9 +1,11 @@
 package dev.hbeck.kdl.parse;
 
+import dev.hbeck.kdl.objects.KDLBoolean;
 import dev.hbeck.kdl.objects.KDLDocument;
 import dev.hbeck.kdl.objects.KDLNode;
 import dev.hbeck.kdl.objects.KDLNull;
 import dev.hbeck.kdl.objects.KDLNumber;
+import dev.hbeck.kdl.objects.KDLString;
 import dev.hbeck.kdl.objects.KDLValue;
 import org.junit.Test;
 
@@ -43,7 +45,7 @@ public class TestParser {
         assertThat(parser.parse("node;"), equalTo(doc(node("node"))));
         assertThat(parser.parse("node 1"), equalTo(doc(node("node", list(1)))));
         assertThat(parser.parse("node 1 2 \"3\" true false null"),
-                equalTo(doc(node("node", list(1, 2, "3", true, false, KDLNull.INSTANCE)))));
+                equalTo(doc(node("node", list(1, 2, "3", true, false, new KDLNull())))));
         assertThat(parser.parse("node {\n    node2\n}"),
                 equalTo(doc(node("node", node("node2")))));
     }
@@ -337,8 +339,80 @@ public class TestParser {
     public void test_node_names() {
         assertThat(parser.parse("\"!@#$@$%Q#$%~@!40\" \"1.2.3\" \"!!!!!\"=true"),
                 equalTo(doc(node("!@#$@$%Q#$%~@!40", list("1.2.3"), map("!!!!!", true)))));
-        assertThat(parser.parse("foo123~!@#$%^&*.:'|/?+ \"weeee\""),
-                equalTo(doc(node("foo123~!@#$%^&*.:'|/?+", list("weeee")))));
+        assertThat(parser.parse("foo123~!@#$%^&*.:'|?+ \"weeee\""),
+                equalTo(doc(node("foo123~!@#$%^&*.:'|?+", list("weeee")))));
+    }
+
+    @Test
+    public void test_node_type() {
+        assertThat(parser.parse("node"), equalTo(doc(node("node", Optional.empty()))));
+        assertThat(parser.parse("(type)node"), equalTo(doc(node("node", Optional.of("type")))));
+        assertThat(parser.parse("(type)\"node\""), equalTo(doc(node("node", Optional.of("type")))));
+        assertThat(parser.parse("(\"type\")node"), equalTo(doc(node("node", Optional.of("type")))));
+        assertThat(parser.parse("(\"t\")node"), equalTo(doc(node("node", Optional.of("t")))));
+        assertThat(parser.parse("(r\"t\")node"), equalTo(doc(node("node", Optional.of("t")))));
+        assertThat(parser.parse("(\"\")node"), equalTo(doc(node("node", Optional.of("")))));
+        assertThat(parser.parse("(r\"\")node"), equalTo(doc(node("node", Optional.of("")))));
+
+        assertThat(() -> parser.parse("()node"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("( )node"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("(type)"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("()"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("( type)node"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("(type )node"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("(\ntype)node"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("(type\n)node"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("(type) node"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("(type)\nnode"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("(type)/*whee*/node"), throwsException(KDLParseException.class));
+    }
+
+    @Test
+    public void test_arg_type() {
+        assertThat(parser.parse("node \"val\""), equalTo(doc(node("node", list(KDLString.from("val"))))));
+        assertThat(parser.parse("node (type)\"val\""), equalTo(doc(node("node", list(KDLString.from("val", Optional.of("type")))))));
+        assertThat(parser.parse("node (type)r\"val\""), equalTo(doc(node("node", list(KDLString.from("val", Optional.of("type")))))));
+        assertThat(parser.parse("node (type)10"), equalTo(doc(node("node", list(KDLNumber.from(10, Optional.of("type")))))));
+        assertThat(parser.parse("node (\"type\")10"), equalTo(doc(node("node", list(KDLNumber.from(10, Optional.of("type")))))));
+        assertThat(parser.parse("node (r\"type\")10"), equalTo(doc(node("node", list(KDLNumber.from(10, Optional.of("type")))))));
+        assertThat(parser.parse("node (\"\")10"), equalTo(doc(node("node", list(KDLNumber.from(10, Optional.of("")))))));
+        assertThat(parser.parse("node (type)0x10"), equalTo(doc(node("node", list(KDLNumber.from(16, 16, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)0o10"), equalTo(doc(node("node", list(KDLNumber.from(8, 8, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)0b10"), equalTo(doc(node("node", list(KDLNumber.from(2, 2, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)1.0E2"), equalTo(doc(node("node", list(KDLNumber.from(new BigDecimal("1.0E2"), 10, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)10.1"), equalTo(doc(node("node", list(KDLNumber.from(new BigDecimal("10.1"), 10, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)true"), equalTo(doc(node("node", list(new KDLBoolean(true, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)false"), equalTo(doc(node("node", list(new KDLBoolean(false, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)null"), equalTo(doc(node("node", list(new KDLNull(Optional.of("type")))))));
+
+        assertThat(() -> parser.parse("node (type)"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node (type) 10"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node ()10"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node (type)bare"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node (type)fare"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node ( )10"), throwsException(KDLParseException.class));
+    }
+
+    @Test
+    public void test_property_type() {
+        assertThat(parser.parse("node key=\"val\""), equalTo(doc(node("node", map("key", KDLString.from("val"))))));
+        assertThat(parser.parse("node key=(type)\"val\""), equalTo(doc(node("node", map("key", KDLString.from("val", Optional.of("type")))))));
+        assertThat(parser.parse("node key=(\"type\")\"val\""), equalTo(doc(node("node", map("key", KDLString.from("val", Optional.of("type")))))));
+        assertThat(parser.parse("node key=(r\"type\")\"val\""), equalTo(doc(node("node", map("key", KDLString.from("val", Optional.of("type")))))));
+        assertThat(parser.parse("node key=(\"\")\"val\""), equalTo(doc(node("node", map("key", KDLString.from("val", Optional.of("")))))));
+        assertThat(parser.parse("node key=(type)10"), equalTo(doc(node("node", map("key", KDLNumber.from(10, Optional.of("type")))))));
+        assertThat(parser.parse("node key=(type)true"), equalTo(doc(node("node", map("key", new KDLBoolean(true, Optional.of("type")))))));
+        assertThat(parser.parse("node key=(type)false"), equalTo(doc(node("node", map("key", new KDLBoolean(false, Optional.of("type")))))));
+        assertThat(parser.parse("node key=(type)null"), equalTo(doc(node("node", map("key", new KDLNull(Optional.of("type")))))));
+
+        assertThat(() -> parser.parse("node (type)key=10"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node key= (type)10"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node key=(type) 10"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node key=()10"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node key=( )10"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node key=(\n)10"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node key=()\n10"), throwsException(KDLParseException.class));
+        assertThat(() -> parser.parse("node key=(type)bare"), throwsException(KDLParseException.class));
     }
 
     private KDLDocument doc(KDLNode... nodes) {
@@ -347,12 +421,12 @@ public class TestParser {
         return new KDLDocument(nodeList);
     }
 
-    private KDLNode node(String ident, List<Object> args, Map<String, Object> props, KDLNode... nodes) {
-        List<KDLValue> argValues = new ArrayList<>();
+    private KDLNode node(String ident, Optional<String> type, List<Object> args, Map<String, Object> props, KDLNode... nodes) {
+        List<KDLValue<?>> argValues = new ArrayList<>();
         for (Object o : args) {
             argValues.add(KDLValue.from(o));
         }
-        Map<String, KDLValue> propValues = new HashMap<>();
+        Map<String, KDLValue<?>> propValues = new HashMap<>();
         for (Map.Entry<String, Object> e : props.entrySet()) {
             propValues.put(e.getKey(), KDLValue.from(e.getValue()));
         }
@@ -360,19 +434,35 @@ public class TestParser {
         if (nodes.length > 0) {
             children = Optional.of(doc(nodes));
         }
-        return new KDLNode(ident, propValues, argValues, children);
+        return new KDLNode(ident, type, propValues, argValues, children);
+    }
+
+    private KDLNode node(String ident, List<Object> args, Map<String, Object> props, KDLNode... nodes) {
+        return node(ident, Optional.empty(), args, props, nodes);
     }
 
     private KDLNode node(String ident, List<Object> args, KDLNode... nodes) {
-        return node(ident, args, Collections.emptyMap(), nodes);
+        return node(ident, Optional.empty(), args, nodes);
+    }
+
+    private KDLNode node(String ident, Optional<String> type, List<Object> args, KDLNode... nodes) {
+        return node(ident, type, args, Collections.emptyMap(), nodes);
     }
 
     private KDLNode node(String ident, Map<String, Object> props, KDLNode... nodes) {
-        return node(ident, Collections.emptyList(), props, nodes);
+        return node(ident, Optional.empty(), props, nodes);
+    }
+
+    private KDLNode node(String ident, Optional<String> type, Map<String, Object> props, KDLNode... nodes) {
+        return node(ident, type, Collections.emptyList(), props, nodes);
     }
 
     private KDLNode node(String ident, KDLNode... nodes) {
-        return node(ident, Collections.emptyList(), nodes);
+        return node(ident, Optional.empty(), nodes);
+    }
+
+    private KDLNode node(String ident, Optional<String> type, KDLNode... nodes) {
+        return node(ident, type, Collections.emptyList(), nodes);
     }
 
     private List<Object> list(Object... values) {
