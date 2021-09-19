@@ -442,6 +442,5 @@ public class KDLNode implements KDLObject {
 
             return new KDLNode(identifier, Optional.ofNullable(type), new HashMap<>(props), new ArrayList<>(args), child);
         }
-
     }
 }
