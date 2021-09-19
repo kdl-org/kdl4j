@@ -21,3 +21,4 @@ adding a test case the expected output must be structurally identical with:
 * 4 space indents
 * `E` used to indicate the exponent of all floating point literals
 
+Note that unlike the tests in the core KDL repo, these *DO* expect numbers to be roundtripped maintaining their radix
