@@ -42,10 +42,11 @@ public class CharClasses {
      * @return true if the character is valid, false otherwise
      */
     public static boolean isValidBareIdChar(int c) {
+        if (c <= 0x20 || c > 0x10FFFF) {
+            return false;
+        }
+
         switch (c) {
-            case '\n':
-            case '\u000C':
-            case '\r':
             case '\u0085':
             case '\u2028':
             case '\u2029':
@@ -61,8 +62,6 @@ public class CharClasses {
             case '=':
             case ',':
             case '"':
-            case '\u0009':
-            case '\u0020':
             case '\u00A0':
             case '\u1680':
             case '\u2000':
