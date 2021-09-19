@@ -39,7 +39,7 @@ public class KDLParserFacade extends KDLParser {
     }
 
     @Override
-    public KDLValue parseValue(KDLParseContext context) throws IOException {
+    public KDLValue<?> parseValue(KDLParseContext context) throws IOException {
         return super.parseValue(context);
     }
 
