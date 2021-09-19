@@ -54,22 +54,26 @@ public class KDLNumber extends KDLValue<BigDecimal> {
 
     @Override
     protected void writeKDLValue(Writer writer, PrintConfig printConfig) throws IOException {
-        switch (radix) {
-            case 10:
-                writer.write(value.toString().replace('E', printConfig.getExponentChar()));
-                break;
-            case 2:
-                writer.write("0b");
-                writer.write(value.toBigIntegerExact().toString(radix));
-                break;
-            case 8:
-                writer.write("0o");
-                writer.write(value.toBigIntegerExact().toString(radix));
-                break;
-            case 16:
-                writer.write("0x");
-                writer.write(value.toBigIntegerExact().toString(radix));
-                break;
+        if (printConfig.shouldRespectRadix()) {
+            switch (radix) {
+                case 10:
+                    writer.write(value.toString().replace('E', printConfig.getExponentChar()));
+                    break;
+                case 2:
+                    writer.write("0b");
+                    writer.write(value.toBigIntegerExact().toString(radix));
+                    break;
+                case 8:
+                    writer.write("0o");
+                    writer.write(value.toBigIntegerExact().toString(radix));
+                    break;
+                case 16:
+                    writer.write("0x");
+                    writer.write(value.toBigIntegerExact().toString(radix));
+                    break;
+            }
+        } else {
+            writer.write(value.toString().replace('E', printConfig.getExponentChar()));
         }
     }
 

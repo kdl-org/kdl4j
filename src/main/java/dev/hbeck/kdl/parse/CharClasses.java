@@ -277,7 +277,7 @@ public class CharClasses {
     }
 
     public static boolean mustEscape(int c) {
-        return c == '\\' || c == '"' || c == '/';
+        return c == '\\' || c == '"';
     }
 
     private static final Optional<String> ESC_BACKSLASH = Optional.of("\\\\");
@@ -324,7 +324,6 @@ public class CharClasses {
             case '\b':
             case '\n':
             case '\f':
-            case '/':
             case '\t':
             case '\r':
             case '"':

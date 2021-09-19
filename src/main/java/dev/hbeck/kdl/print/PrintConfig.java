@@ -28,6 +28,7 @@ public class PrintConfig {
     private final boolean escapeNonAscii;
     private final boolean escapeCommon;
     private final boolean requireSemicolons;
+    private final boolean respectRadix;
     private final String newline;
     private final int indent;
     private final char indentChar;
@@ -37,7 +38,7 @@ public class PrintConfig {
     private final boolean printNullProps;
 
     private PrintConfig(Map<Integer, Boolean> escapes, boolean escapeNonPrintableAscii, boolean escapeLinespace,
-                        boolean escapeNonAscii, boolean escapeCommon, boolean requireSemicolons, String newline,
+                        boolean escapeNonAscii, boolean escapeCommon, boolean requireSemicolons, boolean respectRadix, String newline,
                         int indent, char indentChar, char exponentChar, boolean printEmptyChildren, boolean printNullArgs,
                         boolean printNullProps) {
 
@@ -47,6 +48,7 @@ public class PrintConfig {
         this.escapeNonAscii = escapeNonAscii;
         this.escapeCommon = escapeCommon;
         this.requireSemicolons = requireSemicolons;
+        this.respectRadix = respectRadix;
         this.newline = newline;
         this.indent = indent;
         this.indentChar = indentChar;
@@ -143,6 +145,13 @@ public class PrintConfig {
     }
 
     /**
+     * @return true if each number should be printed with its specified radix, false if they should be printed just base-10
+     */
+    public boolean shouldRespectRadix() {
+        return respectRadix;
+    }
+
+    /**
      * @return get the string used to print newlines
      */
     public String getNewline() {
@@ -164,6 +173,7 @@ public class PrintConfig {
         private boolean escapeNonPrintableAscii = true;
         private boolean escapeCommon = true;
         private boolean escapeLinespace = true;
+        private boolean respectRadix = true;
         private String newline = "\n";
         private int indent = 4;
         private char indentChar = ' ';
@@ -194,6 +204,11 @@ public class PrintConfig {
 
         public Builder setEscapeLinespace(boolean escapeLinespace) {
             this.escapeLinespace = escapeLinespace;
+            return this;
+        }
+
+        public Builder setRespectRadix(boolean respectRadix) {
+            this.respectRadix = respectRadix;
             return this;
         }
 
@@ -253,7 +268,7 @@ public class PrintConfig {
             }
 
             return new PrintConfig(escapes, escapeNonPrintableAscii, escapeLinespace, escapeNonAscii, escapeCommon,
-                    requireSemicolons, newline, indent, indentChar, exponentChar,
+                    requireSemicolons, respectRadix, newline, indent, indentChar, exponentChar,
                     printEmptyChildren, printNullArgs, printNullProps);
         }
     }
