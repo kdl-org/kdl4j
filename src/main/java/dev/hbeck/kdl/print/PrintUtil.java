@@ -6,7 +6,6 @@ import java.io.Writer;
 import static dev.hbeck.kdl.parse.CharClasses.getEscapeIncludingUnicode;
 import static dev.hbeck.kdl.parse.CharClasses.isValidBareId;
 
-//TODO: Currently never prints raw strings, is this worth fixing?
 public class PrintUtil {
     public static void writeStringQuotedAppropriately(Writer writer, String string, boolean bareAllowed, PrintConfig printConfig) throws IOException {
         if (string.isEmpty()) {
