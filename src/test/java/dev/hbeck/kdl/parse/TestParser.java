@@ -339,8 +339,8 @@ public class TestParser {
     public void test_node_names() {
         assertThat(parser.parse("\"!@#$@$%Q#$%~@!40\" \"1.2.3\" \"!!!!!\"=true"),
                 equalTo(doc(node("!@#$@$%Q#$%~@!40", list("1.2.3"), map("!!!!!", true)))));
-        assertThat(parser.parse("foo123~!@#$%^&*.:'|/?+ \"weeee\""),
-                equalTo(doc(node("foo123~!@#$%^&*.:'|/?+", list("weeee")))));
+        assertThat(parser.parse("foo123~!@#$%^&*.:'|?+ \"weeee\""),
+                equalTo(doc(node("foo123~!@#$%^&*.:'|?+", list("weeee")))));
     }
 
     @Test
@@ -369,21 +369,21 @@ public class TestParser {
 
     @Test
     public void test_arg_type() {
-        assertThat(parser.parse("node \"val\""), equalTo(doc(node("node", list(doc(node("node", list(KDLString.from("val")))))))));
-        assertThat(parser.parse("node (type)\"val\""), equalTo(doc(node("node", list(doc(node("node", list(KDLString.from("val", Optional.of("type"))))))))));
-        assertThat(parser.parse("node (type)r\"val\""), equalTo(doc(node("node", list(doc(node("node", list(KDLString.from("val", Optional.of("type"))))))))));
+        assertThat(parser.parse("node \"val\""), equalTo(doc(node("node", list(KDLString.from("val"))))));
+        assertThat(parser.parse("node (type)\"val\""), equalTo(doc(node("node", list(KDLString.from("val", Optional.of("type")))))));
+        assertThat(parser.parse("node (type)r\"val\""), equalTo(doc(node("node", list(KDLString.from("val", Optional.of("type")))))));
         assertThat(parser.parse("node (type)10"), equalTo(doc(node("node", list(KDLNumber.from(10, Optional.of("type")))))));
         assertThat(parser.parse("node (\"type\")10"), equalTo(doc(node("node", list(KDLNumber.from(10, Optional.of("type")))))));
         assertThat(parser.parse("node (r\"type\")10"), equalTo(doc(node("node", list(KDLNumber.from(10, Optional.of("type")))))));
         assertThat(parser.parse("node (\"\")10"), equalTo(doc(node("node", list(KDLNumber.from(10, Optional.of("")))))));
-        assertThat(parser.parse("node (type)0x10"), equalTo(doc(node("node", list(doc(node("node", list(KDLNumber.from(10, Optional.of("type"))))))))));
-        assertThat(parser.parse("node (type)0o10"), equalTo(doc(node("node", list(doc(node("node", list(KDLNumber.from(8, 8, Optional.of("type"))))))))));
-        assertThat(parser.parse("node (type)0b10"), equalTo(doc(node("node", list(doc(node("node", list(KDLNumber.from(2, 2, Optional.of("type"))))))))));
-        assertThat(parser.parse("node (type)10E1"), equalTo(doc(node("node", list(doc(node("node", list(KDLNumber.from(10E1, 10, Optional.of("type"))))))))));
-        assertThat(parser.parse("node (type)10.1"), equalTo(doc(node("node", list(doc(node("node", list(KDLNumber.from(10.1, 10, Optional.of("type"))))))))));
-        assertThat(parser.parse("node (type)true"), equalTo(doc(node("node", list(doc(node("node", list(new KDLBoolean(true, Optional.of("type"))))))))));
-        assertThat(parser.parse("node (type)false"), equalTo(doc(node("node", list(doc(node("node", list(new KDLBoolean(false, Optional.of("type"))))))))));
-        assertThat(parser.parse("node (type)null"), equalTo(doc(node("node", list(doc(node("node", list(new KDLNull(Optional.of("type"))))))))));
+        assertThat(parser.parse("node (type)0x10"), equalTo(doc(node("node", list(KDLNumber.from(16, 16, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)0o10"), equalTo(doc(node("node", list(KDLNumber.from(8, 8, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)0b10"), equalTo(doc(node("node", list(KDLNumber.from(2, 2, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)1.0E2"), equalTo(doc(node("node", list(KDLNumber.from(new BigDecimal("1.0E2"), 10, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)10.1"), equalTo(doc(node("node", list(KDLNumber.from(new BigDecimal("10.1"), 10, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)true"), equalTo(doc(node("node", list(new KDLBoolean(true, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)false"), equalTo(doc(node("node", list(new KDLBoolean(false, Optional.of("type")))))));
+        assertThat(parser.parse("node (type)null"), equalTo(doc(node("node", list(new KDLNull(Optional.of("type")))))));
 
         assertThat(() -> parser.parse("node (type)"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node (type) 10"), throwsException(KDLParseException.class));
@@ -395,15 +395,15 @@ public class TestParser {
 
     @Test
     public void test_property_type() {
-        assertThat(parser.parse("node key=\"val\""), equalTo(doc(node("node", list(doc(node("node", map("key", KDLString.from("val")))))))));
-        assertThat(parser.parse("node key=(type)\"val\""), equalTo(doc(node("node", list(doc(node("node", map("key", KDLString.from("val", Optional.of("type"))))))))));
-        assertThat(parser.parse("node key=(\"type\")\"val\""), equalTo(doc(node("node", list(doc(node("node", map("key", KDLString.from("val", Optional.of("type"))))))))));
-        assertThat(parser.parse("node key=(r\"type\")\"val\""), equalTo(doc(node("node", list(doc(node("node", map("key", KDLString.from("val", Optional.of("type"))))))))));
-        assertThat(parser.parse("node key=(\"\")\"val\""), equalTo(doc(node("node", list(doc(node("node", map("key", KDLString.from("val", Optional.of(""))))))))));
-        assertThat(parser.parse("node key=(type)10"), equalTo(doc(node("node", list(doc(node("node", map("key", KDLNumber.from(10, Optional.of("type"))))))))));
-        assertThat(parser.parse("node key=(type)true"), equalTo(doc(node("node", list(doc(node("node", map("key", new KDLBoolean(true, Optional.of("type"))))))))));
-        assertThat(parser.parse("node key=(type)false"), equalTo(doc(node("node", list(doc(node("node", map("key", new KDLBoolean(false, Optional.of("type"))))))))));
-        assertThat(parser.parse("node key=(type)null"), equalTo(doc(node("node", list(doc(node("node", map("key", new KDLNull(Optional.of("type"))))))))));
+        assertThat(parser.parse("node key=\"val\""), equalTo(doc(node("node", map("key", KDLString.from("val"))))));
+        assertThat(parser.parse("node key=(type)\"val\""), equalTo(doc(node("node", map("key", KDLString.from("val", Optional.of("type")))))));
+        assertThat(parser.parse("node key=(\"type\")\"val\""), equalTo(doc(node("node", map("key", KDLString.from("val", Optional.of("type")))))));
+        assertThat(parser.parse("node key=(r\"type\")\"val\""), equalTo(doc(node("node", map("key", KDLString.from("val", Optional.of("type")))))));
+        assertThat(parser.parse("node key=(\"\")\"val\""), equalTo(doc(node("node", map("key", KDLString.from("val", Optional.of("")))))));
+        assertThat(parser.parse("node key=(type)10"), equalTo(doc(node("node", map("key", KDLNumber.from(10, Optional.of("type")))))));
+        assertThat(parser.parse("node key=(type)true"), equalTo(doc(node("node", map("key", new KDLBoolean(true, Optional.of("type")))))));
+        assertThat(parser.parse("node key=(type)false"), equalTo(doc(node("node", map("key", new KDLBoolean(false, Optional.of("type")))))));
+        assertThat(parser.parse("node key=(type)null"), equalTo(doc(node("node", map("key", new KDLNull(Optional.of("type")))))));
 
         assertThat(() -> parser.parse("node (type)key=10"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node key= (type)10"), throwsException(KDLParseException.class));

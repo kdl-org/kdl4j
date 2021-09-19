@@ -52,6 +52,8 @@ public class CharClasses {
             case '\u2029':
             case '\\':
             case '/':
+            case '(':
+            case ')':
             case '{':
             case '}':
             case '<':
