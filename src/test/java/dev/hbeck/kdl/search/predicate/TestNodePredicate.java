@@ -24,7 +24,7 @@ public class TestNodePredicate {
     public NodeContentPredicate contentPredicate;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
     }
 
