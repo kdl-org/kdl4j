@@ -7,34 +7,25 @@ import java.io.Writer;
 import java.util.Objects;
 import java.util.Optional;
 
-/**
- * A KDL object holding a boolean value. New instances should not be created, instead use the TRUE or FALSE constants
- */
-public class KDLBoolean implements KDLValue {
-    public static final KDLBoolean TRUE = new KDLBoolean(true);
-    public static final KDLBoolean FALSE = new KDLBoolean(false);
-
-    private static final KDLString TRUE_STR = KDLString.from("true");
-    private static final KDLString FALSE_STR = KDLString.from("false");
-
+public class KDLBoolean extends KDLValue<Boolean> {
     private final boolean value;
 
-    private KDLBoolean(boolean value) {
+    public KDLBoolean(boolean value) {
+        this(value, Optional.empty());
+    }
+
+    public KDLBoolean(boolean value, Optional<String> type) {
+        super(type);
         this.value = value;
     }
 
-    public boolean getValue() {
+    public Boolean getValue() {
         return value;
     }
 
     @Override
-    public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
-        writer.write(value ? "true" : "false");
-    }
-
-    @Override
     public KDLString getAsString() {
-        return value ? TRUE_STR : FALSE_STR;
+        return value ? new KDLString("true", type) : new KDLString("false", type);
     }
 
     @Override
@@ -48,14 +39,35 @@ public class KDLBoolean implements KDLValue {
     }
 
     @Override
+    protected void writeKDLValue(Writer writer, PrintConfig printConfig) throws IOException {
+        writer.write(value ? "true" : "false");
+    }
+
+    @Override
+    protected String toKDLValue() {
+        return value ? "true" : "false";
+    }
+
+    @Override
     public boolean isBoolean() {
         return true;
+    }
+
+    public static Optional<KDLBoolean> fromString(String str, Optional<String> type) {
+        if ("true".equals(str)) {
+            return Optional.of(new KDLBoolean(true, type));
+        } else if ("false".equals(str)) {
+            return Optional.of(new KDLBoolean(false, type));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
     public String toString() {
         return "KDLBoolean{" +
                 "value=" + value +
+                ", type=" + type +
                 '}';
     }
 
@@ -64,11 +76,11 @@ public class KDLBoolean implements KDLValue {
         if (this == o) return true;
         if (!(o instanceof KDLBoolean)) return false;
         KDLBoolean that = (KDLBoolean) o;
-        return value == that.value;
+        return value == that.value && type.equals(that.getType());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(value);
+        return Objects.hash(type, value);
     }
 }

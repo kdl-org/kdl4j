@@ -174,11 +174,11 @@ public class KDLParser {
                 case NODE_SPACE:
                     if (c == '{') {
                         child = Optional.of(parseChild(context));
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else if (isUnicodeLinespace(c)) {
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } if (c == EOF) {
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else {
                         final KDLObject object = parseArgOrProp(context);
                         if (object instanceof KDLValue) {
@@ -197,21 +197,21 @@ public class KDLParser {
                 case NO_WHITESPACE:
                     if (c == '{') {
                         child = Optional.of(parseChild(context));
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else if (isUnicodeLinespace(c) || c == EOF) {
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else if (c == ';') {
                         context.read();
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else {
                         throw new KDLParseException(String.format("Unexpected character: '%s'", (char) c));
                     }
                 case END_NODE:
-                    return Optional.of(new KDLNode(identifier, properties, args, child));
+                    return Optional.of(new KDLNode(identifier, type, properties, args, child));
                 case SKIP_NEXT:
                     if (c == '{') {
                         parseChild(context); //Ignored
-                        return Optional.of(new KDLNode(identifier, properties, args, child));
+                        return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else if (isUnicodeLinespace(c)) {
                         throw new KDLParseException("Unexpected skip marker before newline");
                     } else if ( c == EOF) {

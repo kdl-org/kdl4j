@@ -13,26 +13,47 @@ import java.util.Optional;
  * Representation of a KDL number. Numbers may be base 16, 10, 8, or 2 as stored in the radix field. Base 10 numbers may
  * be fractional, but all others are limited to integers.
  */
-public class KDLNumber implements KDLValue {
-    private static final KDLNumber ZERO_TWO = KDLNumber.zero(10);
-    private static final KDLNumber ZERO_EIGTH = KDLNumber.zero(10);
-    private static final KDLNumber ZERO_TEN = KDLNumber.zero(10);
-    private static final KDLNumber ZERO_SIXTEEN = KDLNumber.zero(10);
-
+public class KDLNumber extends KDLValue<BigDecimal> {
     private final BigDecimal value;
     private final int radix;
 
     public KDLNumber(BigDecimal value, int radix) {
+        this(value, radix, Optional.empty());
+    }
+
+    public KDLNumber(BigDecimal value, int radix, Optional<String> type) {
+        super(type);
         this.value = Objects.requireNonNull(value);
         this.radix = radix;
     }
 
-    public BigDecimal getAsBigDecimal() {
+    @Override
+    public BigDecimal getValue() {
         return value;
     }
 
     @Override
-    public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
+    public boolean isNumber() {
+        return true;
+    }
+
+    @Override
+    public KDLString getAsString() {
+        return KDLString.from(value.toString(), type);
+    }
+
+    @Override
+    public Optional<KDLNumber> getAsNumber() {
+        return Optional.of(this);
+    }
+
+    @Override
+    public Optional<KDLBoolean> getAsBoolean() {
+        return Optional.empty();
+    }
+
+    @Override
+    protected void writeKDLValue(Writer writer, PrintConfig printConfig) throws IOException {
         switch (radix) {
             case 10:
                 writer.write(value.toString().replace('E', printConfig.getExponentChar()));
@@ -53,83 +74,81 @@ public class KDLNumber implements KDLValue {
     }
 
     @Override
-    public boolean isNumber() {
-        return true;
-    }
-
-    @Override
-    public KDLString getAsString() {
-        return KDLString.from(value.toString());
-    }
-
-    @Override
-    public Optional<KDLNumber> getAsNumber() {
-        return Optional.of(this);
-    }
-
-    @Override
-    public Optional<KDLBoolean> getAsBoolean() {
-        return Optional.empty();
+    protected String toKDLValue() {
+        return value.toString();
     }
 
     /**
      * Get the Zero value for a given radix, which must be one of [2, 8, 10, 16]
      *
-     * @param radix the radix for the zero value
      * @return a new number with the value 0 and the given radix
      */
     public static KDLNumber zero(int radix) {
+        return zero(radix, Optional.empty());
+    }
+    public static KDLNumber zero(int radix, Optional<String> type) {
         switch (radix) {
             case 2:
-                return ZERO_TWO;
             case 8:
-                return ZERO_EIGTH;
             case 10:
-                return ZERO_TEN;
             case 16:
-                return ZERO_SIXTEEN;
+                return new KDLNumber(BigDecimal.ZERO, radix, type);
             default:
                 throw new RuntimeException("Radix must be one of: [2, 8, 10, 16]");
         }
     }
 
-    /**
-     * Get a new number with value 0 and base 10
-     *
-     * @return the new 0 number
-     */
-    public static KDLNumber zero() {
-        return zero(10);
+    public static KDLNumber from(BigDecimal val, int radix) {
+        return from(val, radix, Optional.empty());
     }
 
-    public static KDLNumber from(BigDecimal val, int radix) {
-        return new KDLNumber(val, radix);
+    public static KDLNumber from(BigDecimal val, int radix, Optional<String> type) {
+        return new KDLNumber(val, radix, type);
     }
 
     public static KDLNumber from(BigDecimal val) {
-        return from(val, 10);
+        return from(val, Optional.empty());
+    }
+
+    public static KDLNumber from(BigDecimal val, Optional<String> type) {
+        return from(val, 10, type);
     }
 
     public static KDLNumber from(BigInteger val, int radix) {
-        return new KDLNumber(new BigDecimal(val), radix);
+        return from(new BigDecimal(val), radix);
+    }
+
+    public static KDLNumber from(BigInteger val, int radix, Optional<String> type) {
+        return new KDLNumber(new BigDecimal(val), radix, type);
     }
 
     public static KDLNumber from(BigInteger val) {
-        return from(val, 10);
+        return from(val, Optional.empty());
+    }
+
+    public static KDLNumber from(BigInteger val, Optional<String> type) {
+        return from(val, 10, type);
     }
 
     public static Optional<KDLNumber> from(String val, int radix) {
-        return from(val).filter(v -> v.radix == radix);
+        return from(val, radix, Optional.empty());
+    }
+
+    public static Optional<KDLNumber> from(String val, int radix, Optional<String> type) {
+        return from(val, type).filter(v -> v.radix == radix);
     }
 
     /**
      * Parse the provided string into a KDLNumber if possible.
      *
-     * @param val the string to parse
      * @return an optional wrapping the new KDLNumber if the parse was successful, or empty() if not
      */
     public static Optional<KDLNumber> from(String val) {
-        if (val.length() == 0) {
+        return from(val, Optional.empty());
+    }
+
+    public static Optional<KDLNumber> from(String val, Optional<String> type) {
+        if (val == null || val.length() == 0) {
             return Optional.empty();
         }
 
@@ -137,7 +156,7 @@ public class KDLNumber implements KDLValue {
         final String toParse;
         if (val.charAt(0) == '0') {
             if (val.length() == 1) {
-                return Optional.of(KDLNumber.zero());
+                return Optional.of(KDLNumber.zero(10, type));
             }
 
             switch (val.charAt(1)) {
@@ -173,7 +192,7 @@ public class KDLNumber implements KDLValue {
             parsed = null;
         }
 
-        return Optional.ofNullable(parsed).map(bd -> from(bd, radix));
+        return Optional.ofNullable(parsed).map(bd -> from(bd, radix, type));
     }
 
     public static KDLNumber from(long val, int radix) {

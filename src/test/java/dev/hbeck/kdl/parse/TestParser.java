@@ -360,7 +360,7 @@ public class TestParser {
         if (nodes.length > 0) {
             children = Optional.of(doc(nodes));
         }
-        return new KDLNode(ident, propValues, argValues, children);
+        return new KDLNode(ident, type, propValues, argValues, children);
     }
 
     private KDLNode node(String ident, List<Object> args, KDLNode... nodes) {

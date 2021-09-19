@@ -12,14 +12,14 @@ import java.util.Objects;
  */
 public class KDLProperty implements KDLObject {
     private final String key;
-    private final KDLValue value;
+    private final KDLValue<?> value;
 
-    public KDLProperty(String key, KDLValue value) {
+    public KDLProperty(String key, KDLValue<?> value) {
         this.key = Objects.requireNonNull(key);
         this.value = Objects.requireNonNull(value);
     }
 
-    public KDLValue getValue() {
+    public KDLValue<?> getValue() {
         return value;
     }
 
@@ -29,7 +29,7 @@ public class KDLProperty implements KDLObject {
 
     @Override
     public void writeKDL(Writer writer, PrintConfig printConfig) throws IOException {
-        if (value == KDLNull.INSTANCE && printConfig.shouldPrintNullProps()) {
+        if (value instanceof KDLNull && !printConfig.shouldPrintNullProps()) {
             return;
         }
 
