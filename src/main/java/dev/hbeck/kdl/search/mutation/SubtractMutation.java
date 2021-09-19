@@ -25,12 +25,12 @@ import java.util.function.Predicate;
  */
 public class SubtractMutation implements Mutation {
     private final Set<Integer> positionalArgs;
-    private final List<Predicate<KDLValue>> argPredicates;
+    private final List<Predicate<KDLValue<?>>> argPredicates;
     private final List<Predicate<KDLProperty>> propPredicates;
     private final boolean emptyChild;
     private final boolean deleteChild;
 
-    private SubtractMutation(Set<Integer> positionalArgs, List<Predicate<KDLValue>> argPredicates,
+    private SubtractMutation(Set<Integer> positionalArgs, List<Predicate<KDLValue<?>>> argPredicates,
                              List<Predicate<KDLProperty>> propPredicates, boolean emptyChild, boolean deleteChild) {
         if (emptyChild && deleteChild) {
             throw new IllegalArgumentException("Only one of emptyChild and deleteChild may be set.");
@@ -54,7 +54,7 @@ public class SubtractMutation implements Mutation {
         for (int i = 0; i < node.getArgs().size(); i++) {
             if (!positionalArgs.contains(i)) {
                 boolean matchesAny = false;
-                for (Predicate<KDLValue> argPredicate : argPredicates) {
+                for (Predicate<KDLValue<?>> argPredicate : argPredicates) {
                     if (argPredicate.test(node.getArgs().get(i))) {
                         matchesAny = true;
                     }
@@ -96,13 +96,13 @@ public class SubtractMutation implements Mutation {
     }
 
     public static class Builder {
-        private final List<Predicate<KDLValue>> argPredicates = new ArrayList<>();
+        private final List<Predicate<KDLValue<?>>> argPredicates = new ArrayList<>();
         private final List<Predicate<KDLProperty>> propPredicates = new ArrayList<>();
         private final Set<Integer> positionalArgs = new HashSet<>();
         private boolean emptyChild = false;
         private boolean deleteChild = false;
 
-        public Builder addArg(Predicate<KDLValue> predicate) {
+        public Builder addArg(Predicate<KDLValue<?>> predicate) {
             argPredicates.add(predicate);
             return this;
         }
