@@ -43,7 +43,7 @@ public class TestParser {
         assertThat(parser.parse("node;"), equalTo(doc(node("node"))));
         assertThat(parser.parse("node 1"), equalTo(doc(node("node", list(1)))));
         assertThat(parser.parse("node 1 2 \"3\" true false null"),
-                equalTo(doc(node("node", list(1, 2, "3", true, false, KDLNull.INSTANCE)))));
+                equalTo(doc(node("node", list(1, 2, "3", true, false, new KDLNull())))));
         assertThat(parser.parse("node {\n    node2\n}"),
                 equalTo(doc(node("node", node("node2")))));
     }
@@ -341,18 +341,33 @@ public class TestParser {
                 equalTo(doc(node("foo123~!@#$%^&*.:'|/?+", list("weeee")))));
     }
 
+    @Test
+    public void test_node_type() {
+
+    }
+
+    @Test
+    public void test_arg_type() {
+
+    }
+
+    @Test
+    public void test_property_type() {
+
+    }
+
     private KDLDocument doc(KDLNode... nodes) {
         List<KDLNode> nodeList = new ArrayList<>();
         Collections.addAll(nodeList, nodes);
         return new KDLDocument(nodeList);
     }
 
-    private KDLNode node(String ident, List<Object> args, Map<String, Object> props, KDLNode... nodes) {
-        List<KDLValue> argValues = new ArrayList<>();
+    private KDLNode node(String ident, Optional<String> type, List<Object> args, Map<String, Object> props, KDLNode... nodes) {
+        List<KDLValue<?>> argValues = new ArrayList<>();
         for (Object o : args) {
             argValues.add(KDLValue.from(o));
         }
-        Map<String, KDLValue> propValues = new HashMap<>();
+        Map<String, KDLValue<?>> propValues = new HashMap<>();
         for (Map.Entry<String, Object> e : props.entrySet()) {
             propValues.put(e.getKey(), KDLValue.from(e.getValue()));
         }
@@ -363,16 +378,32 @@ public class TestParser {
         return new KDLNode(ident, type, propValues, argValues, children);
     }
 
+    private KDLNode node(String ident, List<Object> args, Map<String, Object> props, KDLNode... nodes) {
+        return node(ident, Optional.empty(), args, props, nodes);
+    }
+
     private KDLNode node(String ident, List<Object> args, KDLNode... nodes) {
-        return node(ident, args, Collections.emptyMap(), nodes);
+        return node(ident, Optional.empty(), args, nodes);
+    }
+
+    private KDLNode node(String ident, Optional<String> type, List<Object> args, KDLNode... nodes) {
+        return node(ident, type, args, Collections.emptyMap(), nodes);
     }
 
     private KDLNode node(String ident, Map<String, Object> props, KDLNode... nodes) {
-        return node(ident, Collections.emptyList(), props, nodes);
+        return node(ident, Optional.empty(), props, nodes);
+    }
+
+    private KDLNode node(String ident, Optional<String> type, Map<String, Object> props, KDLNode... nodes) {
+        return node(ident, type, Collections.emptyList(), props, nodes);
     }
 
     private KDLNode node(String ident, KDLNode... nodes) {
-        return node(ident, Collections.emptyList(), nodes);
+        return node(ident, Optional.empty(), nodes);
+    }
+
+    private KDLNode node(String ident, Optional<String> type, KDLNode... nodes) {
+        return node(ident, type, Collections.emptyList(), nodes);
     }
 
     private List<Object> list(Object... values) {

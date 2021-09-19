@@ -39,9 +39,9 @@ public class TestParseValue {
                 new Object[]{"r\"\"", KDLString.from("")},
                 new Object[]{"r\"\n\"", KDLString.from("\n")},
                 new Object[]{"r\"\\n\"", KDLString.from("\\n")},
-                new Object[]{"true", KDLBoolean.TRUE},
-                new Object[]{"false", KDLBoolean.FALSE},
-                new Object[]{"null", KDLNull.INSTANCE},
+                new Object[]{"true", new KDLBoolean(true)},
+                new Object[]{"false", new KDLBoolean(false)},
+                new Object[]{"null", new KDLNull()},
                 new Object[]{"\"true\"", KDLString.from("true")},
                 new Object[]{"\"false\"", KDLString.from("false")},
                 new Object[]{"\"null\"", KDLString.from("null")},
@@ -50,14 +50,14 @@ public class TestParseValue {
     }
 
     private final String input;
-    private final KDLValue expectedResult;
+    private final KDLValue<?> expectedResult;
 
     @Test
     public void doTest() throws IOException {
         final KDLParseContext context = TestUtil.strToContext(input);
 
         try {
-            final KDLValue val = TestUtil.parser.parseValue(context);
+            final KDLValue<?> val = TestUtil.parser.parseValue(context);
             assertThat(val, equalTo(expectedResult));
         } catch (KDLParseException e) {
             if (expectedResult != null) {
