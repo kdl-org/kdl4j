@@ -18,13 +18,6 @@ import java.util.Optional;
 public class KDLNumber extends KDLValue<Number> {
     private final Number value;
     private final int radix;
-    /*
-    Oh, right. You technically can't compare two `Number`s. Thaaaanks, Oracle.
-    Ah, well. Just store them here as `BigDecimal`s and check equality on those.
-    I don't like it, but until Valhalla and associated JEPS are done, we've just gotta do this.
-    ~LemmaEOF
-     */
-    private final BigDecimal comparisonValue;
 
     public KDLNumber(Number value, int radix) {
         this(value, radix, Optional.empty());
@@ -34,7 +27,6 @@ public class KDLNumber extends KDLValue<Number> {
         super(type);
         this.value = Objects.requireNonNull(value);
         this.radix = radix;
-        this.comparisonValue = new BigDecimal(this.value.toString());
     }
 
     @Override
@@ -225,7 +217,13 @@ public class KDLNumber extends KDLValue<Number> {
         if (this == o) return true;
         if (!(o instanceof KDLNumber)) return false;
         KDLNumber kdlNumber = (KDLNumber) o;
-        return radix == kdlNumber.radix && Objects.equals(comparisonValue, kdlNumber.comparisonValue) && Objects.equals(type, kdlNumber.type);
+        /*
+        Oh, right. You technically can't compare two `Number`s. Thaaaanks, Oracle.
+        Ah, well. Just use `toString` and check if those are equal.
+        Numbers in Java all stringify in the same way, so this should work fine.
+        ~LemmaEOF
+         */
+        return radix == kdlNumber.radix && Objects.equals(value.toString(), kdlNumber.value.toString()) && Objects.equals(type, kdlNumber.type);
     }
 
     @Override
