@@ -69,7 +69,7 @@ public class KDLNumber extends KDLValue<Number> {
         if (printConfig.shouldRespectRadix()) {
             /*
             Print out a number while respecting radix!
-            If it's binary, octal, or hex, this convert it to a `BigInteger` to format.
+            If it's binary, octal, or hex, this converts it to a `BigInteger` to format.
             This is kludge-y, but someone *might* for some reason want to have a more-than-64-bit number in KDL.
             I have no idea *why* you'd want that, but who am I to judge?
             Plus one of our test cases uses an 80-bit hex number so let's just roll with it lol
