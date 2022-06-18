@@ -48,8 +48,18 @@ public class KDLNumber extends KDLValue<BigDecimal> {
     }
 
     @Override
+    public BigDecimal getAsNumberOrElse(BigDecimal defaultValue) {
+        return value;
+    }
+
+    @Override
     public Optional<KDLBoolean> getAsBoolean() {
         return Optional.empty();
+    }
+
+    @Override
+    public boolean getAsBooleanOrElse(boolean defaultValue) {
+        return defaultValue;
     }
 
     @Override
