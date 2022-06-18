@@ -11,24 +11,34 @@ import java.util.Optional;
 
 /**
  * Representation of a KDL number. Numbers may be base 16, 10, 8, or 2 as stored in the radix field. Base 10 numbers may
- * be fractional, but all others are limited to integers.
+ * be fractional, but all others are limited to integers. {@link dev.hbeck.kdl.parse.KDLParser} reads in all numbers as
+ * either {@link BigDecimal} (for decimal) or {@link BigInteger} (for non-decimal), so if you <i>absolutely</i> need
+ * that precision then don't hesitate to instanceof and cast.
  */
-public class KDLNumber extends KDLValue<BigDecimal> {
-    private final BigDecimal value;
+public class KDLNumber extends KDLValue<Number> {
+    private final Number value;
     private final int radix;
+    /*
+    Oh, right. You technically can't compare two `Number`s. Thaaaanks, Oracle.
+    Ah, well. Just store them here as `BigDecimal`s and check equality on those.
+    I don't like it, but until Valhalla and associated JEPS are done, we've just gotta do this.
+    ~LemmaEOF
+     */
+    private final BigDecimal comparisonValue;
 
-    public KDLNumber(BigDecimal value, int radix) {
+    public KDLNumber(Number value, int radix) {
         this(value, radix, Optional.empty());
     }
 
-    public KDLNumber(BigDecimal value, int radix, Optional<String> type) {
+    public KDLNumber(Number value, int radix, Optional<String> type) {
         super(type);
         this.value = Objects.requireNonNull(value);
         this.radix = radix;
+        this.comparisonValue = new BigDecimal(this.value.toString());
     }
 
     @Override
-    public BigDecimal getValue() {
+    public Number getValue() {
         return value;
     }
 
@@ -48,7 +58,7 @@ public class KDLNumber extends KDLValue<BigDecimal> {
     }
 
     @Override
-    public BigDecimal getAsNumberOrElse(BigDecimal defaultValue) {
+    public Number getAsNumberOrElse(Number defaultValue) {
         return value;
     }
 
@@ -65,21 +75,29 @@ public class KDLNumber extends KDLValue<BigDecimal> {
     @Override
     protected void writeKDLValue(Writer writer, PrintConfig printConfig) throws IOException {
         if (printConfig.shouldRespectRadix()) {
+            /*
+            Print out a number while respecting radix!
+            If it's binary, octal, or hex, this convert it to a `BigInteger` to format.
+            This is kludge-y, but someone *might* for some reason want to have a more-than-64-bit number in KDL.
+            I have no idea *why* you'd want that, but who am I to judge?
+            Plus one of our test cases uses an 80-bit hex number so let's just roll with it lol
+            ~LemmaEOF
+             */
             switch (radix) {
                 case 10:
                     writer.write(value.toString().replace('E', printConfig.getExponentChar()));
                     break;
                 case 2:
                     writer.write("0b");
-                    writer.write(value.toBigIntegerExact().toString(radix));
+                    writer.write(new BigInteger(value.toString()).toString(radix));
                     break;
                 case 8:
                     writer.write("0o");
-                    writer.write(value.toBigIntegerExact().toString(radix));
+                    writer.write(new BigInteger(value.toString()).toString(radix));
                     break;
                 case 16:
                     writer.write("0x");
-                    writer.write(value.toBigIntegerExact().toString(radix));
+                    writer.write(new BigInteger(value.toString()).toString(radix));
                     break;
             }
         } else {
@@ -112,35 +130,19 @@ public class KDLNumber extends KDLValue<BigDecimal> {
         }
     }
 
-    public static KDLNumber from(BigDecimal val, int radix) {
+    public static KDLNumber from(Number val, int radix) {
         return from(val, radix, Optional.empty());
     }
 
-    public static KDLNumber from(BigDecimal val, int radix, Optional<String> type) {
+    public static KDLNumber from(Number val, int radix, Optional<String> type) {
         return new KDLNumber(val, radix, type);
     }
 
-    public static KDLNumber from(BigDecimal val) {
+    public static KDLNumber from(Number val) {
         return from(val, Optional.empty());
     }
 
-    public static KDLNumber from(BigDecimal val, Optional<String> type) {
-        return from(val, 10, type);
-    }
-
-    public static KDLNumber from(BigInteger val, int radix) {
-        return from(new BigDecimal(val), radix);
-    }
-
-    public static KDLNumber from(BigInteger val, int radix, Optional<String> type) {
-        return new KDLNumber(new BigDecimal(val), radix, type);
-    }
-
-    public static KDLNumber from(BigInteger val) {
-        return from(val, Optional.empty());
-    }
-
-    public static KDLNumber from(BigInteger val, Optional<String> type) {
+    public static KDLNumber from(Number val, Optional<String> type) {
         return from(val, 10, type);
     }
 
@@ -209,30 +211,6 @@ public class KDLNumber extends KDLValue<BigDecimal> {
         return Optional.ofNullable(parsed).map(bd -> from(bd, radix, type));
     }
 
-    public static KDLNumber from(long val, int radix, Optional<String> type) {
-        return new KDLNumber(new BigDecimal(val), radix, type);
-    }
-
-    public static KDLNumber from(long val, int radix) {
-        return from(val, radix, Optional.empty());
-    }
-
-    public static KDLNumber from(long val) {
-        return from(val, 10);
-    }
-
-    public static KDLNumber from(double val, int radix, Optional<String> type) {
-        return new KDLNumber(new BigDecimal(val), radix, type);
-    }
-
-    public static KDLNumber from(double val, int radix) {
-        return from(val, radix, Optional.empty());
-    }
-
-    public static KDLNumber from(double val) {
-        return from(val, 10);
-    }
-
     @Override
     public String toString() {
         return "KDLNumber{" +
@@ -247,7 +225,7 @@ public class KDLNumber extends KDLValue<BigDecimal> {
         if (this == o) return true;
         if (!(o instanceof KDLNumber)) return false;
         KDLNumber kdlNumber = (KDLNumber) o;
-        return radix == kdlNumber.radix && Objects.equals(value, kdlNumber.value) && Objects.equals(type, kdlNumber.type);
+        return radix == kdlNumber.radix && Objects.equals(comparisonValue, kdlNumber.comparisonValue) && Objects.equals(type, kdlNumber.type);
     }
 
     @Override

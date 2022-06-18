@@ -23,7 +23,7 @@ public abstract class KDLValue<T> implements KDLObject {
 
     public abstract Optional<KDLNumber> getAsNumber();
 
-    public abstract BigDecimal getAsNumberOrElse(BigDecimal defaultValue);
+    public abstract Number getAsNumberOrElse(Number defaultValue);
 
     public abstract Optional<KDLBoolean> getAsBoolean();
 

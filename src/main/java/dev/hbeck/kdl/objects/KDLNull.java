@@ -36,7 +36,7 @@ public class KDLNull extends KDLValue<Void> {
     }
 
     @Override
-    public BigDecimal getAsNumberOrElse(BigDecimal defaultValue) {
+    public Number getAsNumberOrElse(Number defaultValue) {
         return defaultValue;
     }
 
