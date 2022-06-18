@@ -4,6 +4,7 @@ import dev.hbeck.kdl.print.PrintConfig;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.math.BigDecimal;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -34,8 +35,18 @@ public class KDLBoolean extends KDLValue<Boolean> {
     }
 
     @Override
+    public BigDecimal getAsNumber(BigDecimal defaultValue) {
+        return defaultValue;
+    }
+
+    @Override
     public Optional<KDLBoolean> getAsBoolean() {
         return Optional.of(this);
+    }
+
+    @Override
+    public boolean getAsBoolean(boolean defaultValue) {
+        return value;
     }
 
     @Override
