@@ -44,7 +44,7 @@ public class KDLString extends KDLValue<String> {
     }
 
     @Override
-    public BigDecimal getAsNumber(BigDecimal defaultValue) {
+    public BigDecimal getAsNumberOrElse(BigDecimal defaultValue) {
         return defaultValue;
     }
 
@@ -54,7 +54,7 @@ public class KDLString extends KDLValue<String> {
     }
 
     @Override
-    public boolean getAsBoolean(boolean defaultValue) {
+    public boolean getAsBooleanOrElse(boolean defaultValue) {
         return defaultValue;
     }
 

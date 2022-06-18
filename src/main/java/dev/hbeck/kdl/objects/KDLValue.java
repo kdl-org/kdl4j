@@ -23,11 +23,11 @@ public abstract class KDLValue<T> implements KDLObject {
 
     public abstract Optional<KDLNumber> getAsNumber();
 
-    public abstract BigDecimal getAsNumber(BigDecimal defaultValue);
+    public abstract BigDecimal getAsNumberOrElse(BigDecimal defaultValue);
 
     public abstract Optional<KDLBoolean> getAsBoolean();
 
-    public abstract boolean getAsBoolean(boolean defaultValue);
+    public abstract boolean getAsBooleanOrElse(boolean defaultValue);
 
     protected abstract void writeKDLValue(Writer writer, PrintConfig printConfig) throws IOException;
 
