@@ -1,16 +1,8 @@
-All Java code in this project is licensed under a Creative Commons 4.0 Attribution License:
+Copyright 2022 Hannah Kolbeck
 
-[![Creative Commons License](https://i.creativecommons.org/l/by/4.0/88x31.png)](http://creativecommons.org/licenses/by/4.0/)  
-<span xmlns:dct="http://purl.org/dc/terms/" href="http://purl.org/dc/dcmitype/Text" property="dct:title" rel="dct:type">kdl4j
-</span>
-by [Hannah Kolbeck](https://github.com/hkolbeck/kdl4j) is licensed under a
-[Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
----
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-The .kdl test cases in https://github.com/hkolbeck/kdl4j/tree/trunk/src/test/resources/test_cases are licensed under a Creative Commons 0 Public Domain License:
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-[![CC0](http://i.creativecommons.org/p/zero/1.0/88x31.png)](http://creativecommons.org/publicdomain/zero/1.0/)   
-To the extent possible under law, [<span property="dct:title">Hannah Kolbeck</span>](https://github.com/hkolbeck) has waived all copyright and related or neighboring rights to <span property="dct:title">kdl4j test cases</span>. This work is published from: <span property="vcard:Country" datatype="dct:ISO3166" content="US" about="https://github.com/hkolbeck">United States</span>.
-by [Hannah Kolbeck](https://github.com/hkolbeck/kdl4j) is licensed under a 
-[Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
