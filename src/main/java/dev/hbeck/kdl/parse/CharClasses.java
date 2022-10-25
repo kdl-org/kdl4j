@@ -80,6 +80,7 @@ public class CharClasses {
             case '\u202F':
             case '\u205F':
             case '\u3000':
+            case '\uFEFF':
                 return false;
             default:
                 return true;

@@ -49,13 +49,13 @@ public class KDLParserFacade extends KDLParser {
     }
 
     @Override
-    public KDLNumber parseNonDecimalNumber(KDLParseContext context, Predicate<Integer> legalChars, int radix, Optional<String> type) throws IOException {
-        return super.parseNonDecimalNumber(context, legalChars, radix, type);
+    public KDLNumber parseNonDecimalNumber(KDLParseContext context, Predicate<Integer> legalChars, char sign, int radix, Optional<String> type) throws IOException {
+        return super.parseNonDecimalNumber(context, legalChars, sign, radix, type);
     }
 
     @Override
-    public KDLNumber parseDecimalNumber(KDLParseContext context, Optional<String> type) throws IOException {
-        return super.parseDecimalNumber(context, type);
+    public KDLNumber parseDecimalNumber(KDLParseContext context, char sign, Optional<String> type) throws IOException {
+        return super.parseDecimalNumber(context, sign, type);
     }
 
     @Override

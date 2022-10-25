@@ -109,8 +109,9 @@ public class TestParser {
         assertThat(parser.parse("node 1.0e-10"), equalTo(doc(node("node", list(1.0e-10)))));
         assertThat(parser.parse("node 123_456_789.0"),
                 equalTo(doc(node("node", list(new BigDecimal("123456789.0"))))));
+        assertThat(parser.parse("node 123_456_789.0_1"),
+                equalTo(doc(node("node", list(new BigDecimal("123456789.01"))))));
 
-        assertThat(() -> parser.parse("node 123_456_789.0_"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node ?1.0"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node _1.0"), throwsException(KDLParseException.class));
         assertThat(() -> parser.parse("node .0"), throwsException(KDLParseException.class));

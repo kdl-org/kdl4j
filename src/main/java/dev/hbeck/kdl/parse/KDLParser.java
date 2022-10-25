@@ -165,7 +165,6 @@ public class KDLParser {
         if (c == '}') {
             return Optional.empty();
         }
-
         final Optional<String> type = parseTypeIfPresent(context);
         final String identifier = parseIdentifier(context);
         while (true) {
@@ -248,7 +247,7 @@ public class KDLParser {
                 return parseBareIdentifier(context);
             }
         } else {
-            throw new KDLParseException(String.format("Expected an identifier, but identifiers can't start with '%s'", (char) c));
+            throw new KDLParseException(String.format("Expected an identifier, but identifiers can't start with '%s' (\\u%06X)", (char) c, c));
         }
     }
 
@@ -259,6 +258,17 @@ public class KDLParser {
         int c = context.peek();
         if (c == '"') {
             object = new KDLString(parseEscapedString(context), type);
+        } else if (c == '+' || c == '-') {
+            final int sign = c;
+            context.read();
+            c = context.peek();
+            context.unread(sign);
+            if (isValidDecimalChar(c)) {
+                object = parseNumber(context, type);
+            } else {
+                isBare = true;
+                object = new KDLString(parseBareIdentifier(context));
+            }
         } else if (isValidNumericStart(c)) {
             object = parseNumber(context, type);
         } else if (isValidBareIdStart(c)) {
@@ -393,6 +403,16 @@ public class KDLParser {
         Predicate<Integer> legalChars = null;
 
         int c = context.peek();
+        char sign = '+';
+        if (c == '+') {
+            context.read();
+            c = context.peek();
+        } else if (c == '-') {
+            sign = '-';
+            context.read();
+            c = context.peek();
+        }
+
         if (c == '0') {
             context.read();
             c = context.peek();
@@ -417,14 +437,15 @@ public class KDLParser {
         }
 
         if (radix == 10) {
-            return parseDecimalNumber(context, type);
+            return parseDecimalNumber(context, sign, type);
         } else {
-            return parseNonDecimalNumber(context, legalChars, radix, type);
+            return parseNonDecimalNumber(context, legalChars, sign, radix, type);
         }
     }
 
-    KDLNumber parseNonDecimalNumber(KDLParseContext context, Predicate<Integer> legalChars, int radix, Optional<String> type) throws IOException {
+    KDLNumber parseNonDecimalNumber(KDLParseContext context, Predicate<Integer> legalChars, char sign, int radix, Optional<String> type) throws IOException {
         final StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(sign);
 
         int c = context.peek();
         if (c == '_') {
@@ -440,33 +461,30 @@ public class KDLParser {
         }
 
         final String str = stringBuilder.toString();
-        if (str.isEmpty()) {
+        if (str.length() == 1) { //str is only the radix
             throw new KDLParseException("Must include at least one digit following radix marker");
         }
 
-        return KDLNumber.from(new BigInteger(str, radix), radix, type);
+        try {
+            return KDLNumber.from(new BigInteger(str, radix), radix, type);
+        } catch (NumberFormatException e) {
+            throw new KDLInternalException(String.format("Couldn't parse pre-vetted input '%s' into a BigDecimal", str), e);
+        }
     }
 
     // Unfortunately, in order to match the grammar we have to do a lot of parsing ourselves here
-    KDLNumber parseDecimalNumber(KDLParseContext context, Optional<String> type) throws IOException {
+    KDLNumber parseDecimalNumber(KDLParseContext context, char sign, Optional<String> type) throws IOException {
         final StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(sign);
 
         boolean inFraction = false;
         boolean inExponent = false;
-        boolean signLegal = true;
+        boolean signLegal = false;
         int c = context.peek();
         if (c == '_' || c == 'E' || c == 'e') {
             throw new KDLParseException(String.format("Decimal numbers may not begin with an '%s' character", (char) c));
         } else if (c == '+' || c == '-') {
-            context.read();
-            int sign = c;
-            c = context.peek();
-            if (c == '_') {
-                throw new KDLParseException("Numbers may not begin with an '_' character after sign");
-            } else {
-                stringBuilder.appendCodePoint(sign);
-                signLegal = false;
-            }
+            throw new KDLParseException("Numbers may not begin with multiple sign characters");
         }
 
         c = context.peek();
@@ -498,9 +516,6 @@ public class KDLParser {
                     throw new KDLParseException("Character following exponent marker must not be '_'");
                 }
             } else if (c == '_') {
-                if (inFraction) {
-                    throw new KDLParseException("The '_' character is not allowed in the fraction portion of decimal");
-                }
                 signLegal = false;
             } else if (c == '+' || c == '-') {
                 if (!signLegal) {
@@ -683,7 +698,7 @@ public class KDLParser {
     SlashAction getSlashAction(KDLParseContext context, boolean escaped) throws IOException {
         int c = context.read();
         if (c != '/') {
-            throw new KDLParseException("");
+            throw new KDLInternalException(String.format("Expected '/' but found '%s' (\\u%06x)", (char) c, c));
         }
 
         c = context.read();
@@ -835,9 +850,9 @@ public class KDLParser {
         while (true) {
             int c = context.peek();
             boolean isLinespace = isUnicodeLinespace(c);
-            while (isUnicodeWhitespace(c) || isLinespace) {
+            while (isUnicodeWhitespace(c) || isLinespace || c == '\uFEFF') {
                 foundWhitespace = true;
-                if (isLinespace && skipNext) {
+                if (isLinespace && skipNext && !inEscape) {
                     throw new KDLParseException("Unexpected newline after skip marker");
                 }
 
