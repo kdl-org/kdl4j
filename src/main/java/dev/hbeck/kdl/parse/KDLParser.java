@@ -205,7 +205,7 @@ public class KDLParser {
                         context.read();
                         return Optional.of(new KDLNode(identifier, type, properties, args, child));
                     } else {
-                        throw new KDLParseException(String.format("Unexpected character: '%s'", (char) c));
+                        throw new KDLParseException(String.format("Unexpected character: '%s' (\\u%06X)", (char) c, c));
                     }
                 case END_NODE:
                     return Optional.of(new KDLNode(identifier, type, properties, args, child));
@@ -307,7 +307,7 @@ public class KDLParser {
                 final KDLValue<?> value = parseValue(context);
                 return new KDLProperty(((KDLString) object).getValue(), value);
             } else if (isBare) {
-                throw new KDLParseException("Arguments may not be bare");
+                throw new KDLParseException(String.format("Arguments may not be bare: '%s'", ((KDLString) object).getValue()));
             } else {
                 return object;
             }
@@ -719,7 +719,7 @@ public class KDLParser {
         boolean inLineEscape = false;
         boolean foundSemicolon = false;
         int c = context.peek();
-        while (c == '/' || c == '\\' || c == ';' || isUnicodeWhitespace(c) || isUnicodeLinespace(c)) {
+        while (c == '/' || c == '\\' || c == ';' || c == '\uFEFF' || isUnicodeWhitespace(c) || isUnicodeLinespace(c)) {
             if (c == '/') {
                 switch (getSlashAction(context, inLineEscape)) {
                     case END_NODE:
