@@ -480,6 +480,7 @@ public class KDLParser {
         boolean inFraction = false;
         boolean inExponent = false;
         boolean signLegal = false;
+        int exponentLen = 0;
         int c = context.peek();
         if (c == '_' || c == 'E' || c == 'e') {
             throw new KDLParseException(String.format("Decimal numbers may not begin with an '%s' character", (char) c));
@@ -490,6 +491,10 @@ public class KDLParser {
         c = context.peek();
         while (isValidDecimalChar(c) || c == 'e' || c == 'E' || c == '_' || c == '.' || c == '-' || c == '+') {
             context.read();
+            if (inExponent && c != '-' && c != '+') {
+                exponentLen++;
+            }
+
             if (c == '.') {
                 if (inFraction || inExponent) {
                     throw new KDLParseException("The '.' character is not allowed in the fraction or exponent of a decimal");
@@ -533,6 +538,11 @@ public class KDLParser {
         }
 
         final String val = stringBuilder.toString();
+
+        if (exponentLen > 10) { //BigDecimal only accepts exponents up to 10 digits
+            throw new KDLInternalException(String.format("Exponent too long to be represented as a BigDecimal: '%s'", val));
+        }
+
         try {
             return KDLNumber.from(new BigDecimal(val), type);
         } catch (NumberFormatException e) {
