@@ -1,6 +1,3 @@
-# This project has moved to https://github.com/kdl-org/kdl4j
-
-
 # KDL4j
 
 A Java implementation of a parser for the [KDL Document Language](https://github.com/kdl-org/kdl).
