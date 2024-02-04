@@ -30,11 +30,17 @@ publishing {
     }
 }
 
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
+}
+
 tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+
     reports {
-        xml.isEnabled = false
-        csv.isEnabled = false
-        html.destination = file("${buildDir}/jacoco/coverage")
+        xml.required = false
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir("jacoco/coverage")
     }
 }
 
