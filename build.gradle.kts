@@ -1,5 +1,5 @@
 plugins {
-    java
+    `java-library`
     jacoco
     `maven-publish`
 }
@@ -27,6 +27,14 @@ publishing {
                 password = System.getenv("GITHUB_TOKEN")
             }
         }
+    }
+}
+
+java {
+    withSourcesJar()
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
     }
 }
 
