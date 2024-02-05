@@ -4,8 +4,7 @@ plugins {
     `maven-publish`
 }
 
-group = "dev.hbeck.kdl"
-version = "0.2.0"
+group = "kdl"
 
 repositories {
     mavenCentral()
@@ -13,7 +12,7 @@ repositories {
 
 publishing {
     publications {
-        create<MavenPublication>("default") {
+        create<MavenPublication>("maven") {
             from(components["java"])
         }
     }
@@ -21,7 +20,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/hkolbeck/kdl4j")
+            url = uri("https://maven.pkg.github.com/kdl-org/kdl4j")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
