@@ -1,12 +1,29 @@
 package kdl.parse;
 
-import kdl.objects.*;
-
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
 import java.util.function.Predicate;
+import kdl.objects.KDLBoolean;
+import kdl.objects.KDLDocument;
+import kdl.objects.KDLNode;
+import kdl.objects.KDLNull;
+import kdl.objects.KDLNumber;
+import kdl.objects.KDLObject;
+import kdl.objects.KDLProperty;
+import kdl.objects.KDLString;
+import kdl.objects.KDLValue;
 
 /**
  * The core parser object. Instances are stateless and safe to share between threads.
@@ -63,7 +80,7 @@ public class KDLParser {
      * @throws KDLParseException if the document is invalid for any reason
      */
     public KDLDocument parse(InputStream stream) throws IOException {
-        return parse(new InputStreamReader(stream));
+        return parse(new BufferedReader(new InputStreamReader(stream)));
     }
 
     /**
