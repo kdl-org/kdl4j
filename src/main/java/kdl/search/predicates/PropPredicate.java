@@ -1,18 +1,17 @@
 package kdl.search.predicates;
 
+import java.util.function.Predicate;
 import kdl.objects.KDLNode;
 import kdl.objects.KDLValue;
-
-import java.util.function.Predicate;
 
 /**
  * Predicate matching a KDLNode property
  */
 public class PropPredicate implements NodeContentPredicate {
     private final Predicate<String> keyPredicate;
-    private final Predicate<KDLValue> valuePredicate;
+    private final Predicate<KDLValue<?>> valuePredicate;
 
-    public PropPredicate(Predicate<String> keyPredicate, Predicate<KDLValue> valuePredicate) {
+    public PropPredicate(Predicate<String> keyPredicate, Predicate<KDLValue<?>> valuePredicate) {
         this.keyPredicate = keyPredicate;
         this.valuePredicate = valuePredicate;
     }
@@ -32,7 +31,7 @@ public class PropPredicate implements NodeContentPredicate {
         return keyPredicate;
     }
 
-    public Predicate<KDLValue> getValuePredicate() {
+    public Predicate<KDLValue<?>> getValuePredicate() {
         return valuePredicate;
     }
 }
