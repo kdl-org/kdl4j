@@ -9,11 +9,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import kdl.parse.KDLParseException;
 import kdl.parse.KDLParser;
-import kdl.print.PrintConfig;
+import kdl.print.KDLPrinter;
+import kdl.print.PrinterConfiguration;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import static kdl.print.PrinterConfiguration.Whitespace.SPACE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
@@ -23,8 +25,8 @@ public class RoundTripTest {
 	@MethodSource("inputs")
 	void roundTripTest(String input, Optional<Path> expected) throws IOException {
 		try {
-			var document = parser.parse(Files.newInputStream(getInputPath(input)));
-			var output = document.toKDLPretty(PRINT_CONFIG);
+			var document = KDLParser.parse(getInputPath(input));
+			var output = PRINTER.printToString(document);
 
 			if (expected.isEmpty()) {
 				fail("Parse exception expected but got:\n%s", output);
@@ -58,12 +60,12 @@ public class RoundTripTest {
 		}
 	}
 
-	private final KDLParser parser = new KDLParser();
+	private static final KDLPrinter PRINTER = new KDLPrinter(
+		PrinterConfiguration.builder()
+			.indentation(List.of(SPACE, SPACE, SPACE, SPACE))
+			.build()
+	);
 
 	private static final Path INPUT_FOLDER = Paths.get("src/test/resources/test_cases/input");
 	private static final Path EXPECTED_FOLDER = Paths.get("src/test/resources/test_cases/expected_kdl");
-	private static final PrintConfig PRINT_CONFIG = PrintConfig.builder()
-		.setEscapeLinespace(true)
-		.build();
-
 }

@@ -37,6 +37,10 @@ java {
     }
 }
 
+tasks.compileJava {
+    options.javaModuleVersion = provider { version as String }
+}
+
 tasks.test {
     useJUnitPlatform()
     finalizedBy(tasks.jacocoTestReport)
@@ -55,6 +59,8 @@ tasks.jacocoTestReport {
 val mockitoVersion = "5.10.0"
 
 dependencies {
+    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
+
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testImplementation("org.assertj:assertj-core:3.25.3")
