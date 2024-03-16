@@ -64,6 +64,8 @@ public class RoundTripTest {
 	private static final Path EXPECTED_FOLDER = Paths.get("src/test/resources/test_cases/expected_kdl");
 	private static final PrintConfig PRINT_CONFIG = PrintConfig.builder()
 		.setEscapeLinespace(true)
+		.setRespectRadix(false)
+		.setPrintEmptyChildren(false)
 		.build();
 
 }

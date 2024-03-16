@@ -1,14 +1,20 @@
 package kdl.objects;
 
-import kdl.print.PrintConfig;
-import kdl.print.PrintUtil;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
+import kdl.print.PrintConfig;
+
+import static kdl.print.PrintUtil.writeStringQuotedAppropriately;
 
 public class KDLNode implements KDLObject {
     private final String identifier;
@@ -69,41 +75,31 @@ public class KDLNode implements KDLObject {
     void writeKDLPretty(Writer writer, int depth, PrintConfig printConfig) throws IOException {
         if (type.isPresent()) {
             writer.write('(');
-            PrintUtil.writeStringQuotedAppropriately(writer, type.get(), true, printConfig);
+            writeStringQuotedAppropriately(writer, type.get(), true, printConfig);
             writer.write(')');
         }
 
-        PrintUtil.writeStringQuotedAppropriately(writer, identifier, true, printConfig);
-        if (!args.isEmpty() || !props.isEmpty() || child.isPresent()) {
-            writer.write(' ');
-        }
+        writeStringQuotedAppropriately(writer, identifier, true, printConfig);
 
-        for (int i = 0; i < this.args.size(); i++) {
-            final KDLValue<?> value = this.args.get(i);
-            if (!(value instanceof KDLNull) || printConfig.shouldPrintNullArgs()) {
-                value.writeKDL(writer, printConfig);
-                if (i < this.args.size() - 1 || !props.isEmpty() || child.isPresent()) {
-                    writer.write(' ');
-                }
-            }
-        }
+		for (var value : this.args) {
+			if (!(value instanceof KDLNull) || printConfig.shouldPrintNullArgs()) {
+				writer.write(' ');
+				value.writeKDL(writer, printConfig);
+			}
+		}
 
-        final ArrayList<String> keys = new ArrayList<>(props.keySet());
-        for (int i = 0; i < keys.size(); i++) {
-            final KDLValue<?> value = props.get(keys.get(i));
-            if (!(value instanceof KDLNull) || printConfig.shouldPrintNullProps()) {
-                PrintUtil.writeStringQuotedAppropriately(writer, keys.get(i), true, printConfig);
-                writer.write('=');
-                value.writeKDL(writer, printConfig);
-                if (i < keys.size() - 1 || child.isPresent()) {
-                    writer.write(' ');
-                }
-            }
-        }
+		for (var entry : props.entrySet()) {
+			if (!(entry.getValue() instanceof KDLNull) || printConfig.shouldPrintNullProps()) {
+				writer.write(' ');
+				writeStringQuotedAppropriately(writer, entry.getKey(), true, printConfig);
+				writer.write('=');
+				entry.getValue().writeKDL(writer, printConfig);
+			}
+		}
 
         if (child.isPresent()) {
             if (!child.get().getNodes().isEmpty() || printConfig.shouldPrintEmptyChildren()) {
-                writer.write('{');
+                writer.write(" {");
                 writer.write(printConfig.getNewline());
                 child.get().writeKDL(writer, depth + 1, printConfig);
                 for (int i = 0; i < printConfig.getIndent() * depth; i++) {
