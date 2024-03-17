@@ -7,9 +7,42 @@ This library targets Java 11 as a minimum version.
 
 ## Status
 
-![Gradle CI](https://github.com/hkolbeck/kdl4j/workflows/Gradle%20CI/badge.svg)
+![Gradle CI](https://github.com/kdl-org/kdl4j/workflows/Gradle%20CI/badge.svg)
 
 ## Usage
+
+### Dependency
+
+Releases are published on [GitHub Packages](https://docs.github.com/en/packages). You need to authenticate with GitHub
+using a token with `read:packages` permission. See the official documentation for more information on how to
+authenticate on GitHub Packages for
+[Maven](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry)
+or for
+[Gradle](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry).
+
+Then you can add the KDL4j dependency. Maven:
+
+```xml
+
+<dependencies>
+    <dependency>
+        <groupId>kdl</groupId>
+        <artifactId>kdl4j</artifactId>
+        <version>2.0.0</version>
+    </dependency>
+</dependencies>
+```
+
+Gradle:
+
+```groovy
+dependencies {
+    implementation 'kdl:kdl4j:2.0.0'
+}
+```
+
+Alternatively, you can use the packages [hosted by JitPack](https://jitpack.io/#kdl-org/kdl4j). In this case, make sure
+you use the `com.github.kdl-org` groupId.
 
 ### Parsing
 
