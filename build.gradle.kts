@@ -1,11 +1,10 @@
 plugins {
-    java
+    `java-library`
     jacoco
     `maven-publish`
 }
 
-group = "dev.hbeck.kdl"
-version = "0.2.0"
+group = "kdl"
 
 repositories {
     mavenCentral()
@@ -13,7 +12,7 @@ repositories {
 
 publishing {
     publications {
-        create<MavenPublication>("default") {
+        create<MavenPublication>("maven") {
             from(components["java"])
         }
     }
@@ -21,7 +20,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/hkolbeck/kdl4j")
+            url = uri("https://maven.pkg.github.com/kdl-org/kdl4j")
             credentials {
                 username = System.getenv("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN")
@@ -30,15 +29,41 @@ publishing {
     }
 }
 
-tasks.jacocoTestReport {
-    reports {
-        xml.isEnabled = false
-        csv.isEnabled = false
-        html.destination = file("${buildDir}/jacoco/coverage")
+java {
+    withSourcesJar()
+
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
     }
 }
 
+tasks.compileJava {
+    options.javaModuleVersion = provider { version as String }
+}
+
+tasks.test {
+    useJUnitPlatform()
+    finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+
+    reports {
+        xml.required = false
+        csv.required = false
+        html.outputLocation = layout.buildDirectory.dir("jacoco/coverage")
+    }
+}
+
+val mockitoVersion = "5.10.0"
+
 dependencies {
-    testImplementation("junit", "junit", "4.12")
-    testImplementation("org.mockito", "mockito-core", "3.7.7")
+    implementation("jakarta.annotation:jakarta.annotation-api:2.1.1")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testImplementation("org.assertj:assertj-core:3.25.3")
+    testImplementation("org.mockito:mockito-core:$mockitoVersion")
+    testImplementation("org.mockito:mockito-junit-jupiter:$mockitoVersion")
 }

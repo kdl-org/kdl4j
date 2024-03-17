@@ -1,7 +1,4 @@
-/gradlew.bat
-/gradlew
 /.idea/
 /.gradle/
-/gradle/
 /build/
 .DS_Store
