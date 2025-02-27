@@ -51,9 +51,9 @@ tasks.jacocoTestReport {
 	dependsOn(tasks.test)
 
 	reports {
-		xml.required = false
+		xml.required = true
 		csv.required = false
-		html.outputLocation = layout.buildDirectory.dir("jacoco/coverage")
+		html.required = false
 	}
 }
 
