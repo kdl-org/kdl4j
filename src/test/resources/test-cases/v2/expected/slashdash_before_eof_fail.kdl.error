@@ -1,0 +1,7 @@
+× Semi-colon expected between nodes on the same line:
+  ╭─[src/test/resources/test-cases/v2/input/slashdash_before_eof_fail.kdl:1:10]
+1 │ node foo /-
+  ·          ┬
+  ·          ╰ semi-colon expected
+  ╰─
+help: nodes need to be separated by a semi-colon or a newline character

@@ -1,0 +1,6 @@
+× Invalid character '"' in identifier:
+  ╭─[src/test/resources/test-cases/v2/input/quote_in_bare_id_fail.kdl:1:7]
+1 │ foo123"bar weeee
+  ·       ┬
+  ·       ╰ unexpected character
+  ╰─

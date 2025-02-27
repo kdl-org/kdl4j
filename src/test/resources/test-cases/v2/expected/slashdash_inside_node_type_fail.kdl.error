@@ -1,0 +1,6 @@
+× Missing type name in type annotation:
+  ╭─[src/test/resources/test-cases/v2/input/slashdash_inside_node_type_fail.kdl:1:2]
+1 │ (/-ty)node
+  ·  ┬─
+  ·  ╰ string expected
+  ╰─

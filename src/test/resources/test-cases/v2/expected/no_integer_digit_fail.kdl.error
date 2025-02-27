@@ -1,0 +1,7 @@
+× Number or identifier cannot start with '.':
+  ╭─[src/test/resources/test-cases/v2/input/no_integer_digit_fail.kdl:1:6]
+1 │ node .1
+  ·      ┬
+  ·      ╰ invalid character
+  ╰─
+help: for a number add a zero before '.', for an identifier use quotes

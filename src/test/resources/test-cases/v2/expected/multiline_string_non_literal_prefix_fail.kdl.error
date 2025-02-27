@@ -1,0 +1,9 @@
+× Invalid indentation in multi-line string:
+  ╭─[src/test/resources/test-cases/v2/input/multiline_string_non_literal_prefix_fail.kdl:2:1]
+1 │ node """
+2 │ \s escaped prefix
+  · ┬
+  · ╰ indentation does not match last line
+3 │   literal prefix
+4 │   """
+  ╰─

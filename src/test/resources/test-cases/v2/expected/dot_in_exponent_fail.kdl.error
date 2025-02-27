@@ -1,0 +1,6 @@
+× Invalid character '.' in number:
+  ╭─[src/test/resources/test-cases/v2/input/dot_in_exponent_fail.kdl:1:9]
+1 │ node 1.0.0
+  ·         ┬
+  ·         ╰ digit expected
+  ╰─

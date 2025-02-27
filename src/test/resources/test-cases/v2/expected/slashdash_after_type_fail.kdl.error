@@ -1,0 +1,6 @@
+× Missing value after argument type:
+  ╭─[src/test/resources/test-cases/v2/input/slashdash_after_type_fail.kdl:1:13]
+1 │ node (type) /- arg1 arg2
+  ·             ─┬─
+  ·              ╰ value expected
+  ╰─

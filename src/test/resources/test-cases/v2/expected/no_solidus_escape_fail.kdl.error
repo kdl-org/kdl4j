@@ -1,0 +1,6 @@
+× Invalid escaped character '/':
+  ╭─[src/test/resources/test-cases/v2/input/no_solidus_escape_fail.kdl:1:8]
+1 │ node "\/"
+  ·        ┬
+  ·        ╰ '"', '\', 'b', 'f', 'r', 'n', 't', or 's' expected
+  ╰─

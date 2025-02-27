@@ -1,0 +1,6 @@
+× Invalid character '8' in octal integer:
+  ╭─[src/test/resources/test-cases/v2/input/illegal_char_in_octal_fail.kdl:1:12]
+1 │ node 0o45678
+  ·            ┬
+  ·            ╰ octal digit expected
+  ╰─

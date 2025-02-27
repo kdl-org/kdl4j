@@ -1,0 +1,7 @@
+× Keyword used as identifier:
+  ╭─[src/test/resources/test-cases/v2/input/null_prop_key_fail.kdl:1:6]
+1 │ node null=1
+  ·      ─┬──
+  ·       ╰ invalid identifier
+  ╰─
+help: for the corresponding keyword use '#' (#null), for an identifier use quotes ("null")

@@ -1,0 +1,7 @@
+× Semi-colon expected between nodes on the same line:
+  ╭─[src/test/resources/test-cases/v2/input/zero_space_before_second_arg_fail.kdl:1:14]
+1 │ node "string"1
+  ·              ┬
+  ·              ╰ semi-colon expected
+  ╰─
+help: nodes need to be separated by a semi-colon or a newline character

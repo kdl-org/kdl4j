@@ -1,0 +1,6 @@
+× Missing type name in type annotation:
+  ╭─[src/test/resources/test-cases/v2/input/just_space_in_prop_type_fail.kdl:1:11]
+1 │ node key=( )0x10
+  ·           ┬
+  ·           ╰ string expected
+  ╰─

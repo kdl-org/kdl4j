@@ -1,0 +1,7 @@
+× Invalid Unicode escape:
+  ╭─[src/test/resources/test-cases/v2/input/unicode_escaped_h2_fail.kdl:1:23]
+1 │ no "Surrogates high\u{D911}"
+  ·                       ─┬──
+  ·                        ╰ invalid Unicode scalar
+  ╰─
+help: a Unicode escape must contain a valid Unicode scalar value in hexadecimal characters

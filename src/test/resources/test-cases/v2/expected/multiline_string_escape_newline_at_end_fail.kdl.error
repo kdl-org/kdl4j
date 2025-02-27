@@ -1,0 +1,9 @@
+× Invalid indentation in multi-line string:
+  ╭─[src/test/resources/test-cases/v2/input/multiline_string_escape_newline_at_end_fail.kdl:2:1]
+1 │ node """
+2 │ a
+  · ┬
+  · ╰ indentation does not match last line
+3 │    \
+4 │ """
+  ╰─

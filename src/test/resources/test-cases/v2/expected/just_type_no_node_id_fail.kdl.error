@@ -1,0 +1,6 @@
+× Missing node name after node type:
+  ╭─[src/test/resources/test-cases/v2/input/just_type_no_node_id_fail.kdl:1:7]
+1 │ (type)
+  ·       ┬
+  ·       ╰ string expected
+  ╰─

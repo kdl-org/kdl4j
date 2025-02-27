@@ -1,0 +1,6 @@
+× Invalid character 'g' in integer:
+  ╭─[src/test/resources/test-cases/v2/input/illegal_char_in_hex_fail.kdl:1:10]
+1 │ node 0x10g10
+  ·          ┬
+  ·          ╰ digit expected
+  ╰─

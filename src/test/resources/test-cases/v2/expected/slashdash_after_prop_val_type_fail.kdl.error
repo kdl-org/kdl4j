@@ -1,0 +1,6 @@
+× Missing property value:
+  ╭─[src/test/resources/test-cases/v2/input/slashdash_after_prop_val_type_fail.kdl:1:14]
+1 │ node key=(ty)/-val other-arg
+  ·              ┬─
+  ·              ╰ value expected
+  ╰─

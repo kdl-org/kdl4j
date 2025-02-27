@@ -1,0 +1,7 @@
+× Unexpected new line in string:
+  ╭─[src/test/resources/test-cases/v2/input/multiline_string_single_quote_err_fail.kdl:1:7]
+1 │ node "
+  ·       ┬
+  ·       ╰ new line
+  ╰─
+help: escape it or use a multi-line string

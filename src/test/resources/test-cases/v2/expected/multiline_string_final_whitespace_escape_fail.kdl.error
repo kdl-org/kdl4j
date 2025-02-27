@@ -1,0 +1,10 @@
+× Unexpected character in last line of multi-line string:
+  ╭─[src/test/resources/test-cases/v2/input/multiline_string_final_whitespace_escape_fail.kdl:4:3]
+1 │ node """
+2 │   foo
+3 │   bar\
+4 │   """
+  ·   ┬
+  ·   ╰ unexpected character
+  ╰─
+help: the last line of a multi-line string must only contain whitespaces

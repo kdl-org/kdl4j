@@ -1,0 +1,7 @@
+× Invalid Unicode escape:
+  ╭─[src/test/resources/test-cases/v2/input/unicode_escaped_above_max_fail.kdl:1:56]
+1 │ no "Higher than max Unicode Scalar Value \u{10FFFF} \u{11FFFF}"
+  ·                                                        ──┬───
+  ·                                   invalid Unicode scalar ╯
+  ╰─
+help: a Unicode escape must contain a valid Unicode scalar value in hexadecimal characters

@@ -1,0 +1,6 @@
+× Unexpected character after '/':
+  ╭─[src/test/resources/test-cases/v2/input/slash_in_bare_id_fail.kdl:1:8]
+1 │ foo123/bar weeee
+  ·        ┬
+  ·        ╰ '/', '*', or '-' expected here
+  ╰─

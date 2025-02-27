@@ -1,0 +1,6 @@
+× Invalid character '#' in identifier:
+  ╭─[src/test/resources/test-cases/v2/input/legacy_raw_string_hash_fail.kdl:1:7]
+1 │ node r#"foo"#
+  ·       ┬
+  ·       ╰ unexpected character
+  ╰─

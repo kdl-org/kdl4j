@@ -1,0 +1,7 @@
+× Unexpected byte-order mark after start:
+  ╭─[src/test/resources/test-cases/v2/input/bom_later_fail.kdl:1:6]
+1 │ node ﻿arg
+  ·      ┬
+  ·      ╰ byte-order mark
+  ╰─
+help: byte-order mark can only appear as the first character of the document

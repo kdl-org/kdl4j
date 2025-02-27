@@ -1,0 +1,7 @@
+× Keyword used as identifier:
+  ╭─[src/test/resources/test-cases/v2/input/floating_point_keyword_identifier_strings_fail.kdl:1:8]
+1 │ floats inf -inf nan
+  ·        ─┬─
+  ·         ╰ invalid identifier
+  ╰─
+help: for the corresponding keyword use '#' (#inf), for an identifier use quotes ("inf")

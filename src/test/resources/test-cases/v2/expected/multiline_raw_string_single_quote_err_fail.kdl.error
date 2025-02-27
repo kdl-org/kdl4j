@@ -1,0 +1,6 @@
+× Unexpected new line in raw string:
+  ╭─[src/test/resources/test-cases/v2/input/multiline_raw_string_single_quote_err_fail.kdl:1:8]
+1 │ node #"
+  ·        ┬
+  ·        ╰ new line
+  ╰─

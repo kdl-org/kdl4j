@@ -1,0 +1,6 @@
+× Invalid character 'e' in number:
+  ╭─[src/test/resources/test-cases/v2/input/multiple_es_in_float_fail.kdl:1:12]
+1 │ node 1.0E10e10
+  ·            ┬
+  ·            ╰ digit expected
+  ╰─

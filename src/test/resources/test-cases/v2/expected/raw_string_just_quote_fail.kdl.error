@@ -1,0 +1,6 @@
+× Newline required after opening quotes in multi-line raw string:
+  ╭─[src/test/resources/test-cases/v2/input/raw_string_just_quote_fail.kdl:2:10]
+2 │ node #"""#
+  ·          ┬
+  ·          ╰ new-line expected
+  ╰─

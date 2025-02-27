@@ -1,0 +1,6 @@
+× Invalid character 'e' in number after decimal separator:
+  ╭─[src/test/resources/test-cases/v2/input/dot_but_no_fraction_before_exponent_fail.kdl:1:8]
+1 │ node 1.e7
+  ·        ┬
+  ·        ╰ digit expected
+  ╰─

@@ -1,0 +1,10 @@
+× Invalid indentation in multi-line string:
+  ╭─[src/test/resources/test-cases/v2/input/multiline_raw_string_non_matching_prefix_character_error_fail.kdl:4:1]
+1 │ node #"""
+2 │     hey
+3 │    everyone
+4 │ 	   how goes?
+  · ─┬──
+  ·  ╰ indentation does not match last line
+5 │   """#
+  ╰─

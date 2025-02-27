@@ -1,0 +1,7 @@
+× Keyword used as identifier:
+  ╭─[src/test/resources/test-cases/v2/input/false_prop_key_fail.kdl:1:6]
+1 │ node false=1
+  ·      ──┬──
+  ·        ╰ invalid identifier
+  ╰─
+help: for the corresponding keyword use '#' (#false), for an identifier use quotes ("false")

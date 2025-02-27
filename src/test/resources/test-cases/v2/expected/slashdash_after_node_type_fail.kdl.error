@@ -1,0 +1,6 @@
+× Missing node name after node type:
+  ╭─[src/test/resources/test-cases/v2/input/slashdash_after_node_type_fail.kdl:1:5]
+1 │ (ty)/-node
+  ·     ┬─
+  ·     ╰ string expected
+  ╰─

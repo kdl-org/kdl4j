@@ -1,0 +1,6 @@
+× Invalid character 'n' in number:
+  ╭─[src/test/resources/test-cases/v2/input/bare_ident_numeric_fail.kdl:1:7]
+1 │ node 0n
+  ·       ┬
+  ·       ╰ digit expected
+  ╰─

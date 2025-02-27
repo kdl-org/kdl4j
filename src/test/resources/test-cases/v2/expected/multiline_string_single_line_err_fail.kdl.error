@@ -1,0 +1,6 @@
+× Missing newline at start of multi-line string:
+  ╭─[src/test/resources/test-cases/v2/input/multiline_string_single_line_err_fail.kdl:1:9]
+1 │ node """one line"""
+  ·         ┬
+  ·         ╰ newline expected
+  ╰─

@@ -1,0 +1,6 @@
+× More than one list of children provided for node:
+  ╭─[src/test/resources/test-cases/v2/input/slashdash_between_child_blocks_fail.kdl:1:25]
+1 │ node { one } /- { two } { three }
+  ·                         ┬
+  ·    second children list ╯
+  ╰─

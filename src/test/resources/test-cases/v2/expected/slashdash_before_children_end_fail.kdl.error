@@ -1,0 +1,7 @@
+× Valid node expected after slashdash:
+  ╭─[src/test/resources/test-cases/v2/input/slashdash_before_children_end_fail.kdl:4:1]
+3 │     /-
+4 │ }
+  · ┬
+  · ╰ node expected
+  ╰─

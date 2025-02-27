@@ -1,0 +1,7 @@
+× Invalid Unicode escape:
+  ╭─[src/test/resources/test-cases/v2/input/unicode_escaped_too_long_lead0_fail.kdl:1:64]
+1 │ no "Even with leading 0s Unicode Scalar Value escapes must ≤6: \u{0012345}"
+  ·                                                                ─────┬─────
+  ·                                              invalid Unicode escape ╯
+  ╰─
+help: a unicode escape must have between 1 and 6 hexadecimal digits

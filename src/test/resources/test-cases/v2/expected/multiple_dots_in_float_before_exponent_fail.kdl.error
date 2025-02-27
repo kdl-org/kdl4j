@@ -1,0 +1,6 @@
+× Invalid character '.' in number:
+  ╭─[src/test/resources/test-cases/v2/input/multiple_dots_in_float_before_exponent_fail.kdl:1:9]
+1 │ node 1.0.0e7
+  ·         ┬
+  ·         ╰ digit expected
+  ╰─

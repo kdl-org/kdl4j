@@ -1,0 +1,6 @@
+× Invalid character '#' in identifier:
+  ╭─[src/test/resources/test-cases/v2/input/hash_in_id_fail.kdl:1:4]
+1 │ foo#bar weee
+  ·    ┬
+  ·    ╰ unexpected character
+  ╰─

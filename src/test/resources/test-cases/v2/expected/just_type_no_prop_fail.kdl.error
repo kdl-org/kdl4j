@@ -1,0 +1,6 @@
+× Missing property value:
+  ╭─[src/test/resources/test-cases/v2/input/just_type_no_prop_fail.kdl:1:16]
+1 │ node key=(type)
+  ·                ┬
+  ·                ╰ value expected
+  ╰─

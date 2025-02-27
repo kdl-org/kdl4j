@@ -1,0 +1,7 @@
+× Missing closing brace at the end of children list:
+  ╭─[src/test/resources/test-cases/v2/input/unterminated_empty_node_fail.kdl:2:1]
+1 │ node {
+2 │
+  · ┬
+  · ╰ closing brace expected
+  ╰─

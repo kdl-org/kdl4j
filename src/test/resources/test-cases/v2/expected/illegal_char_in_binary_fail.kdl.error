@@ -1,0 +1,6 @@
+× Integer must start with a digit:
+  ╭─[src/test/resources/test-cases/v2/input/illegal_char_in_binary_fail.kdl:1:8]
+1 │ node 0bx01
+  ·        ┬
+  ·        ╰ digit expected here
+  ╰─

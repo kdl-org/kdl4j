@@ -1,0 +1,7 @@
+× Semi-colon expected between nodes on the same line:
+  ╭─[src/test/resources/test-cases/v2/input/type_before_prop_key_fail.kdl:1:15]
+1 │ node (type)key=10
+  ·               ┬
+  ·               ╰ semi-colon expected
+  ╰─
+help: nodes need to be separated by a semi-colon or a newline character

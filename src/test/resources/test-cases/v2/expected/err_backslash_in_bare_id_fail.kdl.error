@@ -1,0 +1,7 @@
+× Unexpected character in line continuation:
+  ╭─[src/test/resources/test-cases/v2/input/err_backslash_in_bare_id_fail.kdl:1:8]
+1 │ foo123\bar weeee
+  ·        ┬
+  ·        ╰ unexpected character
+  ╰─
+help: a line continuation can only contain whitespaces or comments

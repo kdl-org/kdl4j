@@ -1,0 +1,7 @@
+× Semi-colon expected between nodes on the same line:
+  ╭─[src/test/resources/test-cases/v2/input/zero_space_before_prop_fail.kdl:1:17]
+1 │ node foo="value"bar=5
+  ·                 ┬
+  ·                 ╰ semi-colon expected
+  ╰─
+help: nodes need to be separated by a semi-colon or a newline character

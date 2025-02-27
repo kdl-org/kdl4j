@@ -1,0 +1,6 @@
+× Invalid character '"' in identifier:
+  ╭─[src/test/resources/test-cases/v2/input/zero_space_before_first_arg_fail.kdl:1:5]
+1 │ node"string"
+  ·     ┬
+  ·     ╰ unexpected character
+  ╰─

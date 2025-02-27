@@ -1,0 +1,6 @@
+× Missing type name in type annotation:
+  ╭─[src/test/resources/test-cases/v2/input/empty_arg_type_fail.kdl:1:7]
+1 │ node ()10
+  ·       ┬
+  ·       ╰ string expected
+  ╰─

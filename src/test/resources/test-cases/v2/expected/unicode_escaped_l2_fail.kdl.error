@@ -1,0 +1,7 @@
+× Invalid Unicode escape:
+  ╭─[src/test/resources/test-cases/v2/input/unicode_escaped_l2_fail.kdl:1:22]
+1 │ no "Surrogates low\u{DEAD}"
+  ·                      ─┬──
+  ·                       ╰ invalid Unicode scalar
+  ╰─
+help: a Unicode escape must contain a valid Unicode scalar value in hexadecimal characters

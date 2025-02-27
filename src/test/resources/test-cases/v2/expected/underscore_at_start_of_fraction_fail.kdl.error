@@ -1,0 +1,6 @@
+× Invalid character '_' in number after decimal separator:
+  ╭─[src/test/resources/test-cases/v2/input/underscore_at_start_of_fraction_fail.kdl:1:8]
+1 │ node 1._7
+  ·        ┬
+  ·        ╰ digit expected
+  ╰─

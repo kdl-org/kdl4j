@@ -1,0 +1,6 @@
+× Integer must start with a digit:
+  ╭─[src/test/resources/test-cases/v2/input/underscore_at_start_of_hex_fail.kdl:1:8]
+1 │ node 0x_10
+  ·        ┬
+  ·        ╰ digit expected here
+  ╰─
