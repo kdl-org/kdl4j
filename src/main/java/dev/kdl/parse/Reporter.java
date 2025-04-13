@@ -83,15 +83,15 @@ public class Reporter {
 	}
 
 	private void printUnderline(SourceLine line, Span span) {
+		boolean isSpanStartLine = span.start().line() == line.lineNumber();
+		var start = isSpanStartLine ? span.start().column() : 1;
 		if (span.start().line() <= line.lineNumber() && span.end().line() > line.lineNumber()) {
-			var start = span.start().line() == line.lineNumber() ? span.start().column() : 1;
 			var end = line.line().length();
 			println();
 			printMargin("· ");
 			print(" ".repeat(start - 1));
 			printArrow("─".repeat(end - start + 1));
 		} else if (span.end().line() == line.lineNumber()) {
-			var start = span.start().line() == line.lineNumber() ? span.start().column() : 1;
 			var end = span.end().column();
 			var verticalBarColumn = start + (end - start) / 2;
 			println();

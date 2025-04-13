@@ -54,7 +54,7 @@ class SourceLinesTest {
 		}
 
 		@Test
-		@DisplayName("returl lines from 1 when startLine is 0")
+		@DisplayName("return lines from 1 when startLine is 0")
 		void invalidStartLine() {
 			var sourceLines = new SourceLines();
 			addLine(sourceLines, "line 1");

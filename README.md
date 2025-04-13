@@ -77,6 +77,6 @@ Any of these can be changed by creating a `PrintConfiguration` and passing it to
 Please read the Code of Conduct before opening any issues or pull requests.
 
 Besides code fixes, the easiest way to contribute is by generating test cases. Check out
-[the test cases directory](src/test/resources/test_cases) to see the
+[the test cases directory](src/test/resources/test-cases) to see the
 existing ones.
 See the README there for more details.

@@ -44,8 +44,8 @@ comfort and safety of its members.
 
 ## Further Enforcement
 
-If you've already followed the [initial enforcement steps](#enforcement), these are the steps maintainers will take for
-further enforcement, as needed:
+If you've already followed the [initial enforcement steps](#when-something-happens), these are the steps maintainers
+will take for further enforcement, as needed:
 
 1. Repeat the request to stop.
 2. If the person doubles down, they will have offending messages removed or edited by a maintainers given an official
@@ -69,7 +69,7 @@ permanent repercussions as determined by other members of the project's leadersh
 removal from the maintainer team to a permanent ban from the community.
 
 Additionally, as a project hosted on both
-GitHub, [their Community Guidielines may be applied to maintainers of this project](https://help.github.com/articles/github-community-guidelines/),
+GitHub, [their Community Guidelines may be applied to maintainers of this project](https://help.github.com/articles/github-community-guidelines/),
 externally of this project's procedures.
 
 ## Enforcement Examples
@@ -104,8 +104,8 @@ who were harmed by something **will take priority**.
 > Patt: "Leave me alone I haven't said anything bad wtf is wrong with you."
 
 > KeeperOfCommitBits: (deletes user's comment), "@patt I mean it. Please refer to the CoC over at (URL to this CoC) if
-> you have questions, but you can consider this an actual warning. I'd appreciate it if you reworded your messages in this
-> thread, since they made folks there uncomfortable. Let's try and be kind, yeah?"
+> you have questions, but you can consider this an actual warning. I'd appreciate it if you reworded your messages in
+> this thread, since they made folks there uncomfortable. Let's try and be kind, yeah?"
 
 > Patt: "@keeperofbits Okay sorry. I'm just frustrated and I'm kinda burnt out and I guess I got carried away. I'll DM
 > Alex a note apologizing and edit my messages. Sorry for the trouble."

@@ -36,7 +36,7 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 	}
 
 	/**
-	 * Retrieves all the values of a property. Rerturns an empty list if the property is missing.
+	 * Retrieves all the values of a property. Returns an empty list if the property is missing.
 	 *
 	 * @param property the name of the property to retrieve
 	 * @return a list containing all the values of the property
