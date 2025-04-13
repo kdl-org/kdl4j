@@ -62,7 +62,7 @@ class KdlReaderTest {
 		@Test
 		@DisplayName("throw a KdlReadException when the input stream contains an invalid 1-byte UTF-8 codepoint")
 		void invalidOneByteCodepoint() {
-			var reader = new TestKdlReader(new ByteArrayInputStream(new byte[]{-128}), 1);
+			var reader = reader(new ByteArrayInputStream(new byte[]{-128}), 1);
 
 			assertThatThrownBy(reader::read)
 				.isInstanceOf(KdlReadException.class)
@@ -72,7 +72,7 @@ class KdlReaderTest {
 		@Test
 		@DisplayName("throw a KdlReadException when the input stream contains an invalid 2-bytes UTF-8 codepoints")
 		void invalidTowBytesCodepoint() {
-			var reader = new TestKdlReader(new ByteArrayInputStream(new byte[]{-64, 0}), 1);
+			var reader = reader(new ByteArrayInputStream(new byte[]{-64, 0}), 1);
 
 			assertThatThrownBy(reader::read)
 				.isInstanceOf(KdlReadException.class)
@@ -82,7 +82,7 @@ class KdlReaderTest {
 		@Test
 		@DisplayName("throw a KdlReadException when the input stream contains an invalid 3-bytes UTF-8 codepoints")
 		void invalidThreeBytesCodepoint() {
-			var reader = new TestKdlReader(new ByteArrayInputStream(new byte[]{-32, 0, 0}), 1);
+			var reader = reader(new ByteArrayInputStream(new byte[]{-32, 0, 0}), 1);
 
 			assertThatThrownBy(reader::read)
 				.isInstanceOf(KdlReadException.class)
@@ -92,7 +92,7 @@ class KdlReaderTest {
 		@Test
 		@DisplayName("throw a KdlReadException when the input stream contains an invalid 4-bytes UTF-8 codepoints")
 		void invalidFourBytesCodepoint() {
-			var reader = new TestKdlReader(new ByteArrayInputStream(new byte[]{-16, 0, 0, 0}), 1);
+			var reader = reader(new ByteArrayInputStream(new byte[]{-16, 0, 0, 0}), 1);
 
 			assertThatThrownBy(reader::read)
 				.isInstanceOf(KdlReadException.class)
@@ -102,7 +102,7 @@ class KdlReaderTest {
 		@Test
 		@DisplayName("throw a KdlReadException when the input stream contains a UTF-8 codepoint that is invalid in a KDL document")
 		void invalidKdlCodepoint() {
-			var reader = new TestKdlReader(new ByteArrayInputStream(new byte[]{0}), 1);
+			var reader = reader(new ByteArrayInputStream(new byte[]{0}), 1);
 
 			assertThatThrownBy(reader::read)
 				.isInstanceOf(KdlReadException.class)
@@ -218,22 +218,15 @@ class KdlReaderTest {
 
 	}
 
-	TestKdlReader reader(String string) {
+	KdlReader reader(String string) {
 		return reader(string, 1);
 	}
 
-	TestKdlReader reader(String string, int capacity) {
-		return new TestKdlReader(new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8)), capacity);
+	KdlReader reader(String string, int capacity) {
+		return reader(new ByteArrayInputStream(string.getBytes(StandardCharsets.UTF_8)), capacity);
 	}
 
-	static class TestKdlReader extends KdlReader {
-		public TestKdlReader(InputStream inputStream, int capacity) {
-			super(inputStream, capacity);
-		}
-
-		@Override
-		protected boolean isInvalid(int codepoint) {
-			return codepoint <= 0x08;
-		}
+	KdlReader reader(InputStream inputStream, int capacity) {
+		return new KdlReader(inputStream, capacity, (c) -> c <= 0x08);
 	}
 }

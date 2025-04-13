@@ -14,9 +14,9 @@ import java.io.Writer;
 import java.util.List;
 import java.util.stream.IntStream;
 
-import static dev.kdl.parse.lexer.token.Number.isSign;
-import static dev.kdl.parse.lexer.token.StringToken.IdentifierString.isIdentifierChar;
-import static dev.kdl.parse.lexer.token.StringToken.IdentifierString.isUnambiguousIdentifierChar;
+import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isIdentifierChar;
+import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isUnambiguousIdentifierChar;
+import static dev.kdl.parse.lexer.helper.KdlCharHelper.isSign;
 
 public class Kdl2PrinterContext extends KdlPrinterContext {
 	Kdl2PrinterContext(Writer writer, KdlPrinterConfiguration configuration) {

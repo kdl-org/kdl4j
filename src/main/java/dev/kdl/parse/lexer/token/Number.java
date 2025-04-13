@@ -121,23 +121,4 @@ public interface Number extends Token {
 		}
 	}
 
-	static boolean isDecimalDigit(int c) {
-		return c >= '0' && c <= '9';
-	}
-
-	static boolean isHexadecimalDigit(int c) {
-		return isDecimalDigit(c) || c >= 'a' && c <= 'f' || c >= 'A' && c <= 'F';
-	}
-
-	static boolean isOctalDigit(int c) {
-		return c >= '0' && c <= '7';
-	}
-
-	static boolean isBinaryDigit(int c) {
-		return c == '0' || c == '1';
-	}
-
-	static boolean isSign(int c) {
-		return c == '-' || c == '+';
-	}
 }

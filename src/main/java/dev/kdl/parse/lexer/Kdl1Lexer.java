@@ -4,41 +4,36 @@ import dev.kdl.parse.KdlParseException;
 import dev.kdl.parse.context.Position;
 import dev.kdl.parse.context.Span;
 import dev.kdl.parse.lexer.helper.IntegerBase;
-import dev.kdl.parse.lexer.helper.Kdl2CharHelper;
+import dev.kdl.parse.lexer.helper.Kdl1CharHelper;
 import dev.kdl.parse.lexer.helper.KdlCharHelper;
 import dev.kdl.parse.lexer.reader.KdlReader;
+import dev.kdl.parse.lexer.token.BareIdentifier;
 import dev.kdl.parse.lexer.token.Boolean;
-import dev.kdl.parse.lexer.token.Brace.ClosingBrace;
-import dev.kdl.parse.lexer.token.Brace.OpeningBrace;
-import dev.kdl.parse.lexer.token.ByteOrderMark;
+import dev.kdl.parse.lexer.token.Brace;
 import dev.kdl.parse.lexer.token.EqualsSign;
+import dev.kdl.parse.lexer.token.LineContinuation;
 import dev.kdl.parse.lexer.token.Newline;
-import dev.kdl.parse.lexer.token.NodeSpace;
 import dev.kdl.parse.lexer.token.Null;
 import dev.kdl.parse.lexer.token.Number;
-import dev.kdl.parse.lexer.token.Parentheses.ClosingParentheses;
-import dev.kdl.parse.lexer.token.Parentheses.OpeningParentheses;
+import dev.kdl.parse.lexer.token.Parentheses;
 import dev.kdl.parse.lexer.token.Semicolon;
 import dev.kdl.parse.lexer.token.SingleLineComment;
 import dev.kdl.parse.lexer.token.Slashdash;
 import dev.kdl.parse.lexer.token.StringToken;
 import dev.kdl.parse.lexer.token.Token;
+import dev.kdl.parse.lexer.token.Whitespace;
 import jakarta.annotation.Nonnull;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isDisallowedIdentifier;
-import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isIdentifierChar;
-import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isNewline;
-import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isUnambiguousIdentifierChar;
-import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isWhitespace;
+import static dev.kdl.parse.lexer.helper.Kdl1CharHelper.isIdentifierChar;
+import static dev.kdl.parse.lexer.helper.Kdl1CharHelper.isNewline;
+import static dev.kdl.parse.lexer.helper.Kdl1CharHelper.isWhitespace;
 import static dev.kdl.parse.lexer.helper.KdlCharHelper.CR;
 import static dev.kdl.parse.lexer.helper.KdlCharHelper.LF;
 import static dev.kdl.parse.lexer.helper.KdlCharHelper.isDecimalDigit;
@@ -48,10 +43,10 @@ import static dev.kdl.parse.lexer.helper.KdlCharHelper.isUnicodeScalarValue;
 import static dev.kdl.parse.lexer.reader.KdlReader.EOF;
 import static java.util.function.Predicate.not;
 
-public class Kdl2Lexer extends AbstractKdlLexer {
+public class Kdl1Lexer extends AbstractKdlLexer {
 
-	public Kdl2Lexer(@Nonnull String filename, @Nonnull InputStream inputStream, int capacity) {
-		super(filename, new KdlReader(inputStream, READER_CAPACITY, Kdl2Lexer::isInvalid), capacity);
+	public Kdl1Lexer(@Nonnull String filename, @Nonnull InputStream inputStream, int capacity) {
+		super(filename, new KdlReader(inputStream, READER_CAPACITY, (c) -> c <= 0x08), capacity);
 	}
 
 	@Override
@@ -61,18 +56,16 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		switch (c) {
 			case EOF:
 				return null;
-			case ByteOrderMark.VALUE:
-				return consumeAndCreate(ByteOrderMark::new);
 			case '=':
 				return consumeAndCreate(EqualsSign::new);
 			case '(':
-				return consumeAndCreate(OpeningParentheses::new);
+				return consumeAndCreate(Parentheses.OpeningParentheses::new);
 			case ')':
-				return consumeAndCreate(ClosingParentheses::new);
+				return consumeAndCreate(Parentheses.ClosingParentheses::new);
 			case '{':
-				return consumeAndCreate(OpeningBrace::new);
+				return consumeAndCreate(Brace.OpeningBrace::new);
 			case '}':
-				return consumeAndCreate(ClosingBrace::new);
+				return consumeAndCreate(Brace.ClosingBrace::new);
 			case ';':
 				return consumeAndCreate(Semicolon::new);
 			case '/': {
@@ -80,7 +73,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 				if (second == '/') {
 					return singleLineComment();
 				} else if (second == '*') {
-					return nodeSpace();
+					return whitespace();
 				} else if (second == '-') {
 					return slashdash();
 				}
@@ -93,33 +86,25 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 			}
 			case '"':
 				return quotedString();
-			case '#': {
+			case 'r': {
 				var second = peekChar(1);
-				return second == '#' || second == '"'
-					? rawString()
-					: keyword();
+				if (second == '"' || second == '#') {
+					return rawString();
+				}
+				return bareIdentifier();
 			}
 			case '\\':
-				return nodeSpace();
+				return lineContinuation();
 		}
 
 		if (isNewline(c)) {
 			return newline();
 		} else if (isWhitespace(c)) {
-			return nodeSpace();
+			return whitespace();
 		} else if (isDecimalDigit(c) || isSign(c) && isDecimalDigit(peekChar(1))) {
 			return number();
-		} else if (isIdentifierString()) {
-			return identifierString();
-		}
-
-		if (c == '.') {
-			throw new KdlParseException(
-				"Number or identifier cannot start with '.'",
-				getErrorParseContext(Span.of(sourceLines.getNextPosition())),
-				"invalid character",
-				"for a number add a zero before '.', for an identifier use quotes"
-			);
+		} else if (isBareIdentifier()) {
+			return bareIdentifier();
 		}
 
 		throw new KdlParseException(
@@ -153,16 +138,16 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 	}
 
 	@Nonnull
-	private NodeSpace nodeSpace() throws IOException, KdlParseException {
+	private Whitespace whitespace() throws IOException, KdlParseException {
 		var builder = new StringBuilder();
 		var start = sourceLines.getNextPosition();
 
-		nodeSpace(builder);
+		whitespace(builder);
 
-		return new NodeSpace(builder.toString(), new Span(start, sourceLines.getCurrentPosition()));
+		return new Whitespace(builder.toString(), new Span(start, sourceLines.getCurrentPosition()));
 	}
 
-	private boolean nodeSpace(StringBuilder builder) throws IOException, KdlParseException {
+	private boolean whitespace(StringBuilder builder) throws IOException, KdlParseException {
 		boolean hasReadCharacters = false;
 
 		while (true) {
@@ -171,10 +156,8 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 			if (isWhitespace(c)) {
 				hasReadCharacters = true;
 				builder.appendCodePoint(readChar());
-			} else if (c == '\\') {
-				hasReadCharacters = true;
-				lineContinuation(builder);
 			} else if (c == '/' && peekChar(1) == '*') {
+				hasReadCharacters = true;
 				multilineComment(builder);
 			} else {
 				break;
@@ -182,6 +165,16 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 
 		return hasReadCharacters;
+	}
+
+	@Nonnull
+	private LineContinuation lineContinuation() throws IOException, KdlParseException {
+		var builder = new StringBuilder();
+		var start = sourceLines.getNextPosition();
+
+		lineContinuation(builder);
+
+		return new LineContinuation(builder.toString(), new Span(start, sourceLines.getCurrentPosition()));
 	}
 
 	private void lineContinuation(StringBuilder builder) throws IOException, KdlParseException {
@@ -293,21 +286,9 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		consumeChar(2);
 
 		while (true) {
-			if (!nodeSpace(builder)) {
-				var c = peekChar(0);
-				if (isNewline(c)) {
-					newline(builder);
-				} else if (c == '/') {
-					var c2 = peekChar(1);
-					if (c2 != '/') {
-						consumeChar();
-						throw new KdlParseException(
-							"Unexpected character after '/'",
-							getErrorParseContext(Span.of(sourceLines.getNextPosition())),
-							"'/' or '*' expected here"
-						);
-					}
-					singleLineComment(builder);
+			if (!whitespace(builder)) {
+				if (peekChar() == '\\') {
+					lineContinuation(builder);
 				} else {
 					break;
 				}
@@ -319,146 +300,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 
 	@Nonnull
 	private StringToken quotedString() throws IOException, KdlParseException {
-		if (peekChar(1) == '"') {
-			if (peekChar(2) == '"') {
-				return multiLineQuotedString();
-			}
-		}
-		return singleLineQuotedString();
-	}
-
-	@Nonnull
-	private StringToken multiLineQuotedString() throws IOException, KdlParseException {
-		var start = sourceLines.getNextPosition();
-		consumeChar(3);
-		expectNewLine();
-
-		var lines = new ArrayList<MultilineStringLine>();
-
-		while (true) {
-			var prefix = readPrefix();
-			var content = new StringBuilder();
-			if (readContent(start.line(), content)) {
-				lines.add(new MultilineStringLine(prefix, content.toString()));
-			} else {
-				if (!content.isEmpty()) {
-					int line = sourceLines.getCurrentPosition().line();
-					throw new KdlParseException(
-						"Unexpected character in last line of multi-line string",
-						getErrorParseContext(start.line(), line, Span.of(line, prefix.length() + 1)),
-						"unexpected character",
-						"the last line of a multi-line string must only contain whitespaces"
-					);
-				}
-				var span = new Span(start, sourceLines.getCurrentPosition());
-				return new StringToken(getMultilineStringValue(prefix, lines, span), span);
-			}
-		}
-	}
-
-	private String readPrefix() throws IOException {
-		var prefix = new StringBuilder();
-
-		while (true) {
-			var c = peekChar();
-			if (!isWhitespace(c)) {
-				break;
-			}
-			prefix.appendCodePoint(readChar());
-		}
-		return prefix.toString();
-	}
-
-	private boolean readContent(int startLine, StringBuilder content) throws IOException, KdlParseException {
-		while (true) {
-			var c = peekChar();
-			if (c == EOF) {
-				var nextPosition = sourceLines.getNextPosition();
-				throw new KdlParseException(
-					"Unexpected end of file in string",
-					getErrorParseContext(startLine, nextPosition.line(), Span.of(nextPosition)),
-					"end of file"
-				);
-			} else if (c == '"') {
-				consumeChar();
-				if (peekChar(0) == '"') {
-					if (peekChar(1) == '"') {
-						consumeChar(2);
-						return false;
-					}
-				}
-				content.append('"');
-			} else if (isNewline(c)) {
-				consumeNewLine();
-				return true;
-			} else {
-				stringCharacter(content);
-			}
-		}
-	}
-
-	@Nonnull
-	private String getMultilineStringValue(@Nonnull String lastLinePrefix, @Nonnull List<MultilineStringLine> lines, @Nonnull Span span) throws IOException, KdlParseException {
-		var builder = new StringBuilder();
-
-		for (var i = 0; i < lines.size(); i++) {
-			builder.append(removeIndent(span, lastLinePrefix, span.start().line() + i + 1, lines.get(i)));
-			if (i < lines.size() - 1) {
-				builder.append('\n');
-			}
-		}
-
-		return builder.toString();
-	}
-
-	@Nonnull
-	private String removeIndent(@Nonnull Span span, @Nonnull String lastLinePrefix, int lineNumber, @Nonnull MultilineStringLine line) throws IOException, KdlParseException {
-		if (line.content.isEmpty()) {
-			return "";
-		}
-
-		if (!line.prefix.startsWith(lastLinePrefix)) {
-			var errorSpan = new Span(new Position(lineNumber, 1), new Position(lineNumber, Math.max(1, line.prefix.length())));
-			throw new KdlParseException(
-				"Invalid indentation in multi-line string",
-				getErrorParseContext(span.start().line(), span.end().line(), errorSpan),
-				"indentation does not match last line"
-			);
-		}
-
-		return line.prefix.length() > lastLinePrefix.length()
-			? line.prefix.substring(lastLinePrefix.length()) + line.content
-			: line.content;
-	}
-
-	private void expectNewLine() throws IOException, KdlParseException {
-		if (!isNewline(peekChar())) {
-			throw new KdlParseException(
-				"Missing newline at start of multi-line string",
-				getErrorParseContext(Span.of(sourceLines.getNextPosition())),
-				"newline expected"
-			);
-		}
-		consumeNewLine();
-	}
-
-	private void consumeNewLine() throws IOException {
-		if (readChar() == CR && peekChar() == LF) {
-			consumeChar();
-		}
-		sourceLines.newline();
-	}
-
-	private boolean isWhitespaces(@Nonnull String line) {
-		return line.chars().allMatch(Kdl2CharHelper::isWhitespace);
-	}
-
-	private int countSpaces(String line) {
-		return (int) line.chars().takeWhile(Kdl2CharHelper::isWhitespace).count();
-	}
-
-	@Nonnull
-	private StringToken singleLineQuotedString() throws IOException, KdlParseException {
 		var builder = new StringBuilder();
 		var start = sourceLines.getNextPosition();
 		consumeChar();
@@ -474,28 +315,20 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 			} else if (c == '"') {
 				consumeChar();
 				break;
-			} else if (isNewline(c)) {
-				throw new KdlParseException(
-					"Unexpected new line in string",
-					getErrorParseContext(Span.of(sourceLines.getNextPosition())),
-					"new line",
-					"escape it or use a multi-line string"
-				);
 			} else {
-				stringCharacter(builder);
+				consumeChar();
+				if (c == '\\') {
+					escapedCharacter(builder);
+				} else {
+					builder.appendCodePoint(c);
+					if (isNewline(c)) {
+						sourceLines.newline();
+					}
+				}
 			}
 		}
 
 		return new StringToken(builder.toString(), new Span(start, sourceLines.getCurrentPosition()));
-	}
-
-	private void stringCharacter(@Nonnull StringBuilder builder) throws IOException, KdlParseException {
-		var c = readChar();
-		if (c == '\\') {
-			escapedCharacter(builder);
-		} else {
-			builder.appendCodePoint(c);
-		}
 	}
 
 	private void escapedCharacter(@Nonnull StringBuilder builder) throws IOException, KdlParseException {
@@ -507,8 +340,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		} else if (c == 'u') {
 			consumeChar();
 			builder.appendCodePoint(unicodeEscape());
-		} else if (isWhitespace(c) || isNewline(c)) {
-			whitespaceEscape();
 		} else {
 			throw new KdlParseException(
 				"Invalid escaped character '" + (char) c + "'",
@@ -576,27 +407,11 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return codePoint;
 	}
 
-	private void whitespaceEscape() throws IOException {
-		while (true) {
-			var c = peekChar();
-			if (!isWhitespace(c) && !isNewline(c)) {
-				return;
-			}
-
-			consumeChar();
-
-			if (isNewline(c)) {
-				if (c == CR && peekChar() == LF) {
-					consumeChar();
-				}
-				sourceLines.newline();
-			}
-		}
-	}
-
 	@Nonnull
 	private StringToken rawString() throws IOException, KdlParseException {
+		var builder = new StringBuilder();
 		var start = sourceLines.getNextPosition();
+		consumeChar();
 		var openingSharpSigns = 0;
 		while (peekChar() == '#') {
 			consumeChar();
@@ -611,115 +426,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 			);
 		}
 
-		if (peekChar(0) == '"') {
-			if (peekChar(1) == '"') {
-				if (!isNewline(peekChar(2))) {
-					consumeChar(2);
-					throw new KdlParseException(
-						"Newline required after opening quotes in multi-line raw string",
-						getErrorParseContext(Span.of(sourceLines.getNextPosition())),
-						"new-line expected"
-					);
-				}
-				return multiLineRawString(start, openingSharpSigns);
-			}
-		}
-
-		return singleLineRawString(start, openingSharpSigns);
-	}
-
-	@Nonnull
-	private StringToken multiLineRawString(@Nonnull Position start, int openingSharpSigns) throws IOException, KdlParseException {
-		consumeChar(2);
-		expectNewLine();
-
-		var lines = new ArrayList<String>();
-		var currentLine = new StringBuilder();
-
-		while (true) {
-			var c = readChar();
-			if (c == EOF) {
-				var nextPosition = sourceLines.getNextPosition();
-				throw new KdlParseException(
-					"Unexpected end of file in raw string",
-					getErrorParseContext(start.line(), nextPosition.line(), Span.of(nextPosition)),
-					"end of file"
-				);
-			} else if (isNewline(c)) {
-				sourceLines.newline();
-				lines.add(currentLine.toString());
-				currentLine.setLength(0);
-			} else if (c == '"' && peekChar(0) == '"' && peekChar(1) == '"') {
-				consumeChar(2);
-				var closingSharpSigns = 0;
-				while (peekChar() == '#' && closingSharpSigns < openingSharpSigns) {
-					consumeChar();
-					closingSharpSigns += 1;
-				}
-				if (closingSharpSigns == openingSharpSigns) {
-					break;
-				}
-				currentLine.append("\"\"\"");
-				writeNonClosingSharpSigns(currentLine, closingSharpSigns);
-			} else {
-				currentLine.appendCodePoint(c);
-			}
-		}
-
-		var lastLine = currentLine.toString();
-		var span = new Span(start, sourceLines.getCurrentPosition());
-		return new StringToken(getMultiLineRawStringValue(lines, lastLine, span), span);
-	}
-
-	@Nonnull
-	private String getMultiLineRawStringValue(@Nonnull List<String> lines, @Nonnull String lastLine, @Nonnull Span span) throws IOException, KdlParseException {
-		checkLastLine(span, lastLine);
-		var builder = new StringBuilder();
-
-		for (var i = 0; i < lines.size(); i++) {
-			builder.append(removeIndent(span, span.start().line() + i + 1, lines.get(i), lastLine));
-			if (i < lines.size() - 1) {
-				builder.append('\n');
-			}
-		}
-
-		return builder.toString();
-	}
-
-	private void checkLastLine(@Nonnull Span span, @Nonnull String lastLine) throws IOException, KdlParseException {
-		for (var column = 0; column < lastLine.length(); column++) {
-			if (!isWhitespace(lastLine.charAt(column))) {
-				var errorSpan = Span.of(new Position(span.end().line(), column + 1));
-				throw new KdlParseException(
-					"Unexpected character in last line of multi-line string",
-					getErrorParseContext(span.start().line(), span.end().line(), errorSpan),
-					"unexpected character",
-					"the last line of a multi-line string must only contain whitespaces"
-				);
-			}
-		}
-	}
-
-	@Nonnull
-	private String removeIndent(@Nonnull Span span, int lineNumber, @Nonnull String line, @Nonnull String lastLine) throws IOException, KdlParseException {
-		if (isWhitespaces(line)) {
-			return "";
-		}
-		if (!line.startsWith(lastLine)) {
-			var errorSpan = new Span(new Position(lineNumber, 1), new Position(lineNumber, Math.max(countSpaces(line), 1)));
-			throw new KdlParseException(
-				"Invalid indentation in multi-line string",
-				getErrorParseContext(span.start().line(), span.end().line(), errorSpan),
-				"indentation does not match last line"
-			);
-		}
-		return line.substring(lastLine.length());
-	}
-
-	@Nonnull
-	private StringToken singleLineRawString(@Nonnull Position start, int openingSharpSigns) throws IOException, KdlParseException {
-		var builder = new StringBuilder();
-
 		while (true) {
 			var c = peekChar();
 			if (c == EOF) {
@@ -728,13 +434,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 					getErrorParseContext(Span.of(sourceLines.getNextPosition())),
 					"end of file"
 				);
-			} else if (isNewline(c)) {
-				throw new KdlParseException(
-					"Unexpected new line in raw string",
-					getErrorParseContext(Span.of(sourceLines.getNextPosition())),
-					"new line"
-				);
-			} else if (c == '"' && peekChar(1) == '#') {
+			} else if (c == '"') {
 				consumeChar();
 				var closingSharpSigns = 0;
 				while (peekChar() == '#' && closingSharpSigns < openingSharpSigns) {
@@ -749,6 +449,9 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 			} else {
 				consumeChar();
 				builder.appendCodePoint(c);
+				if (isNewline(c)) {
+					sourceLines.newline();
+				}
 			}
 		}
 	}
@@ -757,33 +460,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		if (closingSharpSigns > 0) {
 			builder.append("#".repeat(closingSharpSigns));
 		}
-	}
-
-	@Nonnull
-	private Token keyword() throws IOException, KdlParseException {
-		var start = sourceLines.getNextPosition();
-		consumeChar();
-		var builder = new StringBuilder();
-
-		while (isIdentifierChar(peekChar())) {
-			builder.appendCodePoint(readChar());
-		}
-
-		var span = new Span(start, sourceLines.getCurrentPosition());
-		var keyword = builder.toString();
-		return switch (keyword) {
-			case "true" -> new Boolean(true, span);
-			case "false" -> new Boolean(false, span);
-			case "null" -> new Null(span);
-			case "inf" -> new Number.Infinity(span);
-			case "-inf" -> new Number.NegativeInfinity(span);
-			case "nan" -> new Number.NaN(span);
-			default -> throw new KdlParseException(
-				"Invalid keyword '#" + keyword + "'",
-				getErrorParseContext(new Span(start, start.withColumnOffset(keyword.length()))),
-				"unknown keyword"
-			);
-		};
 	}
 
 	@Nonnull
@@ -829,7 +505,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 
 		var span = new Span(start, sourceLines.getCurrentPosition());
 
-		checkNextCharacter(not(Kdl2CharHelper::isIdentifierChar), "number");
+		checkNextCharacter(not(Kdl1CharHelper::isIdentifierChar), "number");
 
 		return isDecimal
 			? decimal(span, builder.toString())
@@ -856,7 +532,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		var number = builder.toString();
 
 		checkNextCharacter(not(KdlCharHelper::isHexadecimalDigit), base);
-		checkNextCharacter(not(Kdl2CharHelper::isIdentifierChar), "integer");
+		checkNextCharacter(not(Kdl1CharHelper::isIdentifierChar), "integer");
 
 		return integer(span, number, base);
 	}
@@ -921,25 +597,16 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		);
 	}
 
-	private boolean isIdentifierString() throws IOException {
+	private boolean isBareIdentifier() throws IOException {
 		var c = peekChar(0);
 		if (isSign(c)) {
-			var c2 = peekChar(1);
-			if (c2 == '.') {
-				var c3 = peekChar(2);
-				return !isDecimalDigit(c3);
-			}
-			return !isDecimalDigit(c2);
+			return !isDecimalDigit(peekChar(1));
 		}
-		if (c == '.') {
-			var c2 = peekChar(1);
-			return !isDecimalDigit(c2);
-		}
-		return isUnambiguousIdentifierChar(c);
+		return !isDecimalDigit(c) && isIdentifierChar(c);
 	}
 
 	@Nonnull
-	private StringToken identifierString() throws IOException, KdlParseException {
+	private Token bareIdentifier() throws IOException, KdlParseException {
 		var builder = new StringBuilder();
 		var start = sourceLines.getNextPosition();
 
@@ -948,7 +615,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 
 		var next = peekChar();
-		if (next == '#' || next == '"' || next == '(' || next == '[') {
+		if (next == '"' || next == '(' || next == '[') {
 			throw new KdlParseException(
 				"Invalid character '" + (char) next + "' in identifier",
 				getErrorParseContext(Span.of(sourceLines.getNextPosition())),
@@ -956,45 +623,25 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 			);
 		}
 
-		var stringValue = builder.toString();
 		var span = new Span(start, sourceLines.getCurrentPosition());
-
-		if (isDisallowedIdentifier(stringValue)) {
-			throw new KdlParseException(
-				"Keyword used as identifier",
-				getErrorParseContext(span),
-				"invalid identifier",
-				"for the corresponding keyword use '#' (#" + stringValue + "), for an identifier use quotes (\"" + stringValue + "\")"
-			);
-		}
-
-		return new StringToken(stringValue, span);
+		return switch (builder.toString()) {
+			case "true" -> new Boolean(true, span);
+			case "false" -> new Boolean(false, span);
+			case "null" -> new Null(span);
+			default -> new BareIdentifier(builder.toString(), span);
+		};
 	}
 
-	private static boolean isInvalid(int codepoint) {
-		return codepoint <= 8
-			|| (codepoint >= 0x000E && codepoint <= 0x01F)
-			|| codepoint == 0x007F
-			|| (codepoint >= 0xD800 && codepoint <= 0xDFFF)
-			|| (codepoint >= 0x200E && codepoint <= 0x200F)
-			|| (codepoint >= 0x202A && codepoint <= 0x202E)
-			|| (codepoint >= 0x2066 && codepoint <= 0x2069);
-	}
-
-	private static final int READER_CAPACITY = 3;
+	private static final int READER_CAPACITY = 2;
 
 	private static final Map<Integer, Integer> ESCAPED_CHARACTERS = Map.of(
-		(int) '"', (int) '"',
-		(int) '\\', (int) '\\',
-		(int) 'b', (int) '\b',
-		(int) 'f', (int) '\f',
-		(int) 'r', (int) '\r',
 		(int) 'n', (int) '\n',
+		(int) 'r', (int) '\r',
 		(int) 't', (int) '\t',
-		(int) 's', (int) ' '
+		(int) '\\', (int) '\\',
+		(int) '/', (int) '/',
+		(int) '"', (int) '"',
+		(int) 'b', (int) '\b',
+		(int) 'f', (int) '\f'
 	);
-
-	private record MultilineStringLine(String prefix, String content) {
-	}
-
 }

@@ -7,11 +7,12 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 
-abstract class KdlReader implements Closeable, AutoCloseable {
+public class KdlReader implements Closeable, AutoCloseable {
 
-	public KdlReader(@Nonnull InputStream inputStream, int capacity) {
+	public KdlReader(@Nonnull InputStream inputStream, int capacity, @Nonnull InvalidCodepoint invalidCodepoint) {
 		this.inputStream = inputStream;
 		this.peekedChars = new IntRingBuffer(capacity);
+		this.invalidCodepoint = invalidCodepoint;
 	}
 
 	public final int peek() throws IOException {
@@ -43,13 +44,11 @@ abstract class KdlReader implements Closeable, AutoCloseable {
 
 	private int readNextChar() throws IOException {
 		var codepoint = readUtf8Codepoint();
-		if (codepoint != EOF && isInvalid(codepoint)) {
+		if (codepoint != EOF && invalidCodepoint.isInvalid(codepoint)) {
 			throw new KdlReadException(String.format("Invalid codepoint in a KDL document: U+%04X", codepoint));
 		}
 		return codepoint;
 	}
-
-	protected abstract boolean isInvalid(int codepoint);
 
 	private int readUtf8Codepoint() throws IOException {
 		var c = inputStream.read();
@@ -90,51 +89,6 @@ abstract class KdlReader implements Closeable, AutoCloseable {
 		return (b & 0b1100_0000) != 0b1000_0000;
 	}
 
-	/*public void newline() {
-		previousLines.add(new SourceLine(position.getCurrentLine(), line.toString().stripTrailing()));
-		position.newline();
-		line.setLength(0);
-	}
-
-	@Nonnull
-	public Position getCurrentPosition() {
-		return position.getCurrentPosition();
-	}
-
-	@Nonnull
-	public Position getNextPosition() {
-		return position.getNextPosition();
-	}
-
-	@Nonnull
-	public ParseContext getErrorParseContextForNextPosition() throws IOException {
-		return getErrorParseContext(Span.of(position.getNextPosition()));
-	}
-
-	@Nonnull
-	public ParseContext getErrorParseContextForCurrentPosition() throws IOException {
-		return getErrorParseContext(Span.of(position.getCurrentPosition()));
-	}
-
-	@Nonnull
-	public ParseContext getErrorParseContext(@Nonnull Span span) throws IOException {
-		var sourceLines = new ArrayList<>(previousLines);
-		var nextPosition = position.getNextPosition();
-		sourceLines.add(new SourceLine(nextPosition.line(), getFullLine()));
-		return new ParseContext(filename, sourceLines, span);
-	}
-
-	@Nonnull
-	private String getFullLine() throws IOException {
-		while (true) {
-			var c = read();
-			if (c == EOF || isNewline(c)) {
-				break;
-			}
-		}
-		return line.toString().stripTrailing();
-	}*/
-
 	@Override
 	public final void close() throws IOException {
 		inputStream.close();
@@ -144,6 +98,13 @@ abstract class KdlReader implements Closeable, AutoCloseable {
 	private final InputStream inputStream;
 	@Nonnull
 	private final IntRingBuffer peekedChars;
+	@Nonnull
+	private final InvalidCodepoint invalidCodepoint;
 
 	public static final int EOF = -1;
+
+	@FunctionalInterface
+	public interface InvalidCodepoint {
+		boolean isInvalid(int codepoint);
+	}
 }

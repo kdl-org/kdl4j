@@ -3,22 +3,21 @@ package dev.kdl.parse.lexer;
 import dev.kdl.parse.KdlParseException;
 import dev.kdl.parse.Reporter;
 import dev.kdl.parse.context.Span;
+import dev.kdl.parse.lexer.token.BareIdentifier;
 import dev.kdl.parse.lexer.token.Boolean;
-import dev.kdl.parse.lexer.token.Brace.ClosingBrace;
-import dev.kdl.parse.lexer.token.Brace.OpeningBrace;
-import dev.kdl.parse.lexer.token.ByteOrderMark;
+import dev.kdl.parse.lexer.token.Brace;
 import dev.kdl.parse.lexer.token.EqualsSign;
+import dev.kdl.parse.lexer.token.LineContinuation;
 import dev.kdl.parse.lexer.token.Newline;
-import dev.kdl.parse.lexer.token.NodeSpace;
 import dev.kdl.parse.lexer.token.Null;
 import dev.kdl.parse.lexer.token.Number;
-import dev.kdl.parse.lexer.token.Parentheses.ClosingParentheses;
-import dev.kdl.parse.lexer.token.Parentheses.OpeningParentheses;
+import dev.kdl.parse.lexer.token.Parentheses;
 import dev.kdl.parse.lexer.token.Semicolon;
 import dev.kdl.parse.lexer.token.SingleLineComment;
 import dev.kdl.parse.lexer.token.Slashdash;
 import dev.kdl.parse.lexer.token.StringToken;
 import dev.kdl.parse.lexer.token.Token;
+import dev.kdl.parse.lexer.token.Whitespace;
 import jakarta.annotation.Nonnull;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -35,95 +34,80 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class Kdl2LexerTest {
+class Kdl1LexerTest {
 
 	static Stream<Arguments> validTestCases() {
 		return Stream.of(
 			Arguments.of("", null),
-			Arguments.of("\ufeff", new ByteOrderMark(Span.of(1, 1))),
 			Arguments.of("\n", new Newline("\n", Span.of(1, 1))),
 			Arguments.of("\r", new Newline("\r", Span.of(1, 1))),
 			Arguments.of("\r\n", new Newline("\r\n", Span.of(1, 1, 1, 2))),
 			Arguments.of("\u000C", new Newline("\u000C", Span.of(1, 1))),
-			Arguments.of(" ", new NodeSpace(" ", Span.of(1, 1))),
-			Arguments.of("\t", new NodeSpace("\t", Span.of(1, 1))),
-			Arguments.of("\t ", new NodeSpace("\t ", Span.of(1, 1, 1, 2))),
-			Arguments.of("/* hi!\n */a", new NodeSpace("/* hi!\n */", Span.of(1, 1, 2, 3)), new StringToken("a", Span.of(2, 4))),
-			Arguments.of("/* hi!\n */   /* test */", new NodeSpace("/* hi!\n */   /* test */", Span.of(1, 1, 2, 16))),
-			Arguments.of("  /* hi!\n */a", new NodeSpace("  /* hi!\n */", Span.of(1, 1, 2, 3)), new StringToken("a", Span.of(2, 4))),
-			Arguments.of("/* hi /* there */ everyone */", new NodeSpace("/* hi /* there */ everyone */", Span.of(1, 1, 1, 29))),
-			Arguments.of("/* hello\n girls/boys */", new NodeSpace("/* hello\n girls/boys */", Span.of(1, 1, 2, 14))),
-			Arguments.of("\\", new NodeSpace("\\", Span.of(1, 1))),
-			Arguments.of(" \\", new NodeSpace(" \\", Span.of(1, 1, 1, 2))),
-			Arguments.of("\\\n   ", new NodeSpace("\\\n   ", Span.of(1, 1, 2, 3))),
-			Arguments.of("\\\r\n   ", new NodeSpace("\\\r\n   ", Span.of(1, 1, 2, 3))),
-			Arguments.of("\\   // single-line comment", new NodeSpace("\\   // single-line comment", Span.of(1, 1, 1, 26))),
-			Arguments.of("\\ /* multi-line\n comment */  // single-line comment", new NodeSpace("\\ /* multi-line\n comment */  // single-line comment", Span.of(1, 1, 2, 35))),
-			Arguments.of("\\   \na", new NodeSpace("\\   \n", Span.of(1, 1, 1, 5)), new StringToken("a", Span.of(2, 1))),
-			Arguments.of("a  \\   \nb", new StringToken("a", Span.of(1, 1)), new NodeSpace("  \\   \n", Span.of(1, 2, 1, 8)), new StringToken("b", Span.of(2, 1))),
-			Arguments.of("//\na", new SingleLineComment("//\n", Span.of(1, 1, 1, 3)), new StringToken("a", Span.of(2, 1))),
-			Arguments.of("//\r\na", new SingleLineComment("//\r\n", Span.of(1, 1, 1, 4)), new StringToken("a", Span.of(2, 1))),
+			Arguments.of("\ufeff", new Whitespace("\ufeff", Span.of(1, 1))),
+			Arguments.of(" ", new Whitespace(" ", Span.of(1, 1))),
+			Arguments.of("\t", new Whitespace("\t", Span.of(1, 1))),
+			Arguments.of("\t ", new Whitespace("\t ", Span.of(1, 1, 1, 2))),
+			Arguments.of("/* hi!\n */a", new Whitespace("/* hi!\n */", Span.of(1, 1, 2, 3)), new BareIdentifier("a", Span.of(2, 4))),
+			Arguments.of("/* hi!\n */   /* test */", new Whitespace("/* hi!\n */   /* test */", Span.of(1, 1, 2, 16))),
+			Arguments.of("  /* hi!\n */a", new Whitespace("  /* hi!\n */", Span.of(1, 1, 2, 3)), new BareIdentifier("a", Span.of(2, 4))),
+			Arguments.of("/* hi /* there */ everyone */", new Whitespace("/* hi /* there */ everyone */", Span.of(1, 1, 1, 29))),
+			Arguments.of("/* hello\n girls/boys */", new Whitespace("/* hello\n girls/boys */", Span.of(1, 1, 2, 14))),
+			Arguments.of("\\", new LineContinuation("\\", Span.of(1, 1))),
+			Arguments.of(" \\", new Whitespace(" ", Span.of(1, 1)), new LineContinuation("\\", Span.of(1, 2))),
+			Arguments.of("\\\n   ", new LineContinuation("\\\n", Span.of(1, 1, 1, 2)), new Whitespace("   ", Span.of(2, 1, 2, 3))),
+			Arguments.of("\\\r\n   ", new LineContinuation("\\\r\n", Span.of(1, 1, 1, 3)), new Whitespace("   ", Span.of(2, 1, 2, 3))),
+			Arguments.of("\\   // single-line comment", new LineContinuation("\\   // single-line comment", Span.of(1, 1, 1, 26))),
+			Arguments.of("\\ /* multi-line\n comment */  // single-line comment", new LineContinuation("\\ /* multi-line\n comment */  // single-line comment", Span.of(1, 1, 2, 35))),
+			Arguments.of("\\   \na", new LineContinuation("\\   \n", Span.of(1, 1, 1, 5)), new BareIdentifier("a", Span.of(2, 1))),
+			Arguments.of("a  \\   \nb", new BareIdentifier("a", Span.of(1, 1)), new Whitespace("  ", Span.of(1, 2, 1, 3)), new LineContinuation("\\   \n", Span.of(1, 4, 1, 8)), new BareIdentifier("b", Span.of(2, 1))),
+			Arguments.of("//\na", new SingleLineComment("//\n", Span.of(1, 1, 1, 3)), new BareIdentifier("a", Span.of(2, 1))),
+			Arguments.of("//\r\na", new SingleLineComment("//\r\n", Span.of(1, 1, 1, 4)), new BareIdentifier("a", Span.of(2, 1))),
 			Arguments.of("/-", new Slashdash("/-", Span.of(1, 1, 1, 2))),
-			Arguments.of("/-   // comment\n\n  ", new Slashdash("/-   // comment\n\n  ", Span.of(1, 1, 3, 2))),
-			Arguments.of("/-   /* multiline\ncomment */\n\n  ", new Slashdash("/-   /* multiline\ncomment */\n\n  ", Span.of(1, 1, 4, 2))),
+			Arguments.of("/-   ", new Slashdash("/-   ", Span.of(1, 1, 1, 5))),
+			Arguments.of("/-   /* multiline\ncomment */\n\n  ", new Slashdash("/-   /* multiline\ncomment */", Span.of(1, 1, 2, 10)), new Newline("\n", Span.of(2, 11)), new Newline("\n", Span.of(3, 1)), new Whitespace("  ", Span.of(4, 1, 4, 2))),
+			Arguments.of("/- \\  \nabc", new Slashdash("/- \\  \n", Span.of(1, 1, 1, 7)), new BareIdentifier("abc", Span.of(2, 1, 2, 3))),
 			Arguments.of("=", new EqualsSign(Span.of(1, 1))),
-			Arguments.of("(", new OpeningParentheses(Span.of(1, 1))),
-			Arguments.of(")", new ClosingParentheses(Span.of(1, 1))),
-			Arguments.of("{", new OpeningBrace(Span.of(1, 1))),
-			Arguments.of("}", new ClosingBrace(Span.of(1, 1))),
+			Arguments.of("(", new Parentheses.OpeningParentheses(Span.of(1, 1))),
+			Arguments.of(")", new Parentheses.ClosingParentheses(Span.of(1, 1))),
+			Arguments.of("{", new Brace.OpeningBrace(Span.of(1, 1))),
+			Arguments.of("}", new Brace.ClosingBrace(Span.of(1, 1))),
 			Arguments.of(";", new Semicolon(Span.of(1, 1))),
-			Arguments.of("a", new StringToken("a", Span.of(1, 1))),
-			Arguments.of("abc", new StringToken("abc", Span.of(1, 1, 1, 3))),
-			Arguments.of("-", new StringToken("-", Span.of(1, 1))),
-			Arguments.of("-abc", new StringToken("-abc", Span.of(1, 1, 1, 4))),
-			Arguments.of(". ", new StringToken(".", Span.of(1, 1)), new NodeSpace(" ", Span.of(1, 2))),
-			Arguments.of(".abc ", new StringToken(".abc", Span.of(1, 1, 1, 4)), new NodeSpace(" ", Span.of(1, 5))),
-			Arguments.of("+.abc", new StringToken("+.abc", Span.of(1, 1, 1, 5))),
+			Arguments.of("a", new BareIdentifier("a", Span.of(1, 1))),
+			Arguments.of("abc", new BareIdentifier("abc", Span.of(1, 1, 1, 3))),
+			Arguments.of("-", new BareIdentifier("-", Span.of(1, 1))),
+			Arguments.of("-abc", new BareIdentifier("-abc", Span.of(1, 1, 1, 4))),
+			Arguments.of(". ", new BareIdentifier(".", Span.of(1, 1)), new Whitespace(" ", Span.of(1, 2))),
+			Arguments.of(".abc ", new BareIdentifier(".abc", Span.of(1, 1, 1, 4)), new Whitespace(" ", Span.of(1, 5))),
+			Arguments.of("+.abc", new BareIdentifier("+.abc", Span.of(1, 1, 1, 5))),
 			Arguments.of("\"\"", new StringToken("", Span.of(1, 1, 1, 2))),
 			Arguments.of("\"abc\"", new StringToken("abc", Span.of(1, 1, 1, 5))),
 			Arguments.of("\"\\\"\"", new StringToken("\"", Span.of(1, 1, 1, 4))),
 			Arguments.of("\"\\\\\"", new StringToken("\\", Span.of(1, 1, 1, 4))),
+			Arguments.of("\"\\/\"", new StringToken("/", Span.of(1, 1, 1, 4))),
 			Arguments.of("\"\\b\"", new StringToken("\b", Span.of(1, 1, 1, 4))),
 			Arguments.of("\"\\f\"", new StringToken("\f", Span.of(1, 1, 1, 4))),
 			Arguments.of("\"\\r\"", new StringToken("\r", Span.of(1, 1, 1, 4))),
 			Arguments.of("\"\\n\"", new StringToken("\n", Span.of(1, 1, 1, 4))),
 			Arguments.of("\"\\r\\n\"", new StringToken("\r\n", Span.of(1, 1, 1, 6))),
 			Arguments.of("\"\\t\"", new StringToken("\t", Span.of(1, 1, 1, 4))),
-			Arguments.of("\"\\s\"", new StringToken(" ", Span.of(1, 1, 1, 4))),
 			Arguments.of("\"\\u{1}\"", new StringToken("\u0001", Span.of(1, 1, 1, 7))),
 			Arguments.of("\"\\u{1234}\"", new StringToken("ሴ", Span.of(1, 1, 1, 10))),
 			Arguments.of("\"\\u{1F643}\"", new StringToken("\uD83D\uDE43", Span.of(1, 1, 1, 11))),
 			Arguments.of("\"\\u{100000}\"", new StringToken("\uDBC0\uDC00", Span.of(1, 1, 1, 12))),
-			Arguments.of("\"a\\   \n\nb\\   c\\  \n\"", new StringToken("abc", Span.of(1, 1, 4, 1))),
-			Arguments.of("\"a\\   \r\n\r\nb\\   c\\  \n\"", new StringToken("abc", Span.of(1, 1, 4, 1))),
-			Arguments.of("\"\"\"\nHello,\nWorld!\n\"\"\"", new StringToken("Hello,\nWorld!", Span.of(1, 1, 4, 3))),
-			Arguments.of("\"\"\"\r\nHello,\r\nWorld!\r\n\"\"\"", new StringToken("Hello,\nWorld!", Span.of(1, 1, 4, 3))),
-			Arguments.of("\"\"\"\nHello,\\n\nWorld!\n\"\"\"", new StringToken("Hello,\n\nWorld!", Span.of(1, 1, 4, 3))),
-			Arguments.of("\"\"\"\n    Hello,\n    World!\n    \"\"\"", new StringToken("Hello,\nWorld!", Span.of(1, 1, 4, 7))),
-			Arguments.of("\"\"\"\n    Hello,\n\n      World!\n    \"\"\"", new StringToken("Hello,\n\n  World!", Span.of(1, 1, 5, 7))),
-			Arguments.of("\"\"\"\n  ab\\   c\n  \"\"\"", new StringToken("abc", Span.of(1, 1, 3, 5))),
-			Arguments.of("\"\"\"\n\"\"abc\"\"\n\"\"\"", new StringToken("\"\"abc\"\"", Span.of(1, 1, 3, 3))),
-			Arguments.of("\"\"\"\na\\\\ b\n\"\"\"", new StringToken("a\\ b", Span.of(1, 1, 3, 3))),
-			Arguments.of("\"\"\"\n\\\"\"\"\n\"\"\"", new StringToken("\"\"\"", Span.of(1, 1, 3, 3))),
-			Arguments.of("\"\"\"\n  foo \\\nbar\n  baz\n  \\   \"\"\"", new StringToken("foo bar\nbaz", Span.of(1, 1, 5, 9))),
-			Arguments.of("\"\"\"\n\t  \n abc\n     \n \"\"\"", new StringToken("\nabc\n", Span.of(1, 1, 5, 4))),
-			Arguments.of("#\"\"abc\"\"#", new StringToken("\"abc\"", Span.of(1, 1, 1, 9))),
-			Arguments.of("##\"Hello\\n\\r\\asd\"#world\"##", new StringToken("Hello\\n\\r\\asd\"#world", Span.of(1, 1, 1, 26))),
-			Arguments.of("###\"\"#\"##\"###", new StringToken("\"#\"##", Span.of(1, 1, 1, 13))),
-			Arguments.of("#\"\"\"\nHello,\nWorld!\n\"\"\"#", new StringToken("Hello,\nWorld!", Span.of(1, 1, 4, 4))),
-			Arguments.of("####\"\"\"\n   Hello,\\n\n    World!\"###\n   \"\"\"####", new StringToken("Hello,\\n\n World!\"###", Span.of(1, 1, 4, 10))),
-			Arguments.of("##\"\"\"\n\"\"\"abc\"\"\"\n\"\"\"##", new StringToken("\"\"\"abc\"\"\"", Span.of(1, 1, 3, 5))),
-			Arguments.of("#true", new Boolean(true, Span.of(1, 1, 1, 5))),
-			Arguments.of("#false", new Boolean(false, Span.of(1, 1, 1, 6))),
-			Arguments.of("#null", new Null(Span.of(1, 1, 1, 5))),
-			Arguments.of("#inf", new Number.Infinity(Span.of(1, 1, 1, 4))),
-			Arguments.of("#-inf", new Number.NegativeInfinity(Span.of(1, 1, 1, 5))),
-			Arguments.of("#nan", new Number.NaN(Span.of(1, 1, 1, 4))),
+			Arguments.of("\"a\n\"", new StringToken("a\n", Span.of(1, 1, 2, 1))),
+			Arguments.of("r\"abc\"", new StringToken("abc", Span.of(1, 1, 1, 6))),
+			Arguments.of("r#\"\"abc\"\"#", new StringToken("\"abc\"", Span.of(1, 1, 1, 10))),
+			Arguments.of("r##\"Hello\\n\\r\\asd\"#world\"##", new StringToken("Hello\\n\\r\\asd\"#world", Span.of(1, 1, 1, 27))),
+			Arguments.of("r###\"\"#\"##\"###", new StringToken("\"#\"##", Span.of(1, 1, 1, 14))),
+			Arguments.of("r\"\nhello\nworld\n\"", new StringToken("\nhello\nworld\n", Span.of(1, 1, 4, 1))),
+			Arguments.of("true", new Boolean(true, Span.of(1, 1, 1, 4))),
+			Arguments.of("false", new Boolean(false, Span.of(1, 1, 1, 5))),
+			Arguments.of("null", new Null(Span.of(1, 1, 1, 4))),
 			Arguments.of("123", new Number.Integer(BigInteger.valueOf(123), Span.of(1, 1, 1, 3))),
 			Arguments.of("+123", new Number.Integer(BigInteger.valueOf(123), Span.of(1, 1, 1, 4))),
 			Arguments.of("-123", new Number.Integer(BigInteger.valueOf(-123), Span.of(1, 1, 1, 4))),
 			Arguments.of("-1_2_3", new Number.Integer(BigInteger.valueOf(-123), Span.of(1, 1, 1, 6))),
-			Arguments.of("-_123", new StringToken("-_123", Span.of(1, 1, 1, 5))),
+			Arguments.of("-_123", new BareIdentifier("-_123", Span.of(1, 1, 1, 5))),
 			Arguments.of("0x12", new Number.Integer(BigInteger.valueOf(18L), Span.of(1, 1, 1, 4))),
 			Arguments.of("0x1_2", new Number.Integer(BigInteger.valueOf(18L), Span.of(1, 1, 1, 5))),
 			Arguments.of("-0x12", new Number.Integer(BigInteger.valueOf(-18L), Span.of(1, 1, 1, 5))),
@@ -140,9 +124,9 @@ class Kdl2LexerTest {
 			Arguments.of("123e3", new Number.Decimal(new BigDecimal("1.23E5"), Span.of(1, 1, 1, 5))),
 			Arguments.of("1_2_3e3_", new Number.Decimal(new BigDecimal("1.23E5"), Span.of(1, 1, 1, 8))),
 			Arguments.of("-123.456e-3", new Number.Decimal(new BigDecimal("-0.123456"), Span.of(1, 1, 1, 11))),
-			Arguments.of("123 123", new Number.Integer(BigInteger.valueOf(123), Span.of(1, 1, 1, 3)), new NodeSpace(" ", Span.of(1, 4)), new Number.Integer(BigInteger.valueOf(123), Span.of(1, 5, 1, 7))),
-			Arguments.of("(type) node", new OpeningParentheses(Span.of(1, 1)), new StringToken("type", Span.of(1, 2, 1, 5)), new ClosingParentheses(Span.of(1, 6)), new NodeSpace(" ", Span.of(1, 7)), new StringToken("node", Span.of(1, 8, 1, 11))),
-			Arguments.of("node 0xabcdef1234567890", new StringToken("node", Span.of(1, 1, 1, 4)), new NodeSpace(" ", Span.of(1, 5)), new Number.Integer(new BigInteger("abcdef1234567890", 16), Span.of(1, 6, 1, 23)))
+			Arguments.of("123 123", new Number.Integer(BigInteger.valueOf(123), Span.of(1, 1, 1, 3)), new Whitespace(" ", Span.of(1, 4)), new Number.Integer(BigInteger.valueOf(123), Span.of(1, 5, 1, 7))),
+			Arguments.of("(type) node", new Parentheses.OpeningParentheses(Span.of(1, 1)), new BareIdentifier("type", Span.of(1, 2, 1, 5)), new Parentheses.ClosingParentheses(Span.of(1, 6)), new Whitespace(" ", Span.of(1, 7)), new BareIdentifier("node", Span.of(1, 8, 1, 11))),
+			Arguments.of("node 0xabcdef1234567890", new BareIdentifier("node", Span.of(1, 1, 1, 4)), new Whitespace(" ", Span.of(1, 5)), new Number.Integer(new BigInteger("abcdef1234567890", 16), Span.of(1, 6, 1, 23)))
 		);
 	}
 
@@ -150,7 +134,7 @@ class Kdl2LexerTest {
 	@MethodSource("validTestCases")
 	void validLexerTest(String input, ArgumentsAccessor expectedTokens) throws Exception {
 		try (var inputStream = new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8))) {
-			var lexer = new Kdl2Lexer("test.kdl", inputStream, 1);
+			var lexer = new Kdl1Lexer("test.kdl", inputStream, 1);
 			for (var i = 1; i < expectedTokens.size(); i++) {
 				var token = lexer.read();
 				assertThat(token).isEqualTo(expectedTokens.get(i));
@@ -163,7 +147,7 @@ class Kdl2LexerTest {
 	@MethodSource("validTestCases")
 	void peekTest(String input) throws Exception {
 		try (var inputStream = new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8))) {
-			var lexer = new Kdl2Lexer("test.kdl", inputStream, 1);
+			var lexer = new Kdl1Lexer("test.kdl", inputStream, 1);
 			var peeked = lexer.peek();
 			var read = lexer.read();
 
@@ -194,17 +178,6 @@ class Kdl2LexerTest {
 					  ╰─"""
 			),
 			Arguments.of(
-				"true",
-				"""
-					× Keyword used as identifier:
-					  ╭─[test.kdl:1:1]
-					1 │ true
-					  · ─┬──
-					  ·  ╰ invalid identifier
-					  ╰─
-					help: for the corresponding keyword use '#' (#true), for an identifier use quotes ("true")"""
-			),
-			Arguments.of(
 				"\"",
 				"""
 					× Unexpected end of file in string:
@@ -215,15 +188,14 @@ class Kdl2LexerTest {
 					  ╰─"""
 			),
 			Arguments.of(
-				"\"a\n\"",
+				"r#\"",
 				"""
-					× Unexpected new line in string:
-					  ╭─[test.kdl:1:3]
-					1 │ "a
-					  ·   ┬
-					  ·   ╰ new line
-					  ╰─
-					help: escape it or use a multi-line string"""
+					× Unexpected end of file in raw string:
+					  ╭─[test.kdl:1:4]
+					1 │ r#"
+					  ·    ┬
+					  ·    ╰ end of file
+					  ╰─"""
 			),
 			Arguments.of(
 				"\"\\u1337\"",
@@ -299,88 +271,6 @@ class Kdl2LexerTest {
 					help: a Unicode escape must contain a valid Unicode scalar value in hexadecimal characters"""
 			),
 			Arguments.of(
-				"\"\"\"\n  ab\n  cde\"\"\"",
-				"""
-					× Unexpected character in last line of multi-line string:
-					  ╭─[test.kdl:3:3]
-					1 │ ""\"
-					2 │   ab
-					3 │   cde""\"
-					  ·   ┬
-					  ·   ╰ unexpected character
-					  ╰─
-					help: the last line of a multi-line string must only contain whitespaces"""
-			),
-			Arguments.of(
-				"#\"\"\"\n  ab\n  cde\"\"\"#",
-				"""
-					× Unexpected character in last line of multi-line string:
-					  ╭─[test.kdl:3:3]
-					1 │ #""\"
-					2 │   ab
-					3 │   cde""\"#
-					  ·   ┬
-					  ·   ╰ unexpected character
-					  ╰─
-					help: the last line of a multi-line string must only contain whitespaces"""
-			),
-			Arguments.of(
-				"\"\"\"\n    ab\n   cd\n    \"\"\"",
-				"""
-					× Invalid indentation in multi-line string:
-					  ╭─[test.kdl:3:1]
-					1 │ ""\"
-					2 │     ab
-					3 │    cd
-					  · ─┬─
-					  ·  ╰ indentation does not match last line
-					4 │     ""\"
-					  ╰─"""
-			),
-			Arguments.of(
-				"#\"\"\"\n    ab\n   cd\n    \"\"\"#",
-				"""
-					× Invalid indentation in multi-line string:
-					  ╭─[test.kdl:3:1]
-					1 │ #""\"
-					2 │     ab
-					3 │    cd
-					  · ─┬─
-					  ·  ╰ indentation does not match last line
-					4 │     ""\"#
-					  ╰─"""
-			),
-			Arguments.of(
-				"##abc##",
-				"""
-					× Raw string is missing opening quotes:
-					  ╭─[test.kdl:1:3]
-					1 │ ##abc##
-					  ·   ┬
-					  ·   ╰ missing '"'
-					  ╰─"""
-			),
-			Arguments.of(
-				"#\"",
-				"""
-					× Unexpected end of file in raw string:
-					  ╭─[test.kdl:1:3]
-					1 │ #"
-					  ·   ┬
-					  ·   ╰ end of file
-					  ╰─"""
-			),
-			Arguments.of(
-				"##\"a\"#\n\"##",
-				"""
-					× Unexpected new line in raw string:
-					  ╭─[test.kdl:1:7]
-					1 │ ##"a"#
-					  ·       ┬
-					  ·       ╰ new line
-					  ╰─"""
-			),
-			Arguments.of(
 				"\\ /a",
 				"""
 					× Unexpected character after '/':
@@ -402,23 +292,13 @@ class Kdl2LexerTest {
 					help: a line continuation can only contain whitespaces or comments"""
 			),
 			Arguments.of(
-				"#abc#",
+				"r#abc#",
 				"""
-					× Invalid keyword '#abc':
-					  ╭─[test.kdl:1:1]
-					1 │ #abc#
-					  · ─┬──
-					  ·  ╰ unknown keyword
-					  ╰─"""
-			),
-			Arguments.of(
-				"#\"\"\"one line\"\"\"#",
-				"""
-					× Newline required after opening quotes in multi-line raw string:
-					  ╭─[test.kdl:1:5]
-					1 │ #""\"one line""\"#
-					  ·     ┬
-					  ·     ╰ new-line expected
+					× Raw string is missing opening quotes:
+					  ╭─[test.kdl:1:3]
+					1 │ r#abc#
+					  ·   ┬
+					  ·   ╰ missing '"'
 					  ╰─"""
 			),
 			Arguments.of(
@@ -492,17 +372,6 @@ class Kdl2LexerTest {
 					  ╰─"""
 			),
 			Arguments.of(
-				"node .0n",
-				"""
-					× Number or identifier cannot start with '.':
-					  ╭─[test.kdl:1:6]
-					1 │ node .0n
-					  ·      ┬
-					  ·      ╰ invalid character
-					  ╰─
-					help: for a number add a zero before '.', for an identifier use quotes"""
-			),
-			Arguments.of(
 				"0x",
 				"""
 					× Integer must start with a digit:
@@ -563,16 +432,6 @@ class Kdl2LexerTest {
 					  ╰─"""
 			),
 			Arguments.of(
-				"/- /-",
-				"""
-					× Unexpected character after '/':
-					  ╭─[test.kdl:1:5]
-					1 │ /- /-
-					  ·     ┬
-					  ·     ╰ '/' or '*' expected here
-					  ╰─"""
-			),
-			Arguments.of(
 				"\"oops",
 				"""
 					× Unexpected end of file in string:
@@ -580,17 +439,6 @@ class Kdl2LexerTest {
 					1 │ "oops
 					  ·      ┬
 					  ·      ╰ end of file
-					  ╰─"""
-			),
-			Arguments.of(
-				"\"\"\"\n  oops",
-				"""
-					× Unexpected end of file in string:
-					  ╭─[test.kdl:2:7]
-					1 │ ""\"
-					2 │   oops
-					  ·       ┬
-					  ·       ╰ end of file
 					  ╰─"""
 			),
 			Arguments.of(
@@ -604,27 +452,6 @@ class Kdl2LexerTest {
 					  ╰─"""
 			),
 			Arguments.of(
-				"#\"\"\"\n   oops",
-				"""
-					× Unexpected end of file in raw string:
-					  ╭─[test.kdl:2:8]
-					1 │ #""\"
-					2 │    oops
-					  ·        ┬
-					  ·        ╰ end of file
-					  ╰─"""
-			),
-			Arguments.of(
-				"abc#def",
-				"""
-					× Invalid character '#' in identifier:
-					  ╭─[test.kdl:1:4]
-					1 │ abc#def
-					  ·    ┬
-					  ·    ╰ unexpected character
-					  ╰─"""
-			),
-			Arguments.of(
 				"abc(def)",
 				"""
 					× Invalid character '(' in identifier:
@@ -632,31 +459,6 @@ class Kdl2LexerTest {
 					1 │ abc(def)
 					  ·    ┬
 					  ·    ╰ unexpected character
-					  ╰─"""
-			),
-			Arguments.of(
-				"\"\"\"one line\"\"\"",
-				"""
-					× Missing newline at start of multi-line string:
-					  ╭─[test.kdl:1:4]
-					1 │ ""\"one line""\"
-					  ·    ┬
-					  ·    ╰ newline expected
-					  ╰─"""
-			),
-			Arguments.of(
-				"""
-					test
-					""\"
-					    \\g
-					    ""\"
-					""",
-				"""
-					× Invalid escaped character 'g':
-					  ╭─[test.kdl:3:6]
-					3 │     \\g
-					  ·      ┬
-					  ·      ╰ '"', '\\', 'b', 'f', 'r', 'n', 't', or 's' expected
 					  ╰─"""
 			)
 		);
@@ -666,7 +468,7 @@ class Kdl2LexerTest {
 	@MethodSource("errorTestCases")
 	void errorLexerTest(String input, @Nonnull String report) throws Exception {
 		try (var inputStream = new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8))) {
-			var lexer = new Kdl2Lexer("test.kdl", inputStream, 1);
+			var lexer = new Kdl1Lexer("test.kdl", inputStream, 1);
 			assertThatThrownBy(() -> {
 				Token token;
 				do {
