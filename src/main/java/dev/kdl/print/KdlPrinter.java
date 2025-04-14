@@ -81,7 +81,7 @@ public class KdlPrinter {
 
 	@Nonnull
 	private KdlPrinterContext getContext(Writer writer, KdlPrinterConfiguration configuration) {
-		if (configuration.getVersion() == KdlVersion.V1) {
+		if (configuration.version() == KdlVersion.V1) {
 			return new Kdl1PrinterContext(writer, configuration);
 		}
 		return new Kdl2PrinterContext(writer, configuration);

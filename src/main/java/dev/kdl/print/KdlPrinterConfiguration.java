@@ -8,98 +8,28 @@ import java.util.stream.Collectors;
 
 /**
  * Configures a {@link KdlPrinter}.
+ *
+ * @param version             the version of KDL to use for printing
+ * @param indentation         the whitespace characters used for a level of indentation
+ * @param newline             the newline characters used when printing a new lineNumber
+ * @param exponentChar        the character used for the exponent of decimal numbers
+ * @param printEmptyChildren  whether empty children should be printed
+ * @param printNullArguments  whether null arguments should be printed
+ * @param printNullProperties whether null properties should be printed
+ * @param printSemicolons     whether semicolons should be printed after each node
+ * @param printQuotes         whether quotes should be printing around identifiers
  */
-public class KdlPrinterConfiguration {
-	private KdlPrinterConfiguration(
-		@Nonnull KdlVersion version,
-		@Nonnull String indentation,
-		@Nonnull String newline,
-		@Nonnull ExponentCharacter exponentChar,
-		boolean printEmptyChildren,
-		boolean printNullArguments,
-		boolean printNullProperties,
-		boolean printSemicolons
-	) {
-		this.version = version;
-		this.indentation = indentation;
-		this.newline = newline;
-		this.exponentChar = exponentChar;
-		this.printEmptyChildren = printEmptyChildren;
-		this.printNullArguments = printNullArguments;
-		this.printNullProperties = printNullProperties;
-		this.printSemicolons = printSemicolons;
-	}
-
-	@Nonnull
-	public KdlVersion getVersion() {
-		return version;
-	}
-
-	/**
-	 * @return the whitespace characters used for a level of indentation
-	 */
-	@Nonnull
-	public String getIndentation() {
-		return indentation;
-	}
-
-	/**
-	 * @return the newline characters used when printing a new lineNumber
-	 */
-	@Nonnull
-	public String getNewline() {
-		return newline;
-	}
-
-	/**
-	 * @return the character used for the exponent of decimal numbers
-	 */
-	@Nonnull
-	public ExponentCharacter getExponentChar() {
-		return exponentChar;
-	}
-
-	/**
-	 * @return whether empty children should be printed
-	 */
-	public boolean shouldPrintEmptyChildren() {
-		return printEmptyChildren;
-	}
-
-	/**
-	 * @return whether null arguments should be printed
-	 */
-	public boolean shouldPrintNullArguments() {
-		return printNullArguments;
-	}
-
-	/**
-	 * @return whether null properties should be printed
-	 */
-	public boolean shouldPrintNullProperties() {
-		return printNullProperties;
-	}
-
-	/**
-	 * @return whether semicolons should be printed after each node
-	 */
-	public boolean shouldPrintSemicolons() {
-		return printSemicolons;
-	}
-
-	@Nonnull
-	private final KdlVersion version;
-	@Nonnull
-	private final String indentation;
-	@Nonnull
-	private final String newline;
-	@Nonnull
-	private final ExponentCharacter exponentChar;
-	private final boolean printEmptyChildren;
-	private final boolean printNullArguments;
-	private final boolean printNullProperties;
-	private final boolean printSemicolons;
-
+public record KdlPrinterConfiguration(
+	@Nonnull KdlVersion version,
+	@Nonnull String indentation,
+	@Nonnull String newline,
+	@Nonnull ExponentCharacter exponentChar,
+	boolean printEmptyChildren,
+	boolean printNullArguments,
+	boolean printNullProperties,
+	boolean printSemicolons,
+	boolean printQuotes
+) {
 	/**
 	 * @return a new builder of {@link KdlPrinterConfiguration}.a new builder of {@link KdlPrinterConfiguration}.
 	 */
@@ -236,7 +166,6 @@ public class KdlPrinterConfiguration {
 			return this;
 		}
 
-
 		/**
 		 * Sets whether semicolons should be printed after each node. Default is false.
 		 *
@@ -246,6 +175,28 @@ public class KdlPrinterConfiguration {
 		@Nonnull
 		public Builder printSemicolons(boolean printSemiColons) {
 			this.printSemicolons = printSemiColons;
+			return this;
+		}
+
+		/**
+		 * Sets that quotes should be printed around identifiers. Default is false.
+		 *
+		 * @return {@code this}
+		 */
+		@Nonnull
+		public Builder printQuotes() {
+			printQuotes = true;
+			return this;
+		}
+
+		/**
+		 * Sets whether quotes should be printed around identifiers. Default is false.
+		 *
+		 * @return {@code this}
+		 */
+		@Nonnull
+		public Builder printQuotes(boolean printQuotes) {
+			this.printQuotes = printQuotes;
 			return this;
 		}
 
@@ -259,7 +210,8 @@ public class KdlPrinterConfiguration {
 				printEmptyChildren,
 				printNullArguments,
 				printNullProperties,
-				printSemicolons
+				printSemicolons,
+				printQuotes
 			);
 		}
 
@@ -275,6 +227,7 @@ public class KdlPrinterConfiguration {
 		private boolean printNullArguments = true;
 		private boolean printNullProperties = true;
 		private boolean printSemicolons = false;
+		private boolean printQuotes = false;
 	}
 
 	public enum Newline {
