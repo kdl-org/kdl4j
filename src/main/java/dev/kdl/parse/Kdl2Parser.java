@@ -7,7 +7,6 @@ import dev.kdl.KdlNull;
 import dev.kdl.KdlProperties;
 import dev.kdl.KdlString;
 import dev.kdl.KdlValue;
-import dev.kdl.parse.context.Position;
 import dev.kdl.parse.context.Span;
 import dev.kdl.parse.lexer.Kdl2Lexer;
 import dev.kdl.parse.lexer.token.Boolean;
@@ -34,10 +33,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Supplier;
 
 public class Kdl2Parser implements KdlParser {
-
 
 	@Nonnull
 	@Override
@@ -47,14 +44,15 @@ public class Kdl2Parser implements KdlParser {
 		}
 	}
 
-	private static final class Kdl2ParserContext implements AutoCloseable {
+	private static final class Kdl2ParserContext extends KdlParserContext {
 
-		public Kdl2ParserContext(@Nonnull String filename, @Nonnull InputStream inputStream) {
-			this.lexer = new Kdl2Lexer(filename, inputStream, LEXER_CAPACITY);
+		private Kdl2ParserContext(@Nonnull String filename, @Nonnull InputStream inputStream) {
+			super(new Kdl2Lexer(filename, inputStream, LEXER_CAPACITY));
 		}
 
+		@Override
 		@Nonnull
-		public KdlDocument parse() throws KdlParseException, IOException {
+		KdlDocument parse() throws IOException, KdlParseException {
 			return document();
 		}
 
@@ -76,22 +74,22 @@ public class Kdl2Parser implements KdlParser {
 
 			while (true) {
 				lineSpaces();
-				var slashDash = parseToken(Slashdash.class);
+				var slashdash = parseToken(Slashdash.class);
 				var node = node();
 
 				if (node == null) {
-					if (slashDash != null) {
+					if (slashdash != null) {
 						var errorSpan = Span.of(lexer.getNextPosition());
 						throw new KdlParseException(
 							"Valid node expected after slashdash",
-							lexer.getErrorParseContext(slashDash.span().start().line(), errorSpan.end().line(), errorSpan),
+							lexer.getErrorParseContext(slashdash.span().start().line(), errorSpan.end().line(), errorSpan),
 							"node expected"
 						);
 					}
 					break;
 				}
 
-				if (slashDash == null) {
+				if (slashdash == null) {
 					nodes.add(node);
 				}
 
@@ -136,8 +134,8 @@ public class Kdl2Parser implements KdlParser {
 			return new KdlNode(
 				type,
 				name,
-				argumentsAndProperties.first,
-				argumentsAndProperties.second,
+				argumentsAndProperties.first(),
+				argumentsAndProperties.second(),
 				children
 			);
 		}
@@ -174,17 +172,17 @@ public class Kdl2Parser implements KdlParser {
 
 			while (isArgumentOrProperty()) {
 				consumeToken(NodeSpace.class);
-				var isSlashDash = consumeToken(Slashdash.class);
+				var isSlashdash = consumeToken(Slashdash.class);
 
 				var propertyName = getPropertyName();
 				if (propertyName != null) {
 					var value = expectValue("Missing property value");
-					if (!isSlashDash) {
+					if (!isSlashdash) {
 						properties.property(propertyName.value(), value);
 					}
 				} else {
 					var value = expectValue("Missing value after argument type");
-					if (!isSlashDash) {
+					if (!isSlashdash) {
 						arguments.add(value);
 					}
 				}
@@ -259,18 +257,18 @@ public class Kdl2Parser implements KdlParser {
 
 			var openingBrace = getOpeningBrace();
 			while (openingBrace != null) {
-				if (openingBrace.first != null) {
+				if (openingBrace.first() != null) {
 					nodes(false);
-					expectClosingBrace(openingBrace.second.span().start());
+					expectClosingBrace(openingBrace.second().span().start());
 				} else if (children != null) {
 					throw new KdlParseException(
 						"More than one list of children provided for node",
-						lexer.getErrorParseContext(openingBrace.second.span()),
+						lexer.getErrorParseContext(openingBrace.second().span()),
 						"second children list"
 					);
 				} else {
 					children = nodes(false);
-					expectClosingBrace(openingBrace.second.span().start());
+					expectClosingBrace(openingBrace.second().span().start());
 				}
 				openingBrace = getOpeningBrace();
 			}
@@ -282,28 +280,17 @@ public class Kdl2Parser implements KdlParser {
 		private Pair<Slashdash, OpeningBrace> getOpeningBrace() throws IOException, KdlParseException {
 			var offset = peek(0) instanceof NodeSpace ? 1 : 0;
 			var token = peek(offset);
-			if (token instanceof Slashdash) {
-				var thirdToken = peek(offset + 1);
-				if (thirdToken instanceof OpeningBrace openingBrace) {
+			if (token instanceof Slashdash slashdash) {
+				var nextToken = peek(offset + 1);
+				if (nextToken instanceof OpeningBrace openingBrace) {
 					consume(offset + 2);
-					return new Pair<>((Slashdash) token, openingBrace);
+					return new Pair<>(slashdash, openingBrace);
 				}
 			} else if (token instanceof OpeningBrace openingBrace) {
 				consume(offset + 1);
 				return new Pair<>(null, openingBrace);
 			}
 			return null;
-		}
-
-		private void expectClosingBrace(Position openingBracePosition) throws IOException, KdlParseException {
-			expectToken(
-				ClosingBrace.class,
-				(span) -> new KdlParseException(
-					"Missing closing brace at the end of children list",
-					lexer.getErrorParseContext(openingBracePosition.line(), span.end().line(), span),
-					"closing brace expected"
-				)
-			);
 		}
 
 		private boolean nodeTerminator() throws IOException, KdlParseException {
@@ -324,15 +311,13 @@ public class Kdl2Parser implements KdlParser {
 			}
 		}
 
-		private Token read() throws IOException, KdlParseException {
+		@Override
+		protected Token read() throws IOException, KdlParseException {
 			return checkBom(lexer.read());
 		}
 
-		private Token peek() throws IOException, KdlParseException {
-			return peek(0);
-		}
-
-		private Token peek(int n) throws IOException, KdlParseException {
+		@Override
+		protected Token peek(int n) throws IOException, KdlParseException {
 			return checkBom(lexer.peek(n));
 		}
 
@@ -349,92 +334,7 @@ public class Kdl2Parser implements KdlParser {
 			return token;
 		}
 
-		private void consume(int n) throws IOException, KdlParseException {
-			for (var i = 0; i < n; i++) {
-				read();
-			}
-		}
-
-		@SafeVarargs
-		private boolean consumeToken(@Nonnull Class<? extends Token>... tokenClasses) throws IOException, KdlParseException {
-			var token = peek();
-			if (token != null) {
-				for (var tokenClass : tokenClasses) {
-					if (tokenClass.isAssignableFrom(token.getClass())) {
-						read();
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-
-		@Nonnull
-		@SuppressWarnings("unchecked")
-		private <TOKEN extends Token> TOKEN expectToken(
-			@Nonnull Class<TOKEN> tokenClass,
-			@Nonnull ErrorFactory errorFactory
-		) throws IOException, KdlParseException {
-			var token = peek();
-			if (token != null && tokenClass.isAssignableFrom(token.getClass())) {
-				read();
-				return (TOKEN) token;
-			}
-
-			Span span = token == null ? Span.of(lexer.getNextPosition()) : token.span();
-			throw errorFactory.create(span);
-		}
-
-		@Nonnull
-		@SuppressWarnings("unchecked")
-		private <TOKEN extends Token> TOKEN expectToken(
-			@Nonnull Class<TOKEN> tokenClass,
-			@Nonnull String errorMessage,
-			@Nonnull String errorLabel,
-			@Nonnull Supplier<Span> spanSupplier
-		) throws IOException, KdlParseException {
-			var token = peek();
-			if (token != null && tokenClass.isAssignableFrom(token.getClass())) {
-				read();
-				return (TOKEN) token;
-			}
-			var span = spanSupplier.get();
-			if (span == null) {
-				if (token == null) {
-					span = Span.of(lexer.getNextPosition());
-				} else {
-					span = token.span();
-				}
-			}
-			throw new KdlParseException(
-				errorMessage,
-				lexer.getErrorParseContext(span),
-				errorLabel
-			);
-		}
-
-		@Nullable
-		@SuppressWarnings("unchecked")
-		private <TOKEN extends Token> TOKEN parseToken(@Nonnull Class<TOKEN> tokenClass) throws IOException, KdlParseException {
-			var token = peek();
-			return token != null && tokenClass.isAssignableFrom(token.getClass()) ? (TOKEN) read() : null;
-		}
-
-		@Override
-		public void close() throws IOException {
-			lexer.close();
-		}
-
-		private final Kdl2Lexer lexer;
-
 		private static final int LEXER_CAPACITY = 3;
-
-		private record Pair<T, U>(T first, U second) {
-		}
-
-		private interface ErrorFactory {
-			KdlParseException create(Span span) throws IOException;
-		}
 
 	}
 

@@ -1,7 +1,6 @@
 package dev.kdl;
 
 import jakarta.annotation.Nonnull;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -18,7 +17,6 @@ public class Kdl1ParserRoundTripTest extends RoundTripTest {
 
 	@ParameterizedTest(name = "{0}")
 	@MethodSource("inputs")
-	@Disabled
 	public void roundTripTest(@Nonnull Path filename, @Nonnull Path input, @Nonnull Path expectedOutput, @Nonnull Path expectedReport) throws IOException {
 		executeRoundTripTest(input, expectedOutput, expectedReport);
 	}
