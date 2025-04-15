@@ -9,3 +9,6 @@ trim_trailing_whitespace = true
 
 [*.{yml,yaml}]
 tab_width = 2
+
+[*.md]
+max_line_length = 100
