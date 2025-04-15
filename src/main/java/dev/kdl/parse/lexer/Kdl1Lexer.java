@@ -626,8 +626,8 @@ public class Kdl1Lexer extends AbstractKdlLexer {
 
 		var span = new Span(start, sourceLines.getCurrentPosition());
 		return switch (builder.toString()) {
-			case "true" -> new Boolean(true, span);
-			case "false" -> new Boolean(false, span);
+			case "true" -> new Boolean(true, "true", span);
+			case "false" -> new Boolean(false, "false", span);
 			case "null" -> new Null(span);
 			default -> new BareIdentifier(builder.toString(), span);
 		};

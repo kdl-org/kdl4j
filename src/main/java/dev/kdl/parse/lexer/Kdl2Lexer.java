@@ -773,8 +773,8 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		var span = new Span(start, sourceLines.getCurrentPosition());
 		var keyword = builder.toString();
 		return switch (keyword) {
-			case "true" -> new Boolean(true, span);
-			case "false" -> new Boolean(false, span);
+			case "true" -> new Boolean(true, "#true", span);
+			case "false" -> new Boolean(false, "#false", span);
 			case "null" -> new Null(span);
 			case "inf" -> new Number.Infinity(span);
 			case "-inf" -> new Number.NegativeInfinity(span);
