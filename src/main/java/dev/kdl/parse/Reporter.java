@@ -63,8 +63,7 @@ public class Reporter {
 		print(":\n");
 
 		printMargin("╭─[");
-		printWithColor(context.filename(), ANSI_CYAN_UNDERLINE);
-		print(":");
+		printFilename();
 		print(String.valueOf(context.span().start().line()));
 		print(":");
 		print(String.valueOf(context.span().start().column()));
@@ -80,6 +79,14 @@ public class Reporter {
 		}
 
 		printMargin("╰─");
+	}
+
+	private void printFilename() {
+		var filename = context.filename();
+		if (filename != null) {
+			printWithColor(filename, ANSI_CYAN_UNDERLINE);
+			print(":");
+		}
 	}
 
 	private void printUnderline(SourceLine line, Span span) {

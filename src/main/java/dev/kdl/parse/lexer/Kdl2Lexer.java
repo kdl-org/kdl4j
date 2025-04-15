@@ -24,6 +24,7 @@ import dev.kdl.parse.lexer.token.Slashdash;
 import dev.kdl.parse.lexer.token.StringToken;
 import dev.kdl.parse.lexer.token.Token;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +51,7 @@ import static java.util.function.Predicate.not;
 
 public class Kdl2Lexer extends AbstractKdlLexer {
 
-	public Kdl2Lexer(@Nonnull String filename, @Nonnull InputStream inputStream, int capacity) {
+	public Kdl2Lexer(@Nullable String filename, @Nonnull InputStream inputStream, int capacity) {
 		super(filename, new KdlReader(inputStream, READER_CAPACITY, Kdl2Lexer::isInvalid), capacity);
 	}
 

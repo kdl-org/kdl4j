@@ -20,17 +20,32 @@ public interface KdlParser {
 	 * @param filename    the name of the parsed file
 	 * @param inputStream an input stream returning a KDL document
 	 * @return a {@link KdlDocument} corresponding to {@code document}
-	 * @throws IOException if an error occurs while reading the input
+	 * @throws IOException       if an error occurs while reading the input
+	 * @throws KdlParseException if the document is invalid
 	 */
 	@Nonnull
-	KdlDocument parse(@Nonnull String filename, @Nonnull InputStream inputStream) throws IOException, KdlParseException;
+	KdlDocument parse(@Nullable String filename, @Nonnull InputStream inputStream) throws IOException, KdlParseException;
+
+	/**
+	 * Parses an input stream as a {@link  KdlDocument}.
+	 *
+	 * @param inputStream an input stream returning a KDL document
+	 * @return a {@link KdlDocument} corresponding to {@code document}
+	 * @throws IOException       if an error occurs while reading the input
+	 * @throws KdlParseException if the document is invalid
+	 */
+	@Nonnull
+	default KdlDocument parse(@Nonnull InputStream inputStream) throws IOException, KdlParseException {
+		return parse(null, inputStream);
+	}
 
 	/**
 	 * Parses a file as a {@link  KdlDocument}.
 	 *
 	 * @param path path to a file containing a KDL document
 	 * @return a {@link KdlDocument} corresponding to {@code document}
-	 * @throws IOException if an error occurs while reading the input
+	 * @throws IOException       if an error occurs while reading the input
+	 * @throws KdlParseException if the document is invalid
 	 */
 	@Nonnull
 	default KdlDocument parse(@Nonnull Path path) throws IOException, KdlParseException {
@@ -45,11 +60,25 @@ public interface KdlParser {
 	 * @param filename the name of the parsed file
 	 * @param document a string representation of a KDL document
 	 * @return a {@link KdlDocument} corresponding to {@code document}
-	 * @throws IOException if an error occurs while reading the input
+	 * @throws IOException       if an error occurs while reading the input
+	 * @throws KdlParseException if the document is invalid
 	 */
 	@Nonnull
-	default KdlDocument parse(@Nonnull String filename, @Nonnull String document) throws IOException, KdlParseException {
+	default KdlDocument parse(@Nullable String filename, @Nonnull String document) throws IOException, KdlParseException {
 		return parse(filename, new ByteArrayInputStream(document.getBytes(StandardCharsets.UTF_8)));
+	}
+
+	/**
+	 * Parses a string as a {@link  KdlDocument}.
+	 *
+	 * @param document a string representation of a KDL document
+	 * @return a {@link KdlDocument} corresponding to {@code document}
+	 * @throws IOException       if an error occurs while reading the input
+	 * @throws KdlParseException if the document is invalid
+	 */
+	@Nonnull
+	default KdlDocument parse(@Nonnull String document) throws IOException, KdlParseException {
+		return parse(null, document);
 	}
 
 	/**

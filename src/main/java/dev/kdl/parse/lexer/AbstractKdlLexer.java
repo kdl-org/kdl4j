@@ -19,7 +19,7 @@ import static dev.kdl.parse.lexer.reader.KdlReader.EOF;
 
 public abstract class AbstractKdlLexer implements Lexer {
 
-	AbstractKdlLexer(@Nonnull String filename, @Nonnull KdlReader reader, int capacity) {
+	AbstractKdlLexer(@Nullable String filename, @Nonnull KdlReader reader, int capacity) {
 		this.filename = filename;
 		this.reader = reader;
 		this.readTokens = new RingBuffer<>(capacity);
@@ -139,7 +139,7 @@ public abstract class AbstractKdlLexer implements Lexer {
 	private final KdlReader reader;
 	@Nonnull
 	private final RingBuffer<Token> readTokens;
-	@Nonnull
+	@Nullable
 	private final String filename;
 	@Nonnull
 	protected final SourceLines sourceLines = new SourceLines();

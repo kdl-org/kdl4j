@@ -33,6 +33,21 @@ class ReporterTest {
 				new KdlParseException(
 					"Something went wrong",
 					new ParseContext(
+						null,
+						List.of(new SourceLine(1, "first and only line")),
+						Span.of(1, 7, 1, 9)
+					)
+				),
+				"""
+					× Something went wrong:
+					  ╭─[1:7]
+					1 │ first and only line
+					  ╰─"""
+			),
+			Arguments.of(
+				new KdlParseException(
+					"Something went wrong",
+					new ParseContext(
 						"test.kdl",
 						List.of(new SourceLine(1, "first and only line")),
 						Span.of(1, 7, 1, 9)

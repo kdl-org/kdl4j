@@ -36,7 +36,7 @@ import java.util.List;
 public class Kdl1Parser implements KdlParser {
 	@Nonnull
 	@Override
-	public KdlDocument parse(@Nonnull String filename, @Nonnull InputStream inputStream) throws IOException, KdlParseException {
+	public KdlDocument parse(@Nullable String filename, @Nonnull InputStream inputStream) throws IOException, KdlParseException {
 		try (var kdl1ParserContext = new Kdl1ParserContext(filename, inputStream)) {
 			return kdl1ParserContext.parse();
 		}
@@ -44,7 +44,7 @@ public class Kdl1Parser implements KdlParser {
 
 	private static final class Kdl1ParserContext extends KdlParserContext {
 
-		private Kdl1ParserContext(@Nonnull String filename, @Nonnull InputStream inputStream) {
+		private Kdl1ParserContext(@Nullable String filename, @Nonnull InputStream inputStream) {
 			super(new Kdl1Lexer(filename, inputStream, LEXER_CAPACITY));
 		}
 

@@ -38,7 +38,7 @@ public class Kdl2Parser implements KdlParser {
 
 	@Nonnull
 	@Override
-	public KdlDocument parse(@Nonnull String filename, @Nonnull InputStream inputStream) throws IOException, KdlParseException {
+	public KdlDocument parse(@Nullable String filename, @Nonnull InputStream inputStream) throws IOException, KdlParseException {
 		try (var kdl2ParserContext = new Kdl2ParserContext(filename, inputStream)) {
 			return kdl2ParserContext.parse();
 		}
@@ -46,7 +46,7 @@ public class Kdl2Parser implements KdlParser {
 
 	private static final class Kdl2ParserContext extends KdlParserContext {
 
-		private Kdl2ParserContext(@Nonnull String filename, @Nonnull InputStream inputStream) {
+		private Kdl2ParserContext(@Nullable String filename, @Nonnull InputStream inputStream) {
 			super(new Kdl2Lexer(filename, inputStream, LEXER_CAPACITY));
 		}
 
