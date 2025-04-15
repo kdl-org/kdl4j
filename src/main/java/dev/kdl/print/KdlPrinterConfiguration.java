@@ -42,9 +42,37 @@ public record KdlPrinterConfiguration(
 	 * Builder for {@link KdlPrinterConfiguration}.
 	 */
 	public static final class Builder {
+		/**
+		 * Sets the version of KDL.
+		 *
+		 * @param version the version of KDL to use
+		 * @return {code this}
+		 */
 		@Nonnull
 		public Builder version(@Nonnull KdlVersion version) {
 			this.version = version;
+			return this;
+		}
+
+		/**
+		 * Sets the version of KDL to 1.
+		 *
+		 * @return {code this}
+		 */
+		@Nonnull
+		public Builder v1() {
+			this.version = KdlVersion.V1;
+			return this;
+		}
+
+		/**
+		 * Sets the version of KDL to 2.
+		 *
+		 * @return {code this}
+		 */
+		@Nonnull
+		public Builder v2() {
+			this.version = KdlVersion.V2;
 			return this;
 		}
 

@@ -79,6 +79,30 @@ public class KdlPrinter {
 		}
 	}
 
+	/**
+	 * Creates a new KDL 1 printer with default options.
+	 *
+	 * @return a KDL 1 printer
+	 */
+	@Nonnull
+	public static KdlPrinter v1() {
+		return new KdlPrinter(
+			KdlPrinterConfiguration.builder()
+				.v1()
+				.build()
+		);
+	}
+
+	/**
+	 * Creates a new KDL 2 printer with default options.
+	 *
+	 * @return a KDL 2 printer
+	 */
+	@Nonnull
+	public static KdlPrinter v2() {
+		return new KdlPrinter();
+	}
+
 	@Nonnull
 	private KdlPrinterContext getContext(Writer writer, KdlPrinterConfiguration configuration) {
 		if (configuration.version() == KdlVersion.V1) {
