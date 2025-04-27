@@ -126,7 +126,8 @@ class Kdl1LexerTest {
 			Arguments.of("-123.456e-3", new Number.Decimal(new BigDecimal("-0.123456"), Span.of(1, 1, 1, 11))),
 			Arguments.of("123 123", new Number.Integer(BigInteger.valueOf(123), Span.of(1, 1, 1, 3)), new Whitespace(" ", Span.of(1, 4)), new Number.Integer(BigInteger.valueOf(123), Span.of(1, 5, 1, 7))),
 			Arguments.of("(type) node", new Parentheses.OpeningParentheses(Span.of(1, 1)), new BareIdentifier("type", Span.of(1, 2, 1, 5)), new Parentheses.ClosingParentheses(Span.of(1, 6)), new Whitespace(" ", Span.of(1, 7)), new BareIdentifier("node", Span.of(1, 8, 1, 11))),
-			Arguments.of("node 0xabcdef1234567890", new BareIdentifier("node", Span.of(1, 1, 1, 4)), new Whitespace(" ", Span.of(1, 5)), new Number.Integer(new BigInteger("abcdef1234567890", 16), Span.of(1, 6, 1, 23)))
+			Arguments.of("node 0xabcdef1234567890", new BareIdentifier("node", Span.of(1, 1, 1, 4)), new Whitespace(" ", Span.of(1, 5)), new Number.Integer(new BigInteger("abcdef1234567890", 16), Span.of(1, 6, 1, 23))),
+			Arguments.of("/**m/g/*/N*/*/", new Whitespace("/**m/g/*/N*/*/", Span.of(1, 1, 1, 14)))
 		);
 	}
 
@@ -459,6 +460,16 @@ class Kdl1LexerTest {
 					1 │ abc(def)
 					  ·    ┬
 					  ·    ╰ unexpected character
+					  ╰─"""
+			),
+			Arguments.of(
+				"/*/",
+				"""
+					× Unexpected end of file in multi-line comment:
+					  ╭─[test.kdl:1:4]
+					1 │ /*/
+					  ·    ┬
+					  ·    ╰ end of file
 					  ╰─"""
 			)
 		);

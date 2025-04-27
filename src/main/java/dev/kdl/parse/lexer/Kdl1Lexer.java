@@ -241,6 +241,8 @@ public class Kdl1Lexer extends AbstractKdlLexer {
 				builder.appendCodePoint(c);
 			}
 			if (c == '/' && peekChar() == '*') {
+				consumeChar();
+				builder.append('*');
 				expectedEnds += 1;
 			}
 			if (c == '*' && peekChar() == '/') {
