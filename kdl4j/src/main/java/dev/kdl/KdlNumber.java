@@ -132,6 +132,7 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 			throw new UnsupportedOperationException("Not a number cannot be converted to BigDecimal");
 		}
 
+		@Nonnull
 		@Override
 		public String toString() {
 			return "NaN";
@@ -188,6 +189,7 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 			throw new UnsupportedOperationException("Positive infinity cannot be converted to BigDecimal");
 		}
 
+		@Nonnull
 		@Override
 		public String toString() {
 			return "+inf";
@@ -244,6 +246,7 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 			throw new UnsupportedOperationException("Negative infinity cannot be converted to BigDecimal");
 		}
 
+		@Nonnull
 		@Override
 		public String toString() {
 			return "-inf";
@@ -278,6 +281,7 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 			return new BigDecimal(value);
 		}
 
+		@Nonnull
 		@Override
 		public String toString() {
 			return "Integer(" + value + ')';
@@ -312,6 +316,7 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 			return value;
 		}
 
+		@Nonnull
 		@Override
 		public String toString() {
 			return "Decimal(" + value + ')';

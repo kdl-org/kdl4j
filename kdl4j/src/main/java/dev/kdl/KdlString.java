@@ -19,6 +19,7 @@ public record KdlString(@Nullable String type, @Nonnull String value) implements
 		this(null, value);
 	}
 
+	@Nonnull
 	@Override
 	public String toString() {
 		return "String(" + value + ')';

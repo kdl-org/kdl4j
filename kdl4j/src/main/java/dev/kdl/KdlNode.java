@@ -62,6 +62,7 @@ public record KdlNode(
 		return properties.getValue(name);
 	}
 
+	@Nonnull
 	@Override
 	public String toString() {
 		var builder = new StringBuilder("KDLNode(");
