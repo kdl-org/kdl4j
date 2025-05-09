@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
@@ -76,6 +77,15 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 		return Objects.hashCode(properties);
 	}
 
+	/**
+	 * Creates a new builder to create new properties from the current ones.
+	 *
+	 * @return a new builder with the current properties
+	 */
+	public Builder mutate() {
+		return new Builder(properties);
+	}
+
 	private final LinkedHashMap<String, List<KdlValue<?>>> properties;
 
 	/**
@@ -90,6 +100,14 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 	 * A builder for {@link KdlProperties}.
 	 */
 	public static final class Builder {
+		private Builder() {
+			this.properties = new LinkedHashMap<>();
+		}
+
+		private Builder(@Nonnull Map<String, List<KdlValue<?>>> properties) {
+			this.properties = new LinkedHashMap<>(properties);
+		}
+
 		/**
 		 * Adds a property.
 		 *
@@ -120,7 +138,7 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 		}
 
 		@Nonnull
-		private final LinkedHashMap<String, List<KdlValue<?>>> properties = new LinkedHashMap<>();
+		private final LinkedHashMap<String, List<KdlValue<?>>> properties;
 	}
 
 }

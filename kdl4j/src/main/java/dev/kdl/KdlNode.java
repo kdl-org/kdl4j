@@ -82,6 +82,16 @@ public record KdlNode(
 	}
 
 	/**
+	 * Creates a new builder to create a new node from the current one.
+	 *
+	 * @return a new builder with the type, name, arguments, properties, and children of this document
+	 */
+	@Nonnull
+	public Builder mutate() {
+		return new Builder(type, name, arguments, properties, children);
+	}
+
+	/**
 	 * @return a new node builder
 	 */
 	@Nonnull
@@ -93,6 +103,26 @@ public record KdlNode(
 	 * A {@link KdlNode} builder.
 	 */
 	public static final class Builder {
+		private Builder() {
+			this.arguments = new ArrayList<>();
+			this.properties = KdlProperties.builder();
+			this.children = new ArrayList<>();
+		}
+
+		private Builder(
+			@Nullable String type,
+			@Nullable String name,
+			@Nonnull List<KdlValue<?>> arguments,
+			@Nonnull KdlProperties properties,
+			@Nonnull List<KdlNode> children
+		) {
+			this.type = type;
+			this.name = name;
+			this.arguments = new ArrayList<>(arguments);
+			this.properties = properties.mutate();
+			this.children = new ArrayList<>(children);
+		}
+
 		/**
 		 * Sets the name of the node.
 		 *
@@ -246,10 +276,10 @@ public record KdlNode(
 		@Nullable
 		private String name;
 		@Nonnull
-		private final List<KdlValue<?>> arguments = new ArrayList<>();
+		private final ArrayList<KdlValue<?>> arguments;
 		@Nonnull
-		private final KdlProperties.Builder properties = KdlProperties.builder();
+		private final KdlProperties.Builder properties;
 		@Nonnull
-		private final List<KdlNode> children = new ArrayList<>();
+		private final ArrayList<KdlNode> children;
 	}
 }
