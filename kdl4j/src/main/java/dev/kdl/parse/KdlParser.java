@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public interface KdlParser {
+
 	/**
 	 * Parses an input stream as a {@link  KdlDocument}.
 	 *
@@ -89,7 +90,7 @@ public interface KdlParser {
 	 */
 	@Nonnull
 	static KdlParser hybrid() {
-		return new KdlHybridParser();
+		return KDL_HYBRID_PARSER;
 	}
 
 	/**
@@ -99,7 +100,7 @@ public interface KdlParser {
 	 */
 	@Nonnull
 	static KdlParser v1() {
-		return new Kdl1Parser();
+		return KDL1_PARSER;
 	}
 
 	/**
@@ -109,8 +110,12 @@ public interface KdlParser {
 	 */
 	@Nonnull
 	static KdlParser v2() {
-		return new Kdl2Parser();
+		return KDL2_PARSER;
 	}
+
+	Kdl2Parser KDL2_PARSER = new Kdl2Parser();
+	Kdl1Parser KDL1_PARSER = new Kdl1Parser();
+	KdlHybridParser KDL_HYBRID_PARSER = new KdlHybridParser();
 
 	/**
 	 * Creates a new parser depending on the specified version. If no version is specified, creates a hybrid parser.
