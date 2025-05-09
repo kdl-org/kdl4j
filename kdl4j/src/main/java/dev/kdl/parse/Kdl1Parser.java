@@ -164,7 +164,7 @@ public class Kdl1Parser implements KdlParser {
 
 		private boolean isValueStart(Token token) {
 			return token instanceof Parentheses.OpeningParentheses
-				|| token instanceof dev.kdl.parse.lexer.token.Number
+				|| token instanceof Number
 				|| token instanceof Boolean
 				|| token instanceof Null
 				|| token instanceof StringToken

@@ -73,13 +73,13 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 	@Nonnull
 	static KdlNumber<?> from(@Nullable String type, @Nonnull Number number) {
 		if (number instanceof BigInteger) {
-			return new KdlNumber.Integer(type, (BigInteger) number);
+			return new Integer(type, (BigInteger) number);
 		} else if (number instanceof BigDecimal) {
-			return new KdlNumber.Decimal(type, (BigDecimal) number);
+			return new Decimal(type, (BigDecimal) number);
 		} else if (number instanceof Byte || number instanceof Short || number instanceof java.lang.Integer || number instanceof Long) {
-			return new KdlNumber.Integer(type, BigInteger.valueOf(number.longValue()));
+			return new Integer(type, BigInteger.valueOf(number.longValue()));
 		}
-		return new KdlNumber.Decimal(type, new BigDecimal(number.toString()));
+		return new Decimal(type, new BigDecimal(number.toString()));
 	}
 
 	/**

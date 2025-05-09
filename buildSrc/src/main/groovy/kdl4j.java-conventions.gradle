@@ -1,0 +1,44 @@
+plugins {
+	id 'java-library'
+	id 'maven-publish'
+}
+
+group = "dev.kdl"
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation libs.jakarta.annotations
+
+	testImplementation libs.junit.jupiter
+	testRuntimeOnly libs.junit.platform.launcher
+	testImplementation libs.assert.core
+}
+
+java {
+	withSourcesJar()
+	withJavadocJar()
+
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
+
+publishing {
+	repositories {
+		maven {
+			name = "GitHubPackages"
+			url = "https://maven.pkg.github.com/kdl-org/kdl4j"
+			credentials {
+				username = System.getenv("GITHUB_ACTOR")
+				password = System.getenv("GITHUB_TOKEN")
+			}
+		}
+	}
+}

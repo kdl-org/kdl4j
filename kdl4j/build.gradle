@@ -1,0 +1,3 @@
+plugins {
+	id 'kdl4j.java-conventions'
+}

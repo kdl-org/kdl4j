@@ -1,0 +1,10 @@
+[versions]
+jakarta = { strictly = "[2.0.0, 4.0.0[", prefer = "3.0.0" }
+junit = "5.12.2"
+assertj = "3.27.3"
+
+[libraries]
+jakarta-annotations = { group = "jakarta.annotation", name = "jakarta.annotation-api", version.ref = "jakarta" }
+junit-jupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
+junit-platform-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
+assert-core = { group = "org.assertj", name = "assertj-core", version.ref = "assertj" }

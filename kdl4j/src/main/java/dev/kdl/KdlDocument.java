@@ -5,7 +5,6 @@ import jakarta.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * A KDL document.
@@ -14,17 +13,12 @@ import java.util.stream.Collectors;
  */
 public record KdlDocument(@Nonnull List<KdlNode> nodes) {
 	/**
-	 * Creates a new document
+	 * Creates a new document with the provided nodes.
 	 *
 	 * @param nodes the nodes in the document
 	 */
 	public KdlDocument(@Nonnull List<KdlNode> nodes) {
 		this.nodes = Collections.unmodifiableList(nodes);
-	}
-
-	@Override
-	public String toString() {
-		return "KDLDocument[" + nodes.stream().map(KdlNode::toString).collect(Collectors.joining(", ")) + ']';
 	}
 
 	/**
