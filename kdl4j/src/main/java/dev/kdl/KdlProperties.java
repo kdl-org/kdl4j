@@ -4,19 +4,20 @@ import jakarta.annotation.Nonnull;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * The properties of a {@link KdlNode}.
  */
-public final class KdlProperties implements Iterable<KdlProperty<?>> {
-	private KdlProperties(@Nonnull Map<String, List<KdlValue<?>>> properties) {
-		this.properties = Collections.unmodifiableMap(properties);
+public final class KdlProperties implements Iterable<Entry<String, List<KdlValue<?>>>> {
+	private KdlProperties(@Nonnull LinkedHashMap<String, List<KdlValue<?>>> properties) {
+		this.properties = properties;
 	}
 
 	/**
@@ -53,8 +54,13 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 
 	@Nonnull
 	@Override
-	public Iterator<KdlProperty<?>> iterator() {
-		return new PropertiesIterator();
+	public Iterator<Entry<String, List<KdlValue<?>>>> iterator() {
+		return properties.entrySet().iterator();
+	}
+
+	@Nonnull
+	public Set<String> propertyNames() {
+		return properties.keySet();
 	}
 
 	@Override
@@ -70,7 +76,7 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 		return Objects.hashCode(properties);
 	}
 
-	private final Map<String, List<KdlValue<?>>> properties;
+	private final LinkedHashMap<String, List<KdlValue<?>>> properties;
 
 	/**
 	 * @return a new {@link KdlProperties} builder.
@@ -114,22 +120,7 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 		}
 
 		@Nonnull
-		private final Map<String, List<KdlValue<?>>> properties = new HashMap<>();
+		private final LinkedHashMap<String, List<KdlValue<?>>> properties = new LinkedHashMap<>();
 	}
 
-	private final class PropertiesIterator implements Iterator<KdlProperty<?>> {
-		@Override
-		public boolean hasNext() {
-			return names.hasNext();
-		}
-
-		@Override
-		public KdlProperty<?> next() {
-			var name = names.next();
-			var values = name == null ? null : properties.get(name);
-			return values == null ? null : new KdlProperty<>(name, values.get(values.size() - 1));
-		}
-
-		private final Iterator<String> names = properties.keySet().stream().sorted().toList().iterator();
-	}
 }

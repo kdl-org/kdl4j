@@ -52,12 +52,13 @@ public abstract class KdlPrinterContext {
 			}
 		}
 
-		for (var property : node.properties()) {
-			if (configuration.printNullProperties() || !(property.value() instanceof KdlNull)) {
-				write(' ');
-				writeIdentifier(property.name());
-				write('=');
-				printValue(property.value());
+		var properties = configuration.propertiesOrder().sort(node.properties().propertyNames());
+		for (var property : properties) {
+			var values = node.properties().getValues(property);
+			if (configuration.printDuplicateProperties()) {
+				values.forEach(value -> printProperty(property, value));
+			} else if (!values.isEmpty()) {
+				printProperty(property, values.get(values.size() - 1));
 			}
 		}
 
@@ -81,6 +82,15 @@ public abstract class KdlPrinterContext {
 			printBoolean((KdlBoolean) value);
 		} else if (value instanceof KdlNumber<?>) {
 			printNumber((KdlNumber<?>) value);
+		}
+	}
+
+	protected void printProperty(String name, KdlValue<?> value) {
+		if (configuration.printNullProperties() || !(value instanceof KdlNull)) {
+			write(' ');
+			writeIdentifier(name);
+			write('=');
+			printValue(value);
 		}
 	}
 

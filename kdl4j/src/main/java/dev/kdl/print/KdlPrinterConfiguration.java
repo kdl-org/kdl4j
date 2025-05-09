@@ -3,21 +3,24 @@ package dev.kdl.print;
 import dev.kdl.KdlVersion;
 import jakarta.annotation.Nonnull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * Configures a {@link KdlPrinter}.
  *
- * @param version             the version of KDL to use for printing
- * @param indentation         the whitespace characters used for a level of indentation
- * @param newline             the newline characters used when printing a new lineNumber
- * @param exponentChar        the character used for the exponent of decimal numbers
- * @param printEmptyChildren  whether empty children should be printed
- * @param printNullArguments  whether null arguments should be printed
- * @param printNullProperties whether null properties should be printed
- * @param printSemicolons     whether semicolons should be printed after each node
- * @param printQuotes         whether quotes should be printing around identifiers
+ * @param version                  the version of KDL to use for printing
+ * @param indentation              the whitespace characters used for a level of indentation
+ * @param newline                  the newline characters used when printing a new lineNumber
+ * @param exponentChar             the character used for the exponent of decimal numbers
+ * @param printEmptyChildren       whether empty children should be printed
+ * @param printNullArguments       whether null arguments should be printed
+ * @param printNullProperties      whether null properties should be printed
+ * @param printDuplicateProperties whether duplicate properties should be printed (only the last one is printed when false)
+ * @param propertiesOrder          order to use when printing properties
+ * @param printSemicolons          whether semicolons should be printed after each node
+ * @param printQuotes              whether quotes should be printing around identifiers
  */
 public record KdlPrinterConfiguration(
 	@Nonnull KdlVersion version,
@@ -27,6 +30,8 @@ public record KdlPrinterConfiguration(
 	boolean printEmptyChildren,
 	boolean printNullArguments,
 	boolean printNullProperties,
+	boolean printDuplicateProperties,
+	@Nonnull PropertiesOrder propertiesOrder,
 	boolean printSemicolons,
 	boolean printQuotes
 ) {
@@ -184,6 +189,31 @@ public record KdlPrinterConfiguration(
 		}
 
 		/**
+		 * Sets whether duplicate properties should be printed. If false, only the last value will be printed.
+		 * Default is {@code true}.
+		 *
+		 * @param printDuplicateProperties whether null properties should be printed
+		 * @return {@code this}
+		 */
+		@Nonnull
+		public Builder printDuplicateProperties(boolean printDuplicateProperties) {
+			this.printDuplicateProperties = printDuplicateProperties;
+			return this;
+		}
+
+		/**
+		 * Sets the exponent character to use when printing decimal numbers. Default is "E".
+		 *
+		 * @param propertiesOrder order to use when printing properties
+		 * @return {@code this}
+		 */
+		@Nonnull
+		public Builder propertiesOrder(@Nonnull PropertiesOrder propertiesOrder) {
+			this.propertiesOrder = propertiesOrder;
+			return this;
+		}
+
+		/**
 		 * Sets that semicolons should be printed after each node. Default is false.
 		 *
 		 * @return {@code this}
@@ -238,6 +268,8 @@ public record KdlPrinterConfiguration(
 				printEmptyChildren,
 				printNullArguments,
 				printNullProperties,
+				printDuplicateProperties,
+				propertiesOrder,
 				printSemicolons,
 				printQuotes
 			);
@@ -254,6 +286,9 @@ public record KdlPrinterConfiguration(
 		private boolean printEmptyChildren = false;
 		private boolean printNullArguments = true;
 		private boolean printNullProperties = true;
+		private boolean printDuplicateProperties = true;
+		@Nonnull
+		private PropertiesOrder propertiesOrder = PropertiesOrder.DECLARATION;
 		private boolean printSemicolons = false;
 		private boolean printQuotes = false;
 	}
@@ -291,6 +326,17 @@ public record KdlPrinterConfiguration(
 
 		public String replaceExponentCharacter(String decimalAsString) {
 			return this == E ? decimalAsString : decimalAsString.replace('E', 'e');
+		}
+	}
+
+	public enum PropertiesOrder {
+		DECLARATION, NAME_ASCENDING;
+
+		public List<String> sort(Collection<String> propertyNames) {
+			return switch (this) {
+				case DECLARATION -> propertyNames.stream().toList();
+				case NAME_ASCENDING -> propertyNames.stream().sorted().toList();
+			};
 		}
 	}
 }

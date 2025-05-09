@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static dev.kdl.print.KdlPrinterConfiguration.PropertiesOrder.NAME_ASCENDING;
 import static dev.kdl.print.KdlPrinterConfiguration.Whitespace.SPACE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
@@ -27,6 +28,8 @@ public abstract class RoundTripTest {
 			KdlPrinterConfiguration.builder()
 				.version(version)
 				.indentation(List.of(SPACE, SPACE, SPACE, SPACE))
+				.printDuplicateProperties(false)
+				.propertiesOrder(NAME_ASCENDING)
 				.build()
 		);
 	}
