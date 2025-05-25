@@ -39,8 +39,10 @@ public class KdlPrinter {
 	 *
 	 * @param document the document to print
 	 * @return the printed document, in a {@link String}
+	 * @throws IOException never
+	 * @throws IOException when an error occurs while writing
 	 */
-	public String printToString(KdlDocument document) {
+	public String printToString(KdlDocument document) throws IOException {
 		var writer = new StringWriter();
 		getContext(writer, configuration).printDocument(document);
 		return writer.toString();
@@ -51,8 +53,9 @@ public class KdlPrinter {
 	 *
 	 * @param document the document to print
 	 * @param writer   the writer to write to
+	 * @throws IOException when an error occurs while writing
 	 */
-	public void print(KdlDocument document, Writer writer) {
+	public void print(KdlDocument document, Writer writer) throws IOException {
 		getContext(writer, configuration).printDocument(document);
 	}
 
@@ -61,8 +64,9 @@ public class KdlPrinter {
 	 *
 	 * @param document     the document to print
 	 * @param outputStream the stream to write to
+	 * @throws IOException when an error occurs while writing
 	 */
-	public void print(KdlDocument document, OutputStream outputStream) {
+	public void print(KdlDocument document, OutputStream outputStream) throws IOException {
 		getContext(new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)), configuration)
 			.printDocument(document);
 	}
@@ -72,6 +76,7 @@ public class KdlPrinter {
 	 *
 	 * @param document the document to print
 	 * @param path     the path of the file to write to
+	 * @throws IOException when an error occurs while writing
 	 */
 	public void print(KdlDocument document, Path path) throws IOException {
 		try (var writer = Files.newBufferedWriter(path, StandardCharsets.UTF_8)) {

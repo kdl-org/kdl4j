@@ -34,6 +34,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Parser for the KDL 2.0 syntax.
+ */
 public class Kdl2Parser implements KdlParser {
 
 	@Nonnull

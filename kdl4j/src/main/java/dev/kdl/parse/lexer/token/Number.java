@@ -7,12 +7,29 @@ import jakarta.annotation.Nonnull;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * Token for numbers.
+ */
 public interface Number extends Token {
+	/**
+	 * Creates a KDL number from the current token.
+	 *
+	 * @param type the type of the KDL number
+	 * @return a KDL number corresponding to this token
+	 */
 	KdlNumber<?> asKDLNumber(String type);
 
+	/**
+	 * @return the value of this number token as a {@link BigDecimal}
+	 */
 	BigDecimal asBigDecimal();
 
-	record Infinity(@Nonnull Span span) implements Number {
+	/**
+	 * Token for the positive infinity keyword.
+	 *
+	 * @param span the span of the token
+	 */
+	record PositiveInfinity(@Nonnull Span span) implements Number {
 		@Nonnull
 		@Override
 		public String value() {
@@ -29,9 +46,17 @@ public interface Number extends Token {
 			throw new UnsupportedOperationException("Positive infinity cannot be converted to BigDecimal");
 		}
 
+		/**
+		 * The value of the positive infinity keyword.
+		 */
 		public static final String VALUE = "#inf";
 	}
 
+	/**
+	 * Token for the negative infinity keyword.
+	 *
+	 * @param span the span of the token
+	 */
 	record NegativeInfinity(@Nonnull Span span) implements Number {
 		@Nonnull
 		@Override
@@ -50,9 +75,17 @@ public interface Number extends Token {
 			throw new UnsupportedOperationException("Negative infinity cannot be converted to BigDecimal");
 		}
 
+		/**
+		 * The value of the negative infinity keyword.
+		 */
 		public static final String VALUE = "#-inf";
 	}
 
+	/**
+	 * Token for the not-a-number keyword.
+	 *
+	 * @param span the span of the token
+	 */
 	record NaN(@Nonnull Span span) implements Number {
 		@Nonnull
 		@Override
@@ -70,9 +103,17 @@ public interface Number extends Token {
 			throw new UnsupportedOperationException("Not a number cannot be converted to BigDecimal");
 		}
 
+		/**
+		 * The value of the not-a-number keyword.
+		 */
 		public static final String VALUE = "#nan";
 	}
 
+	/**
+	 * Token for an integer number.
+	 *
+	 * @param span the span of the token
+	 */
 	record Integer(@Nonnull BigInteger integer, @Nonnull Span span) implements Number {
 		@Nonnull
 		@Override
@@ -97,6 +138,11 @@ public interface Number extends Token {
 		}
 	}
 
+	/**
+	 * Token for a decimal number.
+	 *
+	 * @param span the span of the token
+	 */
 	record Decimal(@Nonnull BigDecimal decimal, @Nonnull Span span) implements Number {
 		@Nonnull
 		@Override

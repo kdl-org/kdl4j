@@ -14,6 +14,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * A parser for KDL documents.
+ */
 public interface KdlParser {
 
 	/**
@@ -114,8 +117,17 @@ public interface KdlParser {
 		return KDL_HYBRID_PARSER.updateAndGet(parser -> parser == null ? new KdlHybridParser() : parser);
 	}
 
+	/**
+	 * The default KDL 1.0 parser.
+	 */
 	AtomicReference<Kdl1Parser> KDL1_PARSER = new AtomicReference<>();
+	/**
+	 * The default KDL 2.0 parser.
+	 */
 	AtomicReference<Kdl2Parser> KDL2_PARSER = new AtomicReference<>();
+	/**
+	 * The default KDL hybrid parser.
+	 */
 	AtomicReference<KdlHybridParser> KDL_HYBRID_PARSER = new AtomicReference<>();
 
 	/**

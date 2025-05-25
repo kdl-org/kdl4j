@@ -6,16 +6,41 @@ import dev.kdl.parse.context.Span;
 
 import java.util.List;
 
+/**
+ * A reporter for {@link KdlParseException}. The goal is to display a user-friendly message, with the context of the
+ * error and as much information or help as possible.
+ * <p>
+ * The reporter can optionally return a string including ANSI escape codes to display colors.
+ */
 public class Reporter {
 
+	/**
+	 * Creates a report for an exception, without ANSI escape codes.
+	 *
+	 * @param parseException the exception to create a report of
+	 * @return a user-friendly error report
+	 */
 	public static String getReport(KdlParseException parseException) {
 		return getReport(parseException, false);
 	}
 
+	/**
+	 * Creates a report for an exception, with ANSI escape codes.
+	 *
+	 * @param parseException the exception to create a report of
+	 * @return a user-friendly error report with ANSI colors
+	 */
 	public static String getReportWithAnsiCodes(KdlParseException parseException) {
 		return getReport(parseException, true);
 	}
 
+	/**
+	 * Creates a report for an exception.
+	 *
+	 * @param parseException the exception to create a report of
+	 * @param ansiColors     whether to include ANSI escape codes for color
+	 * @return a user-friendly error report
+	 */
 	public static String getReport(KdlParseException parseException, boolean ansiColors) {
 		if (parseException instanceof KdlHybridParseException) {
 			return "Failed to parse the document using both the KDL v2 and the KDL v1 parser.\n" +

@@ -5,6 +5,11 @@ package dev.kdl.parse;
  * please report an issue with the offending document.
  */
 public class KdlInternalParseException extends RuntimeException {
+	/**
+	 * Creates a new {@link KdlInternalParseException}.
+	 *
+	 * @param message the error message
+	 */
 	public KdlInternalParseException(String message) {
 		super(message);
 	}

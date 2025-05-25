@@ -11,6 +11,9 @@ import java.io.Writer;
 
 import static dev.kdl.parse.lexer.helper.KdlCharHelper.isDecimalDigit;
 
+/**
+ * Printer context for KDL 1.0 syntax.
+ */
 public class Kdl1PrinterContext extends KdlPrinterContext {
 	Kdl1PrinterContext(Writer writer, KdlPrinterConfiguration configuration) {
 		super(writer, configuration);
@@ -25,6 +28,20 @@ public class Kdl1PrinterContext extends KdlPrinterContext {
 	protected void printString(KdlString string) {
 		printType(string.type());
 		writeString(string.value());
+	}
+
+	private void writeString(String string) {
+		if (string.isEmpty()) {
+			write("\"\"");
+		} else {
+			var builder = new StringBuilder();
+
+			escapeString(string, builder);
+
+			write('"');
+			write(builder.toString());
+			write('"');
+		}
 	}
 
 	@Override

@@ -44,13 +44,24 @@ import static dev.kdl.parse.lexer.helper.KdlCharHelper.isUnicodeScalarValue;
 import static dev.kdl.parse.lexer.reader.KdlReader.EOF;
 import static java.util.function.Predicate.not;
 
+/**
+ * Lexer for the KDL 1.0 syntax.
+ */
 public class Kdl1Lexer extends AbstractKdlLexer {
 
+	/**
+	 * Creates a new lexer.
+	 *
+	 * @param filename    the name of the file bien parsed
+	 * @param inputStream the stream to parse
+	 * @param capacity    the maximum number of token that can be peeked ahead
+	 */
 	public Kdl1Lexer(@Nullable String filename, @Nonnull InputStream inputStream, int capacity) {
 		super(filename, new KdlReader(inputStream, READER_CAPACITY, (c) -> c <= 0x08), capacity);
 	}
 
 	@Override
+	@Nullable
 	protected Token nextToken() throws IOException, KdlParseException {
 		var c = peekChar();
 

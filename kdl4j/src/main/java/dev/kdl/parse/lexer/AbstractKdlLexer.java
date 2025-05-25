@@ -17,7 +17,7 @@ import java.util.function.Function;
 import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isNewline;
 import static dev.kdl.parse.lexer.reader.KdlReader.EOF;
 
-public abstract class AbstractKdlLexer implements Lexer {
+abstract class AbstractKdlLexer implements Lexer {
 
 	AbstractKdlLexer(@Nullable String filename, @Nonnull KdlReader reader, int capacity) {
 		this.filename = filename;
@@ -25,6 +25,14 @@ public abstract class AbstractKdlLexer implements Lexer {
 		this.readTokens = new RingBuffer<>(capacity);
 	}
 
+	/**
+	 * Reads the stream for the next token.
+	 *
+	 * @return the next token, or {@code null} if the end of file has been reached.
+	 * @throws IOException       when an error occurs while reading
+	 * @throws KdlParseException when there is a syntax error
+	 */
+	@Nullable
 	protected abstract Token nextToken() throws IOException, KdlParseException;
 
 	@Nullable
@@ -68,24 +76,9 @@ public abstract class AbstractKdlLexer implements Lexer {
 
 	@Nonnull
 	@Override
-	public ParseContext getErrorParseContext(@Nonnull Span span) throws IOException {
-		return getErrorParseContext(span.start().line(), span.end().line(), span);
-	}
-
-	@Nonnull
-	@Override
 	public ParseContext getErrorParseContextForNextPosition() throws IOException {
 		if (readTokens.isEmpty()) {
 			return getErrorParseContext(Span.of(sourceLines.getNextPosition()));
-		}
-		return getErrorParseContext(readTokens.get(0).span());
-	}
-
-	@Nonnull
-	@Override
-	public ParseContext getErrorParseContextForCurrentPosition() throws IOException {
-		if (readTokens.isEmpty()) {
-			return getErrorParseContext(Span.of(sourceLines.getCurrentPosition()));
 		}
 		return getErrorParseContext(readTokens.get(0).span());
 	}
@@ -99,6 +92,12 @@ public abstract class AbstractKdlLexer implements Lexer {
 		return readTokens.get(0).span().start();
 	}
 
+	/**
+	 * Reads the next character.
+	 *
+	 * @return the next character, or {@link KdlReader#EOF} if the end of file has been reached
+	 * @throws IOException when there is an error reading the stream
+	 */
 	protected int readChar() throws IOException {
 		var c = reader.read();
 		if (c != EOF) {
@@ -107,24 +106,57 @@ public abstract class AbstractKdlLexer implements Lexer {
 		return c;
 	}
 
+	/**
+	 * Consumes the next character.
+	 *
+	 * @throws IOException when there is an error reading the stream
+	 */
 	protected void consumeChar() throws IOException {
 		consumeChar(1);
 	}
 
+	/**
+	 * Consumes the next characters.
+	 *
+	 * @param n the number of characters to consume
+	 * @throws IOException when there is an error reading the stream
+	 */
 	protected void consumeChar(int n) throws IOException {
 		for (var i = 0; i < n; i++) {
 			readChar();
 		}
 	}
 
+	/**
+	 * Peeks the next character.
+	 *
+	 * @return the next character, or {@link KdlReader#EOF} if the end of file has been reached
+	 * @throws IOException when there is an error reading the stream
+	 */
 	protected int peekChar() throws IOException {
 		return reader.peek();
 	}
 
+	/**
+	 * Peeks a character ahead.
+	 *
+	 * @param n the index of the character to peek, 0-based.
+	 * @return the peeked character, or {@link KdlReader#EOF} if the end of file has been reached
+	 * @throws IOException when there is an error reading the stream
+	 */
 	protected int peekChar(int n) throws IOException {
 		return reader.peek(n);
 	}
 
+	/**
+	 * Consumes the next character and creates a new token with the provided function.
+	 *
+	 * @param createToken a function that creates a token from its span
+	 * @param <T>         the type of the created token
+	 * @return a new token created with {@code createToken}
+	 * @throws IOException when there is an error reading the stream
+	 */
+	@Nonnull
 	protected <T extends Token> T consumeAndCreate(Function<Span, T> createToken) throws IOException {
 		consumeChar();
 		return createToken.apply(Span.of(sourceLines.getCurrentPosition()));
@@ -141,6 +173,9 @@ public abstract class AbstractKdlLexer implements Lexer {
 	private final RingBuffer<Token> readTokens;
 	@Nullable
 	private final String filename;
+	/**
+	 * The source lines for the parsed document.
+	 */
 	@Nonnull
 	protected final SourceLines sourceLines = new SourceLines();
 }

@@ -6,7 +6,16 @@ import static dev.kdl.parse.lexer.helper.KdlCharHelper.CR;
 import static dev.kdl.parse.lexer.helper.KdlCharHelper.LF;
 import static dev.kdl.parse.lexer.helper.KdlCharHelper.isUnicodeScalarValue;
 
+/**
+ * A helper class for different predicates on codepoints. Used by KDL 1.0 parser and printer.
+ */
 public class Kdl1CharHelper {
+	/**
+	 * Checks if a codepoint is a newline character
+	 *
+	 * @param c a codepoint
+	 * @return true if c is a newline character, false otherwise
+	 */
 	public static boolean isNewline(int c) {
 		return switch (c) {
 			case CR, // Carriage Return
@@ -20,6 +29,12 @@ public class Kdl1CharHelper {
 		};
 	}
 
+	/**
+	 * Checks if a codepoint is a whitespace character
+	 *
+	 * @param c a codepoint
+	 * @return true if c is a whitespace character, false otherwise
+	 */
 	public static boolean isWhitespace(int c) {
 		return switch (c) {
 			case ByteOrderMark.VALUE,
@@ -46,11 +61,17 @@ public class Kdl1CharHelper {
 		};
 	}
 
+	/**
+	 * Checks if a codepoint is an identifier character
+	 *
+	 * @param c a codepoint
+	 * @return true if c is an identifier character, false otherwise
+	 */
 	public static boolean isIdentifierChar(int c) {
 		return isUnicodeScalarValue(c) && !isWhitespace(c) && !isNewline(c) && !isSpecialCharacter(c);
 	}
 
-	public static boolean isSpecialCharacter(int c) {
+	private static boolean isSpecialCharacter(int c) {
 		return switch (c) {
 			case '\\', '/', '(', ')', '{', '}', '<', '>', ';', '[', ']', '=', ',', '"' -> true;
 			default -> false;

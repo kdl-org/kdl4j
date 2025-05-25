@@ -6,12 +6,12 @@ import jakarta.annotation.Nullable;
 /**
  * Supertype for all KDL values.
  *
- * @param <T> the inner representation of the value.
+ * @param <T> the inner representation of the value
  */
 public interface KdlValue<T> {
 
 	/**
-	 * @return the type of the value or <code>null</code> if there is no type
+	 * @return the type of the value or {@code null} if there is no type
 	 */
 	@Nullable
 	String type();

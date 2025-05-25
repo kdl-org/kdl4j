@@ -49,6 +49,12 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 		return values == null ? Collections.emptyList() : Collections.unmodifiableList(values);
 	}
 
+	/**
+	 * Checks if a property is present.
+	 *
+	 * @param property the name of the property to check
+	 * @return {@code true} if the property is present, {@code false} otherwise
+	 */
 	public boolean hasProperty(@Nonnull String property) {
 		return properties.containsKey(property);
 	}
@@ -59,6 +65,9 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 		return properties.entrySet().iterator();
 	}
 
+	/**
+	 * @return a set containing the names of all the properties
+	 */
 	@Nonnull
 	public Set<String> propertyNames() {
 		return properties.keySet();

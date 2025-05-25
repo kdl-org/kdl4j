@@ -250,6 +250,7 @@ public record KdlPrinterConfiguration(
 		/**
 		 * Sets whether quotes should be printed around identifiers. Default is false.
 		 *
+		 * @param printQuotes whether quotes should be printed when not required
 		 * @return {@code this}
 		 */
 		@Nonnull
@@ -258,6 +259,11 @@ public record KdlPrinterConfiguration(
 			return this;
 		}
 
+		/**
+		 * Builds a new {@link KdlPrinterConfiguration}.
+		 *
+		 * @return the corresponding configuration
+		 */
 		@Nonnull
 		public KdlPrinterConfiguration build() {
 			return new KdlPrinterConfiguration(
@@ -293,13 +299,46 @@ public record KdlPrinterConfiguration(
 		private boolean printQuotes = false;
 	}
 
+	/**
+	 * Valid newline characters that can be used when printing a KDL document.
+	 */
 	public enum Newline {
-		CR("\r"), LF("\n"), CRLF("\r\n"), NEXT_LINE("\u0085"), FORM_FEED("\u000C"), LINE_SEPARATOR("\u2028"), PARAGRAPH_SEPARATOR("\u2029");
+		/**
+		 * Carriage return
+		 */
+		CR("\r"),
+		/**
+		 * Line feed
+		 */
+		LF("\n"),
+		/**
+		 * Carriage return + line feed
+		 */
+		CRLF("\r\n"),
+		/**
+		 * Next line
+		 */
+		NEXT_LINE("\u0085"),
+		/**
+		 * Form feed
+		 */
+		FORM_FEED("\u000C"),
+		/**
+		 * Line separator
+		 */
+		LINE_SEPARATOR("\u2028"),
+		/**
+		 * Paragraph separator
+		 */
+		PARAGRAPH_SEPARATOR("\u2029");
 
 		Newline(String value) {
 			this.value = value;
 		}
 
+		/**
+		 * @return string value of the newline character
+		 */
 		public String getValue() {
 			return value;
 		}
@@ -307,13 +346,94 @@ public record KdlPrinterConfiguration(
 		private final String value;
 	}
 
+	/**
+	 * Valid characters to use for indentation.
+	 */
 	public enum Whitespace {
-		CHARACTER_TABULATION("\t"), LINE_TABULATION("\u000B"), SPACE(" "), NO_BREAK_SPACE("\u00A0"), OGHAM_SPACE_MARK("\u1680"), EN_QUAD("\u2000"), EM_QUAD("\u2001"), EN_SPACE("\u2002"), EM_SPACE("\u2003"), THREE_PER_EM_SPACE("\u2004"), FOUR_PER_EM_SPACE("\u2005"), SIX_PER_EM_SPACE("\u2006"), FIGURE_SPACE("\u2007"), PUNCTUATION_SPACE("\u2008"), THIN_SPACE("\u2009"), HAIR_SPACE("\u200A"), NARROW_NO_BREAK_SPACE("\u202F"), MEDIUM_MATHEMATICAL_SPACE("\u205F"), IDEOGRAPHIC_SPACE("\u3000");
+		/**
+		 * A horizontal tabulation (\t).
+		 */
+		CHARACTER_TABULATION("\t"),
+		/**
+		 * A line (vertical) tabulation.
+		 */
+		LINE_TABULATION("\u000B"),
+		/**
+		 * A regular space.
+		 */
+		SPACE(" "),
+		/**
+		 * A non-breaking space.
+		 */
+		NO_BREAK_SPACE("\u00A0"),
+		/**
+		 * Ogham space mark
+		 */
+		OGHAM_SPACE_MARK("\u1680"),
+		/**
+		 * En quad
+		 */
+		EN_QUAD("\u2000"),
+		/**
+		 * Em quad
+		 */
+		EM_QUAD("\u2001"),
+		/**
+		 * En space
+		 */
+		EN_SPACE("\u2002"),
+		/**
+		 * Em space
+		 */
+		EM_SPACE("\u2003"),
+		/**
+		 * Three-per-em space
+		 */
+		THREE_PER_EM_SPACE("\u2004"),
+		/**
+		 * Four-per-em space
+		 */
+		FOUR_PER_EM_SPACE("\u2005"),
+		/**
+		 * Six-per-em space
+		 */
+		SIX_PER_EM_SPACE("\u2006"),
+		/**
+		 * Figure Space
+		 */
+		FIGURE_SPACE("\u2007"),
+		/**
+		 * Punctuation space
+		 */
+		PUNCTUATION_SPACE("\u2008"),
+		/**
+		 * Thin space
+		 */
+		THIN_SPACE("\u2009"),
+		/**
+		 * Hair space
+		 */
+		HAIR_SPACE("\u200A"),
+		/**
+		 * Narrow non-breaking space
+		 */
+		NARROW_NO_BREAK_SPACE("\u202F"),
+		/**
+		 * Medium mathematical space
+		 */
+		MEDIUM_MATHEMATICAL_SPACE("\u205F"),
+		/**
+		 * Ideographic space
+		 */
+		IDEOGRAPHIC_SPACE("\u3000");
 
 		Whitespace(String value) {
 			this.value = value;
 		}
 
+		/**
+		 * @return the string corresponding to this whitespace
+		 */
 		public String getValue() {
 			return value;
 		}
@@ -321,17 +441,49 @@ public record KdlPrinterConfiguration(
 		private final String value;
 	}
 
+	/**
+	 * The characters that can be used for an exponential number.
+	 */
 	public enum ExponentCharacter {
-		e, E;
+		/**
+		 * Lowercase e
+		 */
+		e,
+		/**
+		 * Uppercase E
+		 */
+		E;
 
+		/**
+		 * Replaces the exponential character in a string produced by {@link java.math.BigDecimal#toString()} if required.
+		 *
+		 * @param decimalAsString a string representing a number
+		 * @return the same string with the exponential character replaced if required
+		 */
 		public String replaceExponentCharacter(String decimalAsString) {
 			return this == E ? decimalAsString : decimalAsString.replace('E', 'e');
 		}
 	}
 
+	/**
+	 * Different orders that can be used to sort properties.
+	 */
 	public enum PropertiesOrder {
-		DECLARATION, NAME_ASCENDING;
+		/**
+		 * Order properties by declaration order.
+		 */
+		DECLARATION,
+		/**
+		 * Order properties by ascending name.
+		 */
+		NAME_ASCENDING;
 
+		/**
+		 * Sorts a collection of property names according to this order.
+		 *
+		 * @param propertyNames the names to sort
+		 * @return a sorted list of property names
+		 */
 		public List<String> sort(Collection<String> propertyNames) {
 			return switch (this) {
 				case DECLARATION -> propertyNames.stream().toList();

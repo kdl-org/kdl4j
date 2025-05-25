@@ -33,6 +33,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Parser for the KDL 1.0 syntax.
+ */
 public class Kdl1Parser implements KdlParser {
 	@Nonnull
 	@Override

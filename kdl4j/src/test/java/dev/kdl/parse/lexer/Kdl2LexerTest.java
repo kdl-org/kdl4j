@@ -116,7 +116,7 @@ class Kdl2LexerTest {
 			Arguments.of("#true", new Boolean(true, "#true", Span.of(1, 1, 1, 5))),
 			Arguments.of("#false", new Boolean(false, "#false", Span.of(1, 1, 1, 6))),
 			Arguments.of("#null", new Null(Span.of(1, 1, 1, 5))),
-			Arguments.of("#inf", new Number.Infinity(Span.of(1, 1, 1, 4))),
+			Arguments.of("#inf", new Number.PositiveInfinity(Span.of(1, 1, 1, 4))),
 			Arguments.of("#-inf", new Number.NegativeInfinity(Span.of(1, 1, 1, 5))),
 			Arguments.of("#nan", new Number.NaN(Span.of(1, 1, 1, 4))),
 			Arguments.of("123", new Number.Integer(BigInteger.valueOf(123), Span.of(1, 1, 1, 3))),

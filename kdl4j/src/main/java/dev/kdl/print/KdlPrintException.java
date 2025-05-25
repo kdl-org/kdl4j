@@ -1,11 +1,14 @@
 package dev.kdl.print;
 
-public class KdlPrintException extends RuntimeException {
-	public KdlPrintException(String message) {
-		super(message);
+import java.io.IOException;
+
+class KdlPrintException extends RuntimeException {
+	public KdlPrintException(IOException cause) {
+		super(cause);
 	}
 
-	public KdlPrintException(Throwable cause) {
-		super(cause);
+	@Override
+	public synchronized IOException getCause() {
+		return (IOException) super.getCause();
 	}
 }

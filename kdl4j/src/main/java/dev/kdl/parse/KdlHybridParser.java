@@ -7,6 +7,10 @@ import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * A hybrid parser that first tries to parse a document using KDL 2.0 syntax, but switches to the KDL 1.0 syntax if it
+ * fails. If both parsers fail, a {@link KdlHybridParseException} is thrown, containing both errors.
+ */
 public class KdlHybridParser implements KdlParser {
 	@Nonnull
 	@Override

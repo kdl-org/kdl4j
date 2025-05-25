@@ -7,18 +7,41 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * A reader for valid Unicode codepoints, with peeking capabilities.
+ */
 public class KdlReader implements Closeable, AutoCloseable {
 
+	/**
+	 * Creates a new reader.
+	 *
+	 * @param inputStream      the stream to read from
+	 * @param capacity         the maximum number of codepoints that can be peeked ahead
+	 * @param invalidCodepoint a predicate for checking if a codepoint is valid
+	 */
 	public KdlReader(@Nonnull InputStream inputStream, int capacity, @Nonnull InvalidCodepoint invalidCodepoint) {
 		this.inputStream = inputStream;
 		this.peekedChars = new IntRingBuffer(capacity);
 		this.invalidCodepoint = invalidCodepoint;
 	}
 
+	/**
+	 * Peeks the next codepoint.
+	 *
+	 * @return the next codepoint, or {@link #EOF} if the end of the stream has been reached
+	 * @throws IOException when there is an error reading the stream
+	 */
 	public final int peek() throws IOException {
 		return peek(0);
 	}
 
+	/**
+	 * Peeks a codepoint in the stream. It is 0-based, therefore {@code peek(0)} is the same as {@code peek()}.
+	 *
+	 * @param n the index of the codepoint to peek
+	 * @return the nth codepoint,  or {@link #EOF} if the end of the stream has been reached
+	 * @throws IOException when there is an error reading the stream
+	 */
 	public final int peek(int n) throws IOException {
 		if (n < 0 || n >= peekedChars.capacity()) {
 			throw new KdlInternalParseException("Error while peeking: n should be between 0 and " + (peekedChars.capacity() - 1) + " included but was " + n);
@@ -35,6 +58,12 @@ public class KdlReader implements Closeable, AutoCloseable {
 		return peekedChars.get(n);
 	}
 
+	/**
+	 * Reads the next token and advances the reader.
+	 *
+	 * @return the next codepoint, or {@link #EOF} if the end of the stream has been reached
+	 * @throws IOException when there is an error reading the stream
+	 */
 	public final int read() throws IOException {
 		if (!peekedChars.isEmpty()) {
 			return peekedChars.removeFirst();
@@ -101,10 +130,22 @@ public class KdlReader implements Closeable, AutoCloseable {
 	@Nonnull
 	private final InvalidCodepoint invalidCodepoint;
 
+	/**
+	 * The value returned to symbolize the end of the file.
+	 */
 	public static final int EOF = -1;
 
+	/**
+	 * Predicate that checks if a codepoint is invalid.
+	 */
 	@FunctionalInterface
 	public interface InvalidCodepoint {
+		/**
+		 * Checks if a codepoint is invalid.
+		 *
+		 * @param codepoint the codepoint to check
+		 * @return {@code true} if the codepoint is invalid, {@code false} otherwise
+		 */
 		boolean isInvalid(int codepoint);
 	}
 }

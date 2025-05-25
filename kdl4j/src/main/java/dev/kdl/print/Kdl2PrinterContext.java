@@ -11,6 +11,9 @@ import java.io.Writer;
 import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isUnambiguousIdentifierChar;
 import static dev.kdl.parse.lexer.helper.KdlCharHelper.isSign;
 
+/**
+ * Printer context for KDL 2.0 syntax.
+ */
 public class Kdl2PrinterContext extends KdlPrinterContext {
 	Kdl2PrinterContext(Writer writer, KdlPrinterConfiguration configuration) {
 		super(writer, configuration);
