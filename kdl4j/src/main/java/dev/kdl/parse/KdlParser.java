@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicReference;
 
 public interface KdlParser {
 
@@ -83,24 +84,13 @@ public interface KdlParser {
 	}
 
 	/**
-	 * Creates a new parser in hybrid mode: it first tries to parse the document as a KDL 2 document, then tries to
-	 * parse it as a KDL 1 document if it fails.
-	 *
-	 * @return a hybrid KDL parser
-	 */
-	@Nonnull
-	static KdlParser hybrid() {
-		return KDL_HYBRID_PARSER;
-	}
-
-	/**
 	 * Creates a new KDL 1 parser.
 	 *
 	 * @return a KDL 1 parser
 	 */
 	@Nonnull
 	static KdlParser v1() {
-		return KDL1_PARSER;
+		return KDL1_PARSER.updateAndGet(parser -> parser == null ? new Kdl1Parser() : parser);
 	}
 
 	/**
@@ -110,12 +100,23 @@ public interface KdlParser {
 	 */
 	@Nonnull
 	static KdlParser v2() {
-		return KDL2_PARSER;
+		return KDL2_PARSER.updateAndGet(parser -> parser == null ? new Kdl2Parser() : parser);
 	}
 
-	Kdl2Parser KDL2_PARSER = new Kdl2Parser();
-	Kdl1Parser KDL1_PARSER = new Kdl1Parser();
-	KdlHybridParser KDL_HYBRID_PARSER = new KdlHybridParser();
+	/**
+	 * Creates a new parser in hybrid mode: it first tries to parse the document as a KDL 2 document, then tries to
+	 * parse it as a KDL 1 document if it fails.
+	 *
+	 * @return a hybrid KDL parser
+	 */
+	@Nonnull
+	static KdlParser hybrid() {
+		return KDL_HYBRID_PARSER.updateAndGet(parser -> parser == null ? new KdlHybridParser() : parser);
+	}
+
+	AtomicReference<Kdl1Parser> KDL1_PARSER = new AtomicReference<>();
+	AtomicReference<Kdl2Parser> KDL2_PARSER = new AtomicReference<>();
+	AtomicReference<KdlHybridParser> KDL_HYBRID_PARSER = new AtomicReference<>();
 
 	/**
 	 * Creates a new parser depending on the specified version. If no version is specified, creates a hybrid parser.
