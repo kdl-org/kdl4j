@@ -1,4 +1,4 @@
-# Kdl4j
+# Kdl4J
 
 A Java implementation of a parser for the [KDL Document Language](https://github.com/kdl-org/kdl).
 Supports both KDL v1 and KDL v2 syntaxes.
@@ -18,23 +18,22 @@ for[Maven](https://docs.github.com/en/packages/working-with-a-github-packages-re
 or
 for[Gradle](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry).
 
-Then you can add the Kdl4j dependency.
+Then you can add the Kdl4J dependency.
 
 Maven:
 
 ```xml
-
 <dependency>
 	<groupId>dev.kdl</groupId>
 	<artifactId>kdl4j</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.0-RC1</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'dev.kdl:kdl4j:1.0.0-SNAPSHOT'
+implementation 'dev.kdl:kdl4j:1.0.0-RC1'
 ```
 
 Alternatively, you can use the packages [hosted by JitPack](https://jitpack.io/#kdl-org/kdl4j). In
