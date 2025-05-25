@@ -1,3 +1,11 @@
 plugins {
 	id 'kdl4j.java-conventions'
 }
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			from components.java
+		}
+	}
+}
