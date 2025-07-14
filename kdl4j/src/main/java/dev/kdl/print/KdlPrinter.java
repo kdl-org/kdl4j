@@ -67,8 +67,9 @@ public class KdlPrinter {
 	 * @throws IOException when an error occurs while writing
 	 */
 	public void print(KdlDocument document, OutputStream outputStream) throws IOException {
-		getContext(new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8)), configuration)
-			.printDocument(document);
+		try (var writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8))) {
+			getContext(writer, configuration).printDocument(document);
+		}
 	}
 
 	/**
