@@ -14,9 +14,9 @@ This library targets Java 17 as a minimum version.
 Releases are published on [GitHub Packages](https://docs.github.com/en/packages). You need to
 authenticate with GitHub using a token with `read:packages` permission. See the official
 documentation for more information on how to authenticate on GitHub Packages
-for[Maven](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry)
+for [Maven](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-apache-maven-registry)
 or
-for[Gradle](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry).
+for [Gradle](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry).
 
 Then you can add the Kdl4J dependency.
 
@@ -26,14 +26,14 @@ Maven:
 <dependency>
 	<groupId>dev.kdl</groupId>
 	<artifactId>kdl4j</artifactId>
-	<version>1.0.0-RC3</version>
+	<version>1.0.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'dev.kdl:kdl4j:1.0.0-RC3'
+implementation 'dev.kdl:kdl4j:1.0.0'
 ```
 
 Alternatively, you can use the packages [hosted by JitPack](https://jitpack.io/#kdl-org/kdl4j). In
