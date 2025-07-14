@@ -162,11 +162,6 @@ abstract class AbstractKdlLexer implements Lexer {
 		return createToken.apply(Span.of(sourceLines.getCurrentPosition()));
 	}
 
-	@Override
-	public void close() throws IOException {
-		reader.close();
-	}
-
 	@Nonnull
 	private final KdlReader reader;
 	@Nonnull

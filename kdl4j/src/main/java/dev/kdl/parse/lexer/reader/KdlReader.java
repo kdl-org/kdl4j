@@ -3,14 +3,13 @@ package dev.kdl.parse.lexer.reader;
 import dev.kdl.parse.KdlInternalParseException;
 import jakarta.annotation.Nonnull;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
  * A reader for valid Unicode codepoints, with peeking capabilities.
  */
-public class KdlReader implements Closeable, AutoCloseable {
+public class KdlReader {
 
 	/**
 	 * Creates a new reader.
@@ -116,11 +115,6 @@ public class KdlReader implements Closeable, AutoCloseable {
 
 	private boolean isInvalidExtraUtf8Byte(int b) {
 		return (b & 0b1100_0000) != 0b1000_0000;
-	}
-
-	@Override
-	public final void close() throws IOException {
-		inputStream.close();
 	}
 
 	@Nonnull

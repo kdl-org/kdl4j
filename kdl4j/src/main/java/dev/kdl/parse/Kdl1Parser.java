@@ -40,9 +40,7 @@ public class Kdl1Parser implements KdlParser {
 	@Nonnull
 	@Override
 	public KdlDocument parse(@Nullable String filename, @Nonnull InputStream inputStream) throws IOException, KdlParseException {
-		try (var kdl1ParserContext = new Kdl1ParserContext(filename, inputStream)) {
-			return kdl1ParserContext.parse();
-		}
+		return new Kdl1ParserContext(filename, inputStream).parse();
 	}
 
 	private static final class Kdl1ParserContext extends KdlParserContext {

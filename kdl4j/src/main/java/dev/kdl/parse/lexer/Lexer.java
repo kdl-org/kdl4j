@@ -13,7 +13,7 @@ import java.io.IOException;
 /**
  * A KDL lexer.
  */
-public interface Lexer extends AutoCloseable {
+public interface Lexer {
 
 	/**
 	 * Reads the next token and advances the lexer.
@@ -88,6 +88,4 @@ public interface Lexer extends AutoCloseable {
 	@Nonnull
 	Position getNextPosition();
 
-	@Override
-	void close() throws IOException;
 }

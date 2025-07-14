@@ -12,18 +12,13 @@ import jakarta.annotation.Nullable;
 import java.io.IOException;
 import java.util.function.Supplier;
 
-abstract class KdlParserContext implements AutoCloseable {
+abstract class KdlParserContext {
 	KdlParserContext(Lexer lexer) {
 		this.lexer = lexer;
 	}
 
 	@Nonnull
 	abstract KdlDocument parse() throws IOException, KdlParseException;
-
-	@Override
-	public void close() throws IOException {
-		lexer.close();
-	}
 
 	protected Token read() throws IOException, KdlParseException {
 		return lexer.read();
