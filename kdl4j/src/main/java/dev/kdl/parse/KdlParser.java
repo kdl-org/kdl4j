@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A parser for KDL documents.
@@ -93,7 +92,7 @@ public interface KdlParser {
 	 */
 	@Nonnull
 	static KdlParser v1() {
-		return KDL1_PARSER.updateAndGet(parser -> parser == null ? new Kdl1Parser() : parser);
+		return KdlParsers.v1();
 	}
 
 	/**
@@ -103,7 +102,7 @@ public interface KdlParser {
 	 */
 	@Nonnull
 	static KdlParser v2() {
-		return KDL2_PARSER.updateAndGet(parser -> parser == null ? new Kdl2Parser() : parser);
+		return KdlParsers.v2();
 	}
 
 	/**
@@ -114,21 +113,8 @@ public interface KdlParser {
 	 */
 	@Nonnull
 	static KdlParser hybrid() {
-		return KDL_HYBRID_PARSER.updateAndGet(parser -> parser == null ? new KdlHybridParser() : parser);
+		return KdlParsers.hybrid();
 	}
-
-	/**
-	 * The default KDL 1.0 parser.
-	 */
-	AtomicReference<Kdl1Parser> KDL1_PARSER = new AtomicReference<>();
-	/**
-	 * The default KDL 2.0 parser.
-	 */
-	AtomicReference<Kdl2Parser> KDL2_PARSER = new AtomicReference<>();
-	/**
-	 * The default KDL hybrid parser.
-	 */
-	AtomicReference<KdlHybridParser> KDL_HYBRID_PARSER = new AtomicReference<>();
 
 	/**
 	 * Creates a new parser depending on the specified version. If no version is specified, creates a hybrid parser.
@@ -146,4 +132,5 @@ public interface KdlParser {
 			case V2 -> v2();
 		};
 	}
+
 }
