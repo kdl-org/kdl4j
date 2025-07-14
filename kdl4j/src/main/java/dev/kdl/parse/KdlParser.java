@@ -59,6 +59,25 @@ public interface KdlParser {
 	}
 
 	/**
+	 * Reads a resource using {@link ClassLoader#getSystemResourceAsStream(String)} and parses it as a
+	 * {@link  KdlDocument}.
+	 *
+	 * @param resource the name of the resource to parse
+	 * @return a {@link KdlDocument}
+	 * @throws IOException       if an error occurs while reading the input or the resource is not found
+	 * @throws KdlParseException if the document is invalid
+	 */
+	@Nonnull
+	default KdlDocument parseResource(@Nonnull String resource) throws IOException, KdlParseException {
+		try (var inputStream = ClassLoader.getSystemResourceAsStream(resource)) {
+			if (inputStream == null) {
+				throw new IOException("Resource " + resource + " was not found");
+			}
+			return parse(resource, inputStream);
+		}
+	}
+
+	/**
 	 * Parses a string as a {@link  KdlDocument}.
 	 *
 	 * @param filename the name of the parsed file
