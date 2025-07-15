@@ -21,7 +21,7 @@ public record KdlBoolean(@Nullable String type, boolean booleanValue) implements
 	/**
 	 * @return whether this value is a KDL boolean
 	 */
-	default boolean isBoolean() {
+	public boolean isBoolean() {
 		return true;
 	}
 
