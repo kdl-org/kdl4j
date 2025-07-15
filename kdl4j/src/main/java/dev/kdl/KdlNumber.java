@@ -53,6 +53,13 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 	BigDecimal asBigDecimal();
 
 	/**
+	 * @return whether this value is a KDL number
+	 */
+	default boolean isNumber() {
+		return true;
+	};
+
+	/**
 	 * Creates a {@link KdlNumber} from a {@link Number}.
 	 *
 	 * @param number the number to represent

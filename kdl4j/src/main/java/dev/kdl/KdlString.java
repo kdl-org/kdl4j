@@ -19,6 +19,13 @@ public record KdlString(@Nullable String type, @Nonnull String value) implements
 		this(null, value);
 	}
 
+	/**
+	 * @return whether this value is a KDL string
+	 */
+	public boolean isString() {
+		return true;
+	}
+
 	@Nonnull
 	@Override
 	public String toString() {
