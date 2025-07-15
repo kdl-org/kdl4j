@@ -15,6 +15,13 @@ public record KdlNull(@Nullable String type) implements KdlValue<Object> {
 		this(null);
 	}
 
+	/**
+	 * @return whether this value is a KDL null
+	 */
+	public boolean isNull() {
+		return true;
+	};
+
 	@Override
 	public Object value() {
 		return null;

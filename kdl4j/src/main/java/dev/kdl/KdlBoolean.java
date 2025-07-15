@@ -18,6 +18,13 @@ public record KdlBoolean(@Nullable String type, boolean booleanValue) implements
 		this(null, value);
 	}
 
+	/**
+	 * @return whether this value is a KDL boolean
+	 */
+	default boolean isBoolean() {
+		return true;
+	}
+
 	@Override
 	public Boolean value() {
 		return booleanValue;
