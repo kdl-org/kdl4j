@@ -4,6 +4,14 @@ Kdl4J Changelog
 1.0.0
 -----
 
+### Fixed
+
+- add missing overrides to `KdValue` implementors (@chmod222)
+
+
+1.0.0
+-----
+
 This is the first release that supports KDL v2. ⚠️ It is not compatible with previous versions of
 Kdl4J.
 
