@@ -1,8 +1,10 @@
 package dev.kdl.parse.lexer.token;
 
 import dev.kdl.KdlNumber;
+import dev.kdl.parse.context.ParseContext;
 import dev.kdl.parse.context.Span;
 import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -14,10 +16,12 @@ public interface Number extends Token {
 	/**
 	 * Creates a KDL number from the current token.
 	 *
-	 * @param type the type of the KDL number
+	 * @param type         the type of the KDL number
+	 * @param typeSpan     the span of the type annotation, if any
+	 * @param parseContext the context in which the value was parsed, if any
 	 * @return a KDL number corresponding to this token
 	 */
-	KdlNumber<?> asKDLNumber(String type);
+	KdlNumber<?> asKDLNumber(@Nullable String type, @Nullable Span typeSpan, @Nullable ParseContext parseContext);
 
 	/**
 	 * @return the value of this number token as a {@link BigDecimal}
@@ -37,8 +41,8 @@ public interface Number extends Token {
 		}
 
 		@Override
-		public KdlNumber<?> asKDLNumber(String type) {
-			return new KdlNumber.PositiveInfinity(type);
+		public KdlNumber<?> asKDLNumber(@Nullable String type, @Nullable Span typeSpan, @Nullable ParseContext parseContext) {
+			return new KdlNumber.PositiveInfinity(type, typeSpan, parseContext);
 		}
 
 		@Override
@@ -66,8 +70,8 @@ public interface Number extends Token {
 
 
 		@Override
-		public KdlNumber<?> asKDLNumber(String type) {
-			return new KdlNumber.NegativeInfinity(type);
+		public KdlNumber<?> asKDLNumber(@Nullable String type, @Nullable Span typeSpan, @Nullable ParseContext parseContext) {
+			return new KdlNumber.NegativeInfinity(type, typeSpan, parseContext);
 		}
 
 		@Override
@@ -94,8 +98,8 @@ public interface Number extends Token {
 		}
 
 		@Override
-		public KdlNumber<?> asKDLNumber(String type) {
-			return new KdlNumber.NotANumber(type);
+		public KdlNumber<?> asKDLNumber(@Nullable String type, @Nullable Span typeSpan, @Nullable ParseContext parseContext) {
+			return new KdlNumber.NotANumber(type, typeSpan, parseContext);
 		}
 
 		@Override
@@ -128,8 +132,8 @@ public interface Number extends Token {
 		}
 
 		@Override
-		public KdlNumber<?> asKDLNumber(String type) {
-			return new KdlNumber.Integer(type, integer);
+		public KdlNumber<?> asKDLNumber(@Nullable String type, @Nullable Span typeSpan, @Nullable ParseContext parseContext) {
+			return new KdlNumber.Integer(type, integer, typeSpan, parseContext);
 		}
 
 		@Override
@@ -157,8 +161,8 @@ public interface Number extends Token {
 		}
 
 		@Override
-		public KdlNumber<?> asKDLNumber(String type) {
-			return new KdlNumber.Decimal(type, decimal);
+		public KdlNumber<?> asKDLNumber(@Nullable String type, @Nullable Span typeSpan, @Nullable ParseContext parseContext) {
+			return new KdlNumber.Decimal(type, decimal, typeSpan, parseContext);
 		}
 
 		@Override

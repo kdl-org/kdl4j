@@ -1,10 +1,13 @@
 package dev.kdl;
 
+import dev.kdl.parse.context.ParseContext;
+import dev.kdl.parse.context.Span;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Objects;
 
 /**
  * Supertype for all KDL number values.
@@ -92,14 +95,25 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 	/**
 	 * The KDL Not-a-number value.
 	 *
-	 * @param type the type of the value
+	 * @param type         the type of the value
+	 * @param typeSpan     the span of the type annotation, if any
+	 * @param parseContext the context in which the value was parsed, if any
 	 */
-	record NotANumber(String type) implements KdlNumber<Double> {
+	record NotANumber(@Nullable String type, @Nullable Span typeSpan, @Nullable ParseContext parseContext) implements KdlNumber<Double> {
 		/**
 		 * Creates a new {@link NotANumber} with no type.
 		 */
 		public NotANumber() {
-			this(null);
+			this(null, null, null);
+		}
+
+		/**
+		 * Creates a new {@link NotANumber} with a type.
+		 *
+		 * @param type the type of the value
+		 */
+		public NotANumber(@Nullable String type) {
+			this(type, null, null);
 		}
 
 		@Override
@@ -144,19 +158,40 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 		public String toString() {
 			return "NaN";
 		}
+
+		@Override
+		public boolean equals(Object o) {
+			return this == o || o instanceof NotANumber that && Objects.equals(type, that.type);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(type);
+		}
 	}
 
 	/**
 	 * The KDL positive infinity value.
 	 *
-	 * @param type the type of the value
+	 * @param type         the type of the value
+	 * @param typeSpan     the span of the type annotation, if any
+	 * @param parseContext the context in which the value was parsed, if any
 	 */
-	record PositiveInfinity(@Nullable String type) implements KdlNumber<Double> {
+	record PositiveInfinity(@Nullable String type, @Nullable Span typeSpan, @Nullable ParseContext parseContext) implements KdlNumber<Double> {
 		/**
 		 * Creates a new {@link PositiveInfinity} with no type.
 		 */
 		public PositiveInfinity() {
-			this(null);
+			this(null, null, null);
+		}
+
+		/**
+		 * Creates a new {@link PositiveInfinity} with a type.
+		 *
+		 * @param type the type of the value
+		 */
+		public PositiveInfinity(@Nullable String type) {
+			this(type, null, null);
 		}
 
 		@Override
@@ -201,19 +236,40 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 		public String toString() {
 			return "+inf";
 		}
+
+		@Override
+		public boolean equals(Object o) {
+			return this == o || o instanceof PositiveInfinity that && Objects.equals(type, that.type);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(type);
+		}
 	}
 
 	/**
 	 * The negative infinity KDL value.
 	 *
-	 * @param type the type of the value
+	 * @param type         the type of the value
+	 * @param typeSpan     the span of the type annotation, if any
+	 * @param parseContext the context in which the value was parsed, if any
 	 */
-	record NegativeInfinity(@Nullable String type) implements KdlNumber<Double> {
+	record NegativeInfinity(@Nullable String type, @Nullable Span typeSpan, @Nullable ParseContext parseContext) implements KdlNumber<Double> {
 		/**
 		 * Creates a new {@link NegativeInfinity} with no type.
 		 */
 		public NegativeInfinity() {
-			this(null);
+			this(null, null, null);
+		}
+
+		/**
+		 * Creates a new {@link NegativeInfinity} with a type.
+		 *
+		 * @param type the type of the value
+		 */
+		public NegativeInfinity(@Nullable String type) {
+			this(type, null, null);
 		}
 
 		@Override
@@ -258,22 +314,44 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 		public String toString() {
 			return "-inf";
 		}
+
+		@Override
+		public boolean equals(Object o) {
+			return this == o || o instanceof NegativeInfinity that && Objects.equals(type, that.type);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hashCode(type);
+		}
 	}
 
 	/**
 	 * A KDL number representing an integer.
 	 *
-	 * @param type  the type of the value
-	 * @param value the integer value
+	 * @param type         the type of the value
+	 * @param value        the integer value
+	 * @param typeSpan     the span of the type annotation, if any
+	 * @param parseContext the context in which the value was parsed, if any
 	 */
-	record Integer(@Nullable String type, @Nonnull BigInteger value) implements KdlNumber<BigInteger> {
+	record Integer(@Nullable String type, @Nonnull BigInteger value, @Nullable Span typeSpan, @Nullable ParseContext parseContext) implements KdlNumber<BigInteger> {
 		/**
 		 * Creates a new {@link Integer} with no type.
 		 *
 		 * @param value the integer value
 		 */
 		public Integer(@Nonnull BigInteger value) {
-			this(null, value);
+			this(null, value, null, null);
+		}
+
+		/**
+		 * Creates a new {@link Integer} with a type.
+		 *
+		 * @param type  the type of the value
+		 * @param value the integer value
+		 */
+		public Integer(@Nullable String type, @Nonnull BigInteger value) {
+			this(type, value, null, null);
 		}
 
 		@Nonnull
@@ -293,22 +371,50 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 		public String toString() {
 			return "Integer(" + value + ')';
 		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof Integer that)) {
+				return false;
+			}
+			return Objects.equals(type, that.type) && value.equals(that.value);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(type, value);
+		}
 	}
 
 	/**
 	 * A KDL number representing a decimal number.
 	 *
-	 * @param type  the type of the value
-	 * @param value the integer value
+	 * @param type         the type of the value
+	 * @param value        the integer value
+	 * @param typeSpan     the span of the type annotation, if any
+	 * @param parseContext the context in which the value was parsed, if any
 	 */
-	record Decimal(@Nullable String type, @Nonnull BigDecimal value) implements KdlNumber<BigDecimal> {
+	record Decimal(@Nullable String type, @Nonnull BigDecimal value, @Nullable Span typeSpan, @Nullable ParseContext parseContext) implements KdlNumber<BigDecimal> {
 		/**
 		 * Creates a new {@link Decimal} with no type.
 		 *
 		 * @param value the integer value
 		 */
 		public Decimal(@Nonnull BigDecimal value) {
-			this(null, value);
+			this(null, value, null, null);
+		}
+
+		/**
+		 * Creates a new {@link Decimal} with a type.
+		 *
+		 * @param type  the type of the value
+		 * @param value the integer value
+		 */
+		public Decimal(@Nullable String type, @Nonnull BigDecimal value) {
+			this(type, value, null, null);
 		}
 
 		@Nonnull
@@ -327,6 +433,22 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 		@Override
 		public String toString() {
 			return "Decimal(" + value + ')';
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) {
+				return true;
+			}
+			if (!(o instanceof Decimal that)) {
+				return false;
+			}
+			return Objects.equals(type, that.type) && value.equals(that.value);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(type, value);
 		}
 	}
 }

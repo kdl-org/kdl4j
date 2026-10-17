@@ -85,6 +85,12 @@ abstract class AbstractKdlLexer implements Lexer {
 
 	@Nonnull
 	@Override
+	public ParseContext getParseContext(@Nonnull Span span) {
+		return new ParseContext(filename, sourceLines.getLines(span.start().line(), span.end().line()), span);
+	}
+
+	@Nonnull
+	@Override
 	public Position getNextPosition() {
 		if (readTokens.isEmpty()) {
 			return sourceLines.getNextPosition();

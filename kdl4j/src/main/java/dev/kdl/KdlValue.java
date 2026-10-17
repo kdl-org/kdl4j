@@ -1,5 +1,7 @@
 package dev.kdl;
 
+import dev.kdl.parse.context.ParseContext;
+import dev.kdl.parse.context.Span;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
@@ -20,6 +22,19 @@ public interface KdlValue<T> {
 	 * @return the value
 	 */
 	T value();
+
+	/**
+	 * @return the span of the type annotation of the value, or {@code null} if the value has no type annotation or
+	 * 	the value was not parsed
+	 */
+	@Nullable
+	Span typeSpan();
+
+	/**
+	 * @return the context of the value, or {@code null} if the value was not parsed
+	 */
+	@Nullable
+	ParseContext parseContext();
 
 	/**
 	 * @return whether this value is a KDL string

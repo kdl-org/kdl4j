@@ -5,7 +5,6 @@ import jakarta.annotation.Nonnull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
 
 /**
  * A class for storing the lines of the input. Mainly used for error reporting.
@@ -28,7 +27,7 @@ public class SourceLines {
 	 * Indicates a newline character has been reached. It does not append any character to the lines.
 	 */
 	public void newline() {
-		lines.add(line.toString().stripTrailing());
+		lines.add(new SourceLine(nextLine, line.toString().stripTrailing()));
 		line.setLength(0);
 		nextLine = nextLine + 1;
 		nextColumn = 1;
@@ -57,7 +56,7 @@ public class SourceLines {
 
 	/**
 	 * Get a list of {@link SourceLine}. If some lines are missing, only lines that are present and requested are
-	 * returned.
+	 * returned. The current line is also returned, even if it has not been terminated by a newline yet.
 	 *
 	 * @param startLine the first line to retrieve
 	 * @param endLine   the last line to retrieve (included)
@@ -65,12 +64,22 @@ public class SourceLines {
 	 */
 	@Nonnull
 	public List<SourceLine> getLines(int startLine, int endLine) {
-		return IntStream.range(Math.max(1, startLine), Math.min(lines.size(), endLine) + 1)
-			.mapToObj(lineNumber -> new SourceLine(lineNumber, lines.get(lineNumber - 1)))
-			.toList();
+		var firstLine = Math.max(1, startLine);
+		var maxLine = line.length() > 0 ? lines.size() + 1 : lines.size();
+		var lastLine = Math.min(maxLine, endLine);
+
+		var result = new ArrayList<SourceLine>(Math.max(0, lastLine - firstLine + 1));
+		for (var lineNumber = firstLine; lineNumber <= lastLine; lineNumber++) {
+			if (lineNumber <= lines.size()) {
+				result.add(lines.get(lineNumber - 1));
+			} else {
+				result.add(new SourceLine(lineNumber, line.toString().stripTrailing()));
+			}
+		}
+		return result;
 	}
 
-	private final List<String> lines = new ArrayList<>();
+	private final List<SourceLine> lines = new ArrayList<>();
 	private final StringBuilder line = new StringBuilder();
 	private int currentLine;
 	private int currentColumn;

@@ -1,12 +1,7 @@
 package dev.kdl.parse;
 
-import dev.kdl.KdlBoolean;
 import dev.kdl.KdlDocument;
 import dev.kdl.KdlNode;
-import dev.kdl.KdlNull;
-import dev.kdl.KdlProperties;
-import dev.kdl.KdlString;
-import dev.kdl.KdlValue;
 import dev.kdl.parse.context.Span;
 import dev.kdl.parse.lexer.Kdl2Lexer;
 import dev.kdl.parse.lexer.token.Boolean;
@@ -69,6 +64,14 @@ public class Kdl2Parser implements KdlParser {
 			}
 		}
 
+		@Override
+		protected boolean isIgnorable(@Nonnull Token token) {
+			return token instanceof NodeSpace
+				|| token instanceof Newline
+				|| token instanceof Semicolon
+				|| token instanceof SingleLineComment;
+		}
+
 		@Nonnull
 		private List<KdlNode> nodes(boolean isRoot) throws IOException, KdlParseException {
 			var nodes = new ArrayList<KdlNode>();
@@ -111,12 +114,13 @@ public class Kdl2Parser implements KdlParser {
 
 		@Nullable
 		private KdlNode node() throws KdlParseException, IOException {
+			var nodeStart = lexer.getNextPosition();
 			var type = type();
 			consumeToken(NodeSpace.class);
 
-			var name = string();
+			var nameToken = string();
 
-			if (name == null) {
+			if (nameToken == null) {
 				if (type == null) {
 					return null;
 				} else {
@@ -132,17 +136,23 @@ public class Kdl2Parser implements KdlParser {
 			var children = nodeChildren();
 			consumeToken(NodeSpace.class);
 
-			return new KdlNode(
-				type,
-				name,
+			var lastSignificantToken = getLastSignificantToken();
+			var nodeSpan = new Span(nodeStart, lastSignificantToken == null ? nodeStart : lastSignificantToken.span().end());
+
+			return buildNode(
+				type == null ? null : type.value(),
+				type == null ? null : type.span(),
+				nameToken.value(),
+				nameToken.span(),
 				argumentsAndProperties.first(),
 				argumentsAndProperties.second(),
-				children
+				children,
+				nodeSpan
 			);
 		}
 
 		@Nullable
-		private String type() throws IOException, KdlParseException {
+		private Type type() throws IOException, KdlParseException {
 			var openingParentheses = parseToken(OpeningParentheses.class);
 			if (openingParentheses == null) {
 				return null;
@@ -156,20 +166,20 @@ public class Kdl2Parser implements KdlParser {
 				() -> nodeSpace == null ? null : nodeSpace.span()
 			);
 			consumeToken(NodeSpace.class);
-			expectToken(
+			var closingParentheses = expectToken(
 				ClosingParentheses.class,
 				"Missing closing parentheses in type annotation",
 				"closing parentheses expected",
 				() -> new Span(openingParentheses.span().start(), type.span().end())
 			);
 
-			return type.value();
+			return new Type(type.value(), new Span(openingParentheses.span().start(), closingParentheses.span().end()));
 		}
 
 		@Nonnull
-		private Pair<List<KdlValue<?>>, KdlProperties> argumentsAndProperties() throws IOException, KdlParseException {
-			var arguments = new ArrayList<KdlValue<?>>();
-			var properties = KdlProperties.builder();
+		private Pair<List<ParsedValue>, List<ParsedProperty>> argumentsAndProperties() throws IOException, KdlParseException {
+			var arguments = new ArrayList<ParsedValue>();
+			var properties = new ArrayList<ParsedProperty>();
 
 			while (isArgumentOrProperty()) {
 				consumeToken(NodeSpace.class);
@@ -179,7 +189,7 @@ public class Kdl2Parser implements KdlParser {
 				if (propertyName != null) {
 					var value = expectValue("Missing property value");
 					if (!isSlashdash) {
-						properties.property(propertyName.value(), value);
+						properties.add(new ParsedProperty(propertyName.value(), propertyName.span(), value));
 					}
 				} else {
 					var value = expectValue("Missing value after argument type");
@@ -189,7 +199,7 @@ public class Kdl2Parser implements KdlParser {
 				}
 			}
 
-			return new Pair<>(arguments, properties.build());
+			return new Pair<>(arguments, properties);
 		}
 
 		private boolean isArgumentOrProperty() throws IOException, KdlParseException {
@@ -214,32 +224,29 @@ public class Kdl2Parser implements KdlParser {
 		@Nullable
 		private StringToken getPropertyName() throws IOException, KdlParseException {
 			var firstToken = peek(0);
-			if (firstToken instanceof StringToken) {
+			if (firstToken instanceof StringToken stringToken) {
 				if (peek(1) instanceof NodeSpace && peek(2) instanceof EqualsSign) {
 					consume(3);
-					return (StringToken) firstToken;
+					return stringToken;
 				} else if (peek(1) instanceof EqualsSign) {
 					consume(2);
-					return (StringToken) firstToken;
+					return stringToken;
 				}
 			}
 			return null;
 		}
 
 		@Nonnull
-		private KdlValue<?> expectValue(String errorMessage) throws IOException, KdlParseException {
+		private ParsedValue expectValue(String errorMessage) throws IOException, KdlParseException {
 			var type = type();
 			consumeToken(NodeSpace.class);
 
 			var token = read();
-			if (token instanceof Number number) {
-				return number.asKDLNumber(type);
-			} else if (token instanceof Boolean aBoolean) {
-				return new KdlBoolean(type, aBoolean.booleanValue());
-			} else if (token instanceof Null) {
-				return new KdlNull(type);
-			} else if (token instanceof StringToken) {
-				return new KdlString(type, token.value());
+			if (token instanceof Number || token instanceof Boolean || token instanceof Null || token instanceof StringToken) {
+				var typeValue = type == null ? null : type.value();
+				var typeSpan = type == null ? null : type.span();
+				var span = typeSpan == null ? token.span() : new Span(typeSpan.start(), token.span().end());
+				return new ParsedValue(typeValue, typeSpan, token, span);
 			}
 
 			var errorSpan = token == null
@@ -299,9 +306,8 @@ public class Kdl2Parser implements KdlParser {
 		}
 
 		@Nullable
-		private String string() throws IOException, KdlParseException {
-			var token = parseToken(StringToken.class);
-			return token == null ? null : token.value();
+		private StringToken string() throws IOException, KdlParseException {
+			return parseToken(StringToken.class);
 		}
 
 		private void lineSpaces() throws IOException, KdlParseException {
@@ -314,7 +320,7 @@ public class Kdl2Parser implements KdlParser {
 
 		@Override
 		protected Token read() throws IOException, KdlParseException {
-			return checkBom(lexer.read());
+			return checkBom(super.read());
 		}
 
 		@Override

@@ -8,16 +8,16 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * The properties of a {@link KdlNode}.
  */
-public final class KdlProperties implements Iterable<Entry<String, List<KdlValue<?>>>> {
-	private KdlProperties(@Nonnull LinkedHashMap<String, List<KdlValue<?>>> properties) {
+public final class KdlProperties implements Iterable<KdlProperty<?>> {
+	private KdlProperties(@Nonnull LinkedHashMap<String, List<KdlProperty<?>>> properties) {
 		this.properties = properties;
 	}
 
@@ -34,7 +34,7 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 		var values = properties.get(property);
 		return values == null || values.isEmpty()
 			? Optional.empty()
-			: Optional.of((KdlValue<T>) values.get(values.size() - 1));
+			: Optional.of((KdlValue<T>) values.get(values.size() - 1).value());
 	}
 
 	/**
@@ -45,6 +45,22 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 	 */
 	@Nonnull
 	public List<KdlValue<?>> getValues(@Nonnull String property) {
+		var values = properties.get(property);
+		if (values == null) {
+			return Collections.emptyList();
+		}
+		return values.stream().map(KdlProperty::value).collect(Collectors.toUnmodifiableList());
+	}
+
+	/**
+	 * Retrieves all the properties with the provided name, in declaration order. Returns an empty list if the
+	 * property is missing.
+	 *
+	 * @param property the name of the property to retrieve
+	 * @return a list containing all the properties with the provided name
+	 */
+	@Nonnull
+	public List<KdlProperty<?>> getProperties(@Nonnull String property) {
 		var values = properties.get(property);
 		return values == null ? Collections.emptyList() : Collections.unmodifiableList(values);
 	}
@@ -61,8 +77,20 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 
 	@Nonnull
 	@Override
-	public Iterator<Entry<String, List<KdlValue<?>>>> iterator() {
-		return properties.entrySet().iterator();
+	public Iterator<KdlProperty<?>> iterator() {
+		return properties.values().stream()
+			.flatMap(List::stream)
+			.iterator();
+	}
+
+	/**
+	 * @return all the properties, in declaration order
+	 */
+	@Nonnull
+	public List<KdlProperty<?>> properties() {
+		return properties.values().stream()
+			.flatMap(List::stream)
+			.collect(Collectors.toUnmodifiableList());
 	}
 
 	/**
@@ -91,11 +119,12 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 	 *
 	 * @return a new builder with the current properties
 	 */
+	@Nonnull
 	public Builder mutate() {
 		return new Builder(properties);
 	}
 
-	private final LinkedHashMap<String, List<KdlValue<?>>> properties;
+	private final LinkedHashMap<String, List<KdlProperty<?>>> properties;
 
 	/**
 	 * @return a new {@link KdlProperties} builder.
@@ -113,8 +142,9 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 			this.properties = new LinkedHashMap<>();
 		}
 
-		private Builder(@Nonnull Map<String, List<KdlValue<?>>> properties) {
-			this.properties = new LinkedHashMap<>(properties);
+		private Builder(@Nonnull Map<String, List<KdlProperty<?>>> properties) {
+			this.properties = new LinkedHashMap<>();
+			properties.forEach((name, values) -> this.properties.put(name, new ArrayList<>(values)));
 		}
 
 		/**
@@ -125,12 +155,23 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 		 * @return {@code this}
 		 */
 		@Nonnull
-		public Builder property(String name, KdlValue<?> value) {
-			properties.compute(name, (k, values) -> {
+		public Builder property(@Nonnull String name, @Nonnull KdlValue<?> value) {
+			return property(new KdlProperty<>(name, value));
+		}
+
+		/**
+		 * Adds a property.
+		 *
+		 * @param property the property to add
+		 * @return {@code this}
+		 */
+		@Nonnull
+		public Builder property(@Nonnull KdlProperty<?> property) {
+			properties.compute(property.name(), (k, values) -> {
 				if (values == null) {
 					values = new ArrayList<>();
 				}
-				values.add(value);
+				values.add(property);
 				return values;
 			});
 			return this;
@@ -147,7 +188,7 @@ public final class KdlProperties implements Iterable<Entry<String, List<KdlValue
 		}
 
 		@Nonnull
-		private final LinkedHashMap<String, List<KdlValue<?>>> properties;
+		private final LinkedHashMap<String, List<KdlProperty<?>>> properties;
 	}
 
 }

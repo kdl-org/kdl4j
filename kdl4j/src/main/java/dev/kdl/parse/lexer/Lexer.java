@@ -83,6 +83,16 @@ public interface Lexer {
 	ParseContext getErrorParseContextForNextPosition() throws IOException;
 
 	/**
+	 * Creates a parse context for a span, without reading any additional character from the input. The lines covered by
+	 * the span are included in the context.
+	 *
+	 * @param span the span described by the returned context
+	 * @return a parse context
+	 */
+	@Nonnull
+	ParseContext getParseContext(@Nonnull Span span);
+
+	/**
 	 * @return the starting position of the next token
 	 */
 	@Nonnull

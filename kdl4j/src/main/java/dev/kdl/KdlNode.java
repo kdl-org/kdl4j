@@ -1,5 +1,7 @@
 package dev.kdl;
 
+import dev.kdl.parse.context.ParseContext;
+import dev.kdl.parse.context.Span;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 
@@ -14,21 +16,32 @@ import java.util.stream.Collectors;
 /**
  * A KDL node.
  *
- * @param type       the type of the node
- * @param name       the name of the node
- * @param arguments  the arguments of the node
- * @param properties the properties of the node
- * @param children   the children of the node
+ * @param type         the type of the node
+ * @param name         the name of the node
+ * @param arguments    the arguments of the node
+ * @param properties   the properties of the node
+ * @param children     the children of the node
+ * @param parseContext the context in which the node was parsed, if any
+ * @param nameSpan     the span of the node name, if any
+ * @param typeSpan     the span of the node type annotation, if any
  */
 public record KdlNode(
 	@Nullable String type,
 	@Nonnull String name,
 	@Nonnull List<KdlValue<?>> arguments,
 	@Nonnull KdlProperties properties,
-	@Nonnull List<KdlNode> children
+	@Nonnull List<KdlNode> children,
+	@Nullable ParseContext parseContext,
+	@Nullable Span nameSpan,
+	@Nullable Span typeSpan
 ) {
+	public KdlNode {
+		arguments = Collections.unmodifiableList(arguments);
+		children = Collections.unmodifiableList(children);
+	}
+
 	/**
-	 * Creates a new KDL node.
+	 * Creates a new KDL node without any location information.
 	 *
 	 * @param type       the type of the node
 	 * @param name       the name of the node
@@ -43,11 +56,7 @@ public record KdlNode(
 		@Nonnull KdlProperties properties,
 		@Nonnull List<KdlNode> children
 	) {
-		this.type = type;
-		this.name = name;
-		this.arguments = Collections.unmodifiableList(arguments);
-		this.properties = properties;
-		this.children = Collections.unmodifiableList(children);
+		this(type, name, arguments, properties, children, null, null, null);
 	}
 
 	/**
@@ -81,6 +90,26 @@ public record KdlNode(
 		return builder.toString();
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (!(o instanceof KdlNode that)) {
+			return false;
+		}
+		return Objects.equals(type, that.type)
+			&& name.equals(that.name)
+			&& arguments.equals(that.arguments)
+			&& properties.equals(that.properties)
+			&& children.equals(that.children);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(type, name, arguments, properties, children);
+	}
+
 	/**
 	 * Creates a new builder to create a new node from the current one.
 	 *
@@ -88,7 +117,7 @@ public record KdlNode(
 	 */
 	@Nonnull
 	public Builder mutate() {
-		return new Builder(type, name, arguments, properties, children);
+		return new Builder(type, name, arguments, properties, children, parseContext, nameSpan, typeSpan);
 	}
 
 	/**
@@ -114,13 +143,19 @@ public record KdlNode(
 			@Nullable String name,
 			@Nonnull List<KdlValue<?>> arguments,
 			@Nonnull KdlProperties properties,
-			@Nonnull List<KdlNode> children
+			@Nonnull List<KdlNode> children,
+			@Nullable ParseContext parseContext,
+			@Nullable Span nameSpan,
+			@Nullable Span typeSpan
 		) {
 			this.type = type;
 			this.name = name;
 			this.arguments = new ArrayList<>(arguments);
 			this.properties = properties.mutate();
 			this.children = new ArrayList<>(children);
+			this.parseContext = parseContext;
+			this.nameSpan = nameSpan;
+			this.typeSpan = typeSpan;
 		}
 
 		/**
@@ -262,13 +297,49 @@ public record KdlNode(
 		}
 
 		/**
+		 * Sets the parse context of the node.
+		 *
+		 * @param parseContext the parse context of the node, or {@code null} if it has none
+		 * @return {@code this}
+		 */
+		@Nonnull
+		public Builder parseContext(@Nullable ParseContext parseContext) {
+			this.parseContext = parseContext;
+			return this;
+		}
+
+		/**
+		 * Sets the span of the name of the node.
+		 *
+		 * @param nameSpan the span of the name of the node, or {@code null} if it has none
+		 * @return {@code this}
+		 */
+		@Nonnull
+		public Builder nameSpan(@Nullable Span nameSpan) {
+			this.nameSpan = nameSpan;
+			return this;
+		}
+
+		/**
+		 * Sets the span of the type annotation of the node.
+		 *
+		 * @param typeSpan the span of the type annotation of the node, or {@code null} if it has none
+		 * @return {@code this}
+		 */
+		@Nonnull
+		public Builder typeSpan(@Nullable Span typeSpan) {
+			this.typeSpan = typeSpan;
+			return this;
+		}
+
+		/**
 		 * Builds the node.
 		 *
 		 * @return the built node
 		 */
 		@Nonnull
 		public KdlNode build() {
-			return new KdlNode(type, Objects.requireNonNull(name), arguments, properties.build(), children);
+			return new KdlNode(type, Objects.requireNonNull(name), arguments, properties.build(), children, parseContext, nameSpan, typeSpan);
 		}
 
 		@Nullable
@@ -281,5 +352,11 @@ public record KdlNode(
 		private final KdlProperties.Builder properties;
 		@Nonnull
 		private final ArrayList<KdlNode> children;
+		@Nullable
+		private ParseContext parseContext;
+		@Nullable
+		private Span nameSpan;
+		@Nullable
+		private Span typeSpan;
 	}
 }
