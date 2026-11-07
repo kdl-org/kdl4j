@@ -1,6 +1,8 @@
 package dev.kdl.parse;
 
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 final class KdlParsers {
@@ -13,10 +15,10 @@ final class KdlParsers {
 	}
 
 	static KdlParser hybrid() {
-		return KdlParsers.KDL_HYBRID_PARSER.updateAndGet(parser -> parser == null ? new KdlHybridParser() : parser);
+		return KdlParsers.KDL_HYBRID_PARSER.updateAndGet((parser -> parser == null ? new KdlHybridParser() : parser));
 	}
 
-	static final AtomicReference<Kdl1Parser> KDL1_PARSER = new AtomicReference<>();
-	static final AtomicReference<Kdl2Parser> KDL2_PARSER = new AtomicReference<>();
-	static final AtomicReference<KdlHybridParser> KDL_HYBRID_PARSER = new AtomicReference<>();
+	static final AtomicReference<@Nullable Kdl1Parser> KDL1_PARSER = new AtomicReference<>();
+	static final AtomicReference<@Nullable Kdl2Parser> KDL2_PARSER = new AtomicReference<>();
+	static final AtomicReference<@Nullable KdlHybridParser> KDL_HYBRID_PARSER = new AtomicReference<>();
 }

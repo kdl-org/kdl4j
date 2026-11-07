@@ -42,6 +42,7 @@ public record KdlNull(
 	}
 
 	@Override
+	@Nullable
 	public Object value() {
 		return null;
 	}

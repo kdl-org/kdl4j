@@ -20,6 +20,7 @@ public interface KdlValue<T> {
 	/**
 	 * @return the value
 	 */
+	@Nullable
 	T value();
 
 	/**
