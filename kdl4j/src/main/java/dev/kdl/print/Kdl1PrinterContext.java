@@ -53,7 +53,7 @@ public class Kdl1PrinterContext extends KdlPrinterContext {
 	@Override
 	protected void printBoolean(KdlBoolean kdlBoolean) {
 		printType(kdlBoolean.type());
-		write(kdlBoolean.value() ? "true" : "false");
+		write(kdlBoolean.value().toString());
 	}
 
 	@Override

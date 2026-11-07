@@ -53,13 +53,10 @@ public record KdlBoolean(
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (!(o instanceof KdlBoolean that)) {
-			return false;
-		}
-		return booleanValue == that.booleanValue && Objects.equals(type, that.type);
+		return this == o ||
+			o instanceof KdlBoolean kdlBoolean
+				&& booleanValue == kdlBoolean.booleanValue
+				&& Objects.equals(type, kdlBoolean.type);
 	}
 
 	@Override

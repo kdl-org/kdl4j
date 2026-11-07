@@ -4,6 +4,7 @@ import dev.kdl.parse.KdlInternalParseException;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 /**
  * A class for storing the lines of the input. Mainly used for error reporting.
@@ -63,18 +64,15 @@ public class SourceLines {
 	 */
 	public List<SourceLine> getLines(int startLine, int endLine) {
 		var firstLine = Math.max(1, startLine);
-		var maxLine = line.length() > 0 ? lines.size() + 1 : lines.size();
+		var maxLine = line.isEmpty() ? lines.size() : lines.size() + 1;
 		var lastLine = Math.min(maxLine, endLine);
 
-		var result = new ArrayList<SourceLine>(Math.max(0, lastLine - firstLine + 1));
-		for (var lineNumber = firstLine; lineNumber <= lastLine; lineNumber++) {
-			if (lineNumber <= lines.size()) {
-				result.add(lines.get(lineNumber - 1));
-			} else {
-				result.add(new SourceLine(lineNumber, line.toString().stripTrailing()));
-			}
-		}
-		return result;
+		return IntStream.range(firstLine, lastLine + 1)
+			.mapToObj(l ->
+				l <= lines.size()
+					? lines.get(l - 1)
+					: new SourceLine(l, line.toString().stripTrailing()))
+			.toList();
 	}
 
 	private final List<SourceLine> lines = new ArrayList<>();

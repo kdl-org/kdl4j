@@ -96,10 +96,9 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 
 	@Override
 	public boolean equals(Object o) {
-		if (o instanceof KdlProperties that) {
-			return Objects.equals(properties, that.properties);
-		}
-		return false;
+		return this ==  o ||
+			o instanceof KdlProperties kdlProperties
+				&& Objects.equals(properties, kdlProperties.properties);
 	}
 
 	@Override

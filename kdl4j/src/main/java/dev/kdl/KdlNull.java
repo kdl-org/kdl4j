@@ -49,13 +49,7 @@ public record KdlNull(
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (!(o instanceof KdlNull that)) {
-			return false;
-		}
-		return Objects.equals(type, that.type);
+		return this == o || o instanceof KdlNull kdlNull && Objects.equals(type, kdlNull.type);
 	}
 
 	@Override

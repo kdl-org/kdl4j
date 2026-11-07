@@ -53,13 +53,10 @@ public record KdlString(
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (!(o instanceof KdlString that)) {
-			return false;
-		}
-		return Objects.equals(type, that.type) && value.equals(that.value);
+		return this == o ||
+			o instanceof KdlString kdlString
+				&& Objects.equals(type, kdlString.type)
+				&& value.equals(kdlString.value);
 	}
 
 	@Override

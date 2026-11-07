@@ -153,7 +153,7 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 
 		@Override
 		public boolean equals(Object o) {
-			return this == o || o instanceof NotANumber that && Objects.equals(type, that.type);
+			return this == o || o instanceof NotANumber notANumber && Objects.equals(type, notANumber.type);
 		}
 
 		@Override
@@ -228,7 +228,7 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 
 		@Override
 		public boolean equals(Object o) {
-			return this == o || o instanceof PositiveInfinity that && Objects.equals(type, that.type);
+			return this == o || o instanceof PositiveInfinity positiveInfinity && Objects.equals(type, positiveInfinity.type);
 		}
 
 		@Override
@@ -303,7 +303,7 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 
 		@Override
 		public boolean equals(Object o) {
-			return this == o || o instanceof NegativeInfinity that && Objects.equals(type, that.type);
+			return this == o || o instanceof NegativeInfinity negativeInfinity && Objects.equals(type, negativeInfinity.type);
 		}
 
 		@Override
@@ -357,13 +357,10 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (!(o instanceof Integer that)) {
-				return false;
-			}
-			return Objects.equals(type, that.type) && value.equals(that.value);
+			return this == o ||
+				o instanceof Integer integer
+					&& Objects.equals(type, integer.type)
+					&& value.equals(integer.value);
 		}
 
 		@Override
@@ -417,13 +414,10 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 
 		@Override
 		public boolean equals(Object o) {
-			if (this == o) {
-				return true;
-			}
-			if (!(o instanceof Decimal that)) {
-				return false;
-			}
-			return Objects.equals(type, that.type) && value.equals(that.value);
+			return this == o ||
+				o instanceof Decimal decimal
+					&& Objects.equals(type, decimal.type)
+					&& value.equals(decimal.value);
 		}
 
 		@Override

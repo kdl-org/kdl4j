@@ -38,13 +38,10 @@ public record KdlProperty<T>(
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (!(o instanceof KdlProperty<?> that)) {
-			return false;
-		}
-		return name.equals(that.name) && value.equals(that.value);
+		return this == o ||
+			o instanceof KdlProperty<?> kdlProperty
+				&& name.equals(kdlProperty.name)
+				&& value.equals(kdlProperty.value);
 	}
 
 	@Override

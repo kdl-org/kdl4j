@@ -89,17 +89,13 @@ public record KdlNode(
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (!(o instanceof KdlNode that)) {
-			return false;
-		}
-		return Objects.equals(type, that.type)
-			&& name.equals(that.name)
-			&& arguments.equals(that.arguments)
-			&& properties.equals(that.properties)
-			&& children.equals(that.children);
+		return this == o ||
+			o instanceof KdlNode kdlNode
+				&& Objects.equals(type, kdlNode.type)
+				&& name.equals(kdlNode.name)
+				&& arguments.equals(kdlNode.arguments)
+				&& properties.equals(kdlNode.properties)
+				&& children.equals(kdlNode.children);
 	}
 
 	@Override
