@@ -1,7 +1,6 @@
 package dev.kdl.print;
 
 import dev.kdl.KdlVersion;
-import jakarta.annotation.Nonnull;
 
 import java.util.Collection;
 import java.util.List;
@@ -23,22 +22,21 @@ import java.util.stream.Collectors;
  * @param printQuotes              whether quotes should be printing around identifiers
  */
 public record KdlPrinterConfiguration(
-	@Nonnull KdlVersion version,
-	@Nonnull String indentation,
-	@Nonnull String newline,
-	@Nonnull ExponentCharacter exponentChar,
+	KdlVersion version,
+	String indentation,
+	String newline,
+	ExponentCharacter exponentChar,
 	boolean printEmptyChildren,
 	boolean printNullArguments,
 	boolean printNullProperties,
 	boolean printDuplicateProperties,
-	@Nonnull PropertiesOrder propertiesOrder,
+	PropertiesOrder propertiesOrder,
 	boolean printSemicolons,
 	boolean printQuotes
 ) {
 	/**
 	 * @return a new builder of {@link KdlPrinterConfiguration}.a new builder of {@link KdlPrinterConfiguration}.
 	 */
-	@Nonnull
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -53,8 +51,7 @@ public record KdlPrinterConfiguration(
 		 * @param version the version of KDL to use
 		 * @return {code this}
 		 */
-		@Nonnull
-		public Builder version(@Nonnull KdlVersion version) {
+		public Builder version(KdlVersion version) {
 			this.version = version;
 			return this;
 		}
@@ -64,7 +61,6 @@ public record KdlPrinterConfiguration(
 		 *
 		 * @return {code this}
 		 */
-		@Nonnull
 		public Builder v1() {
 			this.version = KdlVersion.V1;
 			return this;
@@ -75,7 +71,6 @@ public record KdlPrinterConfiguration(
 		 *
 		 * @return {code this}
 		 */
-		@Nonnull
 		public Builder v2() {
 			this.version = KdlVersion.V2;
 			return this;
@@ -87,8 +82,7 @@ public record KdlPrinterConfiguration(
 		 * @param indentation the whitespace character to use for indentation
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder indentation(@Nonnull Whitespace indentation) {
+		public Builder indentation(Whitespace indentation) {
 			this.indentation = List.of(indentation);
 			return this;
 		}
@@ -99,8 +93,7 @@ public record KdlPrinterConfiguration(
 		 * @param indentation the whitespace characters to use for indentation
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder indentation(@Nonnull List<Whitespace> indentation) {
+		public Builder indentation(List<Whitespace> indentation) {
 			this.indentation = indentation;
 			return this;
 		}
@@ -111,8 +104,7 @@ public record KdlPrinterConfiguration(
 		 * @param newline the newline character to use
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder newline(@Nonnull Newline newline) {
+		public Builder newline(Newline newline) {
 			this.newline = List.of(newline);
 			return this;
 		}
@@ -123,8 +115,7 @@ public record KdlPrinterConfiguration(
 		 * @param newline the newline characters to use
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder newline(@Nonnull List<Newline> newline) {
+		public Builder newline(List<Newline> newline) {
 			this.newline = newline;
 			return this;
 		}
@@ -135,8 +126,7 @@ public record KdlPrinterConfiguration(
 		 * @param exponentChar the exponent character to use
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder exponentChar(@Nonnull ExponentCharacter exponentChar) {
+		public Builder exponentChar(ExponentCharacter exponentChar) {
 			this.exponentChar = exponentChar;
 			return this;
 		}
@@ -146,7 +136,6 @@ public record KdlPrinterConfiguration(
 		 *
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder printEmptyChildren() {
 			printEmptyChildren = true;
 			return this;
@@ -158,7 +147,6 @@ public record KdlPrinterConfiguration(
 		 * @param printEmptyChildren whether empty children should be printed
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder printEmptyChildren(boolean printEmptyChildren) {
 			this.printEmptyChildren = printEmptyChildren;
 			return this;
@@ -170,7 +158,6 @@ public record KdlPrinterConfiguration(
 		 * @param printNullArguments whether null arguments should be printed
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder printNullArguments(boolean printNullArguments) {
 			this.printNullArguments = printNullArguments;
 			return this;
@@ -182,7 +169,6 @@ public record KdlPrinterConfiguration(
 		 * @param printNullProperties whether null properties should be printed
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder printNullProperties(boolean printNullProperties) {
 			this.printNullProperties = printNullProperties;
 			return this;
@@ -195,7 +181,6 @@ public record KdlPrinterConfiguration(
 		 * @param printDuplicateProperties whether null properties should be printed
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder printDuplicateProperties(boolean printDuplicateProperties) {
 			this.printDuplicateProperties = printDuplicateProperties;
 			return this;
@@ -207,8 +192,7 @@ public record KdlPrinterConfiguration(
 		 * @param propertiesOrder order to use when printing properties
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder propertiesOrder(@Nonnull PropertiesOrder propertiesOrder) {
+		public Builder propertiesOrder(PropertiesOrder propertiesOrder) {
 			this.propertiesOrder = propertiesOrder;
 			return this;
 		}
@@ -218,7 +202,6 @@ public record KdlPrinterConfiguration(
 		 *
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder printSemicolons() {
 			printSemicolons = true;
 			return this;
@@ -230,7 +213,6 @@ public record KdlPrinterConfiguration(
 		 * @param printSemiColons whether semicolons should be printed after each node
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder printSemicolons(boolean printSemiColons) {
 			this.printSemicolons = printSemiColons;
 			return this;
@@ -241,7 +223,6 @@ public record KdlPrinterConfiguration(
 		 *
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder printQuotes() {
 			printQuotes = true;
 			return this;
@@ -253,7 +234,6 @@ public record KdlPrinterConfiguration(
 		 * @param printQuotes whether quotes should be printed when not required
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder printQuotes(boolean printQuotes) {
 			this.printQuotes = printQuotes;
 			return this;
@@ -264,7 +244,6 @@ public record KdlPrinterConfiguration(
 		 *
 		 * @return the corresponding configuration
 		 */
-		@Nonnull
 		public KdlPrinterConfiguration build() {
 			return new KdlPrinterConfiguration(
 				version,
@@ -281,19 +260,14 @@ public record KdlPrinterConfiguration(
 			);
 		}
 
-		@Nonnull
 		private KdlVersion version = KdlVersion.V2;
-		@Nonnull
 		private List<Whitespace> indentation = List.of(Whitespace.CHARACTER_TABULATION);
-		@Nonnull
 		private List<Newline> newline = List.of(Newline.LF);
-		@Nonnull
 		private ExponentCharacter exponentChar = ExponentCharacter.E;
 		private boolean printEmptyChildren = false;
 		private boolean printNullArguments = true;
 		private boolean printNullProperties = true;
 		private boolean printDuplicateProperties = true;
-		@Nonnull
 		private PropertiesOrder propertiesOrder = PropertiesOrder.DECLARATION;
 		private boolean printSemicolons = false;
 		private boolean printQuotes = false;

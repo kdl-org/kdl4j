@@ -1,7 +1,6 @@
 package dev.kdl.parse.lexer.token;
 
 import dev.kdl.parse.context.Span;
-import jakarta.annotation.Nonnull;
 
 /**
  * Token for a slashdash, including all the spaces after.
@@ -9,5 +8,5 @@ import jakarta.annotation.Nonnull;
  * @param value the value of the token
  * @param span  the position of the token
  */
-public record Slashdash(@Nonnull String value, @Nonnull Span span) implements Token {
+public record Slashdash(String value, Span span) implements Token {
 }

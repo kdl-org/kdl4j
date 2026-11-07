@@ -1,7 +1,6 @@
 package dev.kdl.parse.lexer.token;
 
 import dev.kdl.parse.context.Span;
-import jakarta.annotation.Nonnull;
 
 /**
  * Token for braces.
@@ -13,8 +12,7 @@ public interface Brace extends Token {
 	 *
 	 * @param span the position of the token
 	 */
-	record OpeningBrace(@Nonnull Span span) implements Brace {
-		@Nonnull
+	record OpeningBrace(Span span) implements Brace {
 		@Override
 		public String value() {
 			return "{";
@@ -26,8 +24,7 @@ public interface Brace extends Token {
 	 *
 	 * @param span the position of the token
 	 */
-	record ClosingBrace(@Nonnull Span span) implements Brace {
-		@Nonnull
+	record ClosingBrace(Span span) implements Brace {
 		@Override
 		public String value() {
 			return "}";

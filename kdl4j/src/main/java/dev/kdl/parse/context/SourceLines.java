@@ -1,7 +1,6 @@
 package dev.kdl.parse.context;
 
 import dev.kdl.parse.KdlInternalParseException;
-import jakarta.annotation.Nonnull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,7 +61,6 @@ public class SourceLines {
 	 * @param endLine   the last line to retrieve (included)
 	 * @return a list of lines according to the requested lines
 	 */
-	@Nonnull
 	public List<SourceLine> getLines(int startLine, int endLine) {
 		var firstLine = Math.max(1, startLine);
 		var maxLine = line.length() > 0 ? lines.size() + 1 : lines.size();

@@ -6,7 +6,6 @@ import dev.kdl.parse.Reporter;
 import dev.kdl.parse.lexer.reader.KdlReadException;
 import dev.kdl.print.KdlPrinter;
 import dev.kdl.print.KdlPrinterConfiguration;
-import jakarta.annotation.Nonnull;
 import org.junit.jupiter.params.provider.Arguments;
 
 import java.io.IOException;
@@ -22,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 public abstract class RoundTripTest {
-	protected RoundTripTest(@Nonnull KdlVersion version) {
+	protected RoundTripTest(KdlVersion version) {
 		this.parser = KdlParser.fromVersion(version);
 		this.printer = new KdlPrinter(
 			KdlPrinterConfiguration.builder()
@@ -34,7 +33,7 @@ public abstract class RoundTripTest {
 		);
 	}
 
-	protected void executeRoundTripTest(@Nonnull Path input, @Nonnull Path expectedOutput, @Nonnull Path expectedReport) throws IOException {
+	protected void executeRoundTripTest(Path input, Path expectedOutput, Path expectedReport) throws IOException {
 		var shouldSucceed = Files.exists(expectedOutput);
 		try {
 			var document = parser.parse(input);
@@ -58,7 +57,7 @@ public abstract class RoundTripTest {
 		}
 	}
 
-	static protected List<Arguments> getInputs(@Nonnull Path inputFolder, @Nonnull Path expectedFolder) throws IOException {
+	static protected List<Arguments> getInputs(Path inputFolder, Path expectedFolder) throws IOException {
 		try (var inputs = Files.list(inputFolder)) {
 			return inputs
 				.map(input -> {
@@ -70,8 +69,6 @@ public abstract class RoundTripTest {
 		}
 	}
 
-	@Nonnull
 	private final KdlParser parser;
-	@Nonnull
 	private final KdlPrinter printer;
 }

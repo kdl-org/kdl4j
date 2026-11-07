@@ -5,8 +5,7 @@ import dev.kdl.parse.context.ParseContext;
 import dev.kdl.parse.context.Position;
 import dev.kdl.parse.context.Span;
 import dev.kdl.parse.lexer.token.Token;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 
@@ -57,8 +56,7 @@ public interface Lexer {
 	 * @return a parse context
 	 * @throws IOException when an error occurs reading the input
 	 */
-	@Nonnull
-	ParseContext getErrorParseContext(int startLine, int endLine, @Nonnull Span span) throws IOException;
+	ParseContext getErrorParseContext(int startLine, int endLine, Span span) throws IOException;
 
 	/**
 	 * Creates a parse context to attach to an error. The current line is entirely read, to correctly display it.
@@ -67,8 +65,7 @@ public interface Lexer {
 	 * @return a parse context
 	 * @throws IOException when an error occurs reading the input
 	 */
-	@Nonnull
-	default ParseContext getErrorParseContext(@Nonnull Span span) throws IOException {
+	default ParseContext getErrorParseContext(Span span) throws IOException {
 		return getErrorParseContext(span.start().line(), span.end().line(), span);
 	}
 
@@ -79,7 +76,6 @@ public interface Lexer {
 	 * @return a parse context
 	 * @throws IOException when an error occurs reading the input
 	 */
-	@Nonnull
 	ParseContext getErrorParseContextForNextPosition() throws IOException;
 
 	/**
@@ -89,13 +85,11 @@ public interface Lexer {
 	 * @param span the span described by the returned context
 	 * @return a parse context
 	 */
-	@Nonnull
-	ParseContext getParseContext(@Nonnull Span span);
+	ParseContext getParseContext(Span span);
 
 	/**
 	 * @return the starting position of the next token
 	 */
-	@Nonnull
 	Position getNextPosition();
 
 }

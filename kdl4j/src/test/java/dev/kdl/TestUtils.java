@@ -1,7 +1,6 @@
 package dev.kdl;
 
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -12,18 +11,15 @@ public class TestUtils {
 	private TestUtils() {
 	}
 
-	@Nonnull
-	public static KdlDocument document(@Nonnull KdlNode... nodes) {
+	public static KdlDocument document(KdlNode... nodes) {
 		return new KdlDocument(Arrays.asList(nodes));
 	}
 
-	@Nonnull
-	public static KdlNode node(@Nonnull String name, @Nonnull KdlNode... children) {
+	public static KdlNode node(String name, KdlNode... children) {
 		return node(null, name, children);
 	}
 
-	@Nonnull
-	public static KdlNode node(@Nullable String type, @Nonnull String name, @Nonnull KdlNode... children) {
+	public static KdlNode node(@Nullable String type, String name, KdlNode... children) {
 		return new KdlNode(
 			type,
 			name,
@@ -33,8 +29,7 @@ public class TestUtils {
 		);
 	}
 
-	@Nonnull
-	public static KdlNode node(@Nonnull String name, @Nonnull List<KdlValue<?>> arguments, @Nonnull KdlProperties properties, @Nonnull KdlNode... children) {
+	public static KdlNode node(String name, List<KdlValue<?>> arguments, KdlProperties properties, KdlNode... children) {
 		return new KdlNode(
 			null,
 			name,
@@ -44,8 +39,7 @@ public class TestUtils {
 		);
 	}
 
-	@Nonnull
-	public static KdlNode node(@Nonnull String name, @Nonnull List<KdlValue<?>> arguments, @Nonnull KdlNode... children) {
+	public static KdlNode node(String name, List<KdlValue<?>> arguments, KdlNode... children) {
 		return new KdlNode(
 			null,
 			name,
@@ -55,8 +49,7 @@ public class TestUtils {
 		);
 	}
 
-	@Nonnull
-	public static KdlNode node(@Nonnull String name, @Nonnull KdlProperties properties, @Nonnull KdlNode... children) {
+	public static KdlNode node(String name, KdlProperties properties, KdlNode... children) {
 		return new KdlNode(
 			null,
 			name,
@@ -66,38 +59,31 @@ public class TestUtils {
 		);
 	}
 
-	@Nonnull
-	public static List<KdlValue<?>> arguments(@Nonnull Object... values) {
+	public static List<KdlValue<?>> arguments(Object... values) {
 		return Arrays.stream(values).map(KdlValue::from).collect(Collectors.toList());
 	}
 
-	@Nonnull
 	public static KdlNull kdlNull(@Nullable String type) {
 		return new KdlNull(type);
 	}
 
-	@Nonnull
 	public static KdlNull kdlNull() {
 		return kdlNull(null);
 	}
 
-	@Nonnull
-	public static KdlString string(@Nullable String type, @Nonnull String value) {
+	public static KdlString string(@Nullable String type, String value) {
 		return new KdlString(type, value);
 	}
 
-	@Nonnull
-	public static KdlNumber<?> number(@Nullable String type, @Nonnull Number number) {
+	public static KdlNumber<?> number(@Nullable String type, Number number) {
 		return KdlNumber.from(type, number);
 	}
 
-	@Nonnull
 	public static KdlBoolean kdlBoolean(@Nullable String type, boolean value) {
 		return new KdlBoolean(type, value);
 	}
 
-	@Nonnull
-	public static KdlProperties properties(@Nonnull String name, @Nullable Object value) {
+	public static KdlProperties properties(String name, @Nullable Object value) {
 		return KdlProperties.builder().property(name, KdlValue.from(value)).build();
 	}
 }

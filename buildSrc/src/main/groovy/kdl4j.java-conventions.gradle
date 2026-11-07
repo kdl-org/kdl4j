@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-	implementation libs.jakarta.annotations
+	api libs.jspecify
 
 	testImplementation libs.junit.jupiter
 	testRuntimeOnly libs.junit.platform.launcher

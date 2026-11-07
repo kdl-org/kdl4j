@@ -1,6 +1,5 @@
 package dev.kdl.parse.lexer.helper;
 
-import jakarta.annotation.Nonnull;
 
 import java.util.function.Predicate;
 
@@ -44,7 +43,6 @@ public enum IntegerBase {
 	 *
 	 * @return a predicate for valid digits in this integer base
 	 */
-	@Nonnull
 	public Predicate<Integer> predicate() {
 		return switch (this) {
 			case BINARY -> KdlCharHelper::isBinaryDigit;
@@ -57,7 +55,6 @@ public enum IntegerBase {
 	/**
 	 * @return the name of this integer base
 	 */
-	@Nonnull
 	public String getName() {
 		return switch (this) {
 			case BINARY -> "binary";
@@ -70,7 +67,6 @@ public enum IntegerBase {
 	/**
 	 * @return the prefix to use when printing a number with this integer base
 	 */
-	@Nonnull
 	public String getPrefix() {
 		return switch (this) {
 			case BINARY -> "0b";

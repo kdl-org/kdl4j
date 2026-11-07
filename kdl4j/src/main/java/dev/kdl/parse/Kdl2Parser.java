@@ -20,8 +20,7 @@ import dev.kdl.parse.lexer.token.SingleLineComment;
 import dev.kdl.parse.lexer.token.Slashdash;
 import dev.kdl.parse.lexer.token.StringToken;
 import dev.kdl.parse.lexer.token.Token;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,25 +33,22 @@ import java.util.List;
  */
 public class Kdl2Parser implements KdlParser {
 
-	@Nonnull
 	@Override
-	public KdlDocument parse(@Nullable String filename, @Nonnull InputStream inputStream) throws IOException, KdlParseException {
+	public KdlDocument parse(@Nullable String filename, InputStream inputStream) throws IOException, KdlParseException {
 		return new Kdl2ParserContext(filename, inputStream).parse();
 	}
 
 	private static final class Kdl2ParserContext extends KdlParserContext {
 
-		private Kdl2ParserContext(@Nullable String filename, @Nonnull InputStream inputStream) {
+		private Kdl2ParserContext(@Nullable String filename, InputStream inputStream) {
 			super(new Kdl2Lexer(filename, inputStream, LEXER_CAPACITY));
 		}
 
 		@Override
-		@Nonnull
 		KdlDocument parse() throws IOException, KdlParseException {
 			return document();
 		}
 
-		@Nonnull
 		private KdlDocument document() throws IOException, KdlParseException {
 			consumeByteOrderMark();
 			return new KdlDocument(nodes(true));
@@ -65,14 +61,13 @@ public class Kdl2Parser implements KdlParser {
 		}
 
 		@Override
-		protected boolean isIgnorable(@Nonnull Token token) {
+		protected boolean isIgnorable(Token token) {
 			return token instanceof NodeSpace
 				|| token instanceof Newline
 				|| token instanceof Semicolon
 				|| token instanceof SingleLineComment;
 		}
 
-		@Nonnull
 		private List<KdlNode> nodes(boolean isRoot) throws IOException, KdlParseException {
 			var nodes = new ArrayList<KdlNode>();
 
@@ -176,7 +171,6 @@ public class Kdl2Parser implements KdlParser {
 			return new Type(type.value(), new Span(openingParentheses.span().start(), closingParentheses.span().end()));
 		}
 
-		@Nonnull
 		private Pair<List<ParsedValue>, List<ParsedProperty>> argumentsAndProperties() throws IOException, KdlParseException {
 			var arguments = new ArrayList<ParsedValue>();
 			var properties = new ArrayList<ParsedProperty>();
@@ -236,7 +230,6 @@ public class Kdl2Parser implements KdlParser {
 			return null;
 		}
 
-		@Nonnull
 		private ParsedValue expectValue(String errorMessage) throws IOException, KdlParseException {
 			var type = type();
 			consumeToken(NodeSpace.class);
@@ -259,7 +252,6 @@ public class Kdl2Parser implements KdlParser {
 			);
 		}
 
-		@Nonnull
 		private List<KdlNode> nodeChildren() throws IOException, KdlParseException {
 			List<KdlNode> children = null;
 

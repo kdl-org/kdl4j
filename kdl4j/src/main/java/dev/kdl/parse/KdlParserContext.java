@@ -18,8 +18,7 @@ import dev.kdl.parse.lexer.token.Null;
 import dev.kdl.parse.lexer.token.Number;
 import dev.kdl.parse.lexer.token.StringToken;
 import dev.kdl.parse.lexer.token.Token;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +30,6 @@ abstract class KdlParserContext {
 		this.lexer = lexer;
 	}
 
-	@Nonnull
 	abstract KdlDocument parse() throws IOException, KdlParseException;
 
 	/**
@@ -40,7 +38,7 @@ abstract class KdlParserContext {
 	 * @param token the token to check
 	 * @return {@code true} if the token can be ignored when computing the span of a node
 	 */
-	protected abstract boolean isIgnorable(@Nonnull Token token);
+	protected abstract boolean isIgnorable(Token token);
 
 	protected Token read() throws IOException, KdlParseException {
 		var token = lexer.read();
@@ -65,7 +63,7 @@ abstract class KdlParserContext {
 	}
 
 	@SafeVarargs
-	protected final boolean consumeToken(@Nonnull Class<? extends Token>... tokenClasses) throws IOException, KdlParseException {
+	protected final boolean consumeToken(Class<? extends Token>... tokenClasses) throws IOException, KdlParseException {
 		var token = peek();
 		if (token != null) {
 			for (var tokenClass : tokenClasses) {
@@ -78,13 +76,12 @@ abstract class KdlParserContext {
 		return false;
 	}
 
-	@Nonnull
 	@SuppressWarnings("unchecked")
 	protected <TOKEN extends Token> TOKEN expectToken(
-		@Nonnull Class<TOKEN> tokenClass,
-		@Nonnull String errorMessage,
-		@Nonnull String errorLabel,
-		@Nonnull Supplier<Span> spanSupplier
+		Class<TOKEN> tokenClass,
+		String errorMessage,
+		String errorLabel,
+		Supplier<Span> spanSupplier
 	) throws IOException, KdlParseException {
 		var token = peek();
 		if (token != null && tokenClass.isAssignableFrom(token.getClass())) {
@@ -108,7 +105,7 @@ abstract class KdlParserContext {
 
 	@Nullable
 	@SuppressWarnings("unchecked")
-	protected <TOKEN extends Token> TOKEN parseToken(@Nonnull Class<TOKEN> tokenClass) throws IOException, KdlParseException {
+	protected <TOKEN extends Token> TOKEN parseToken(Class<TOKEN> tokenClass) throws IOException, KdlParseException {
 		var token = peek();
 		return token != null && tokenClass.isAssignableFrom(token.getClass()) ? (TOKEN) read() : null;
 	}
@@ -136,8 +133,7 @@ abstract class KdlParserContext {
 	 * @param span        the span of the element
 	 * @return a context for the element
 	 */
-	@Nonnull
-	protected ParseContext contextFor(@Nonnull ParseContext nodeContext, @Nonnull Span span) {
+	protected ParseContext contextFor(ParseContext nodeContext, Span span) {
 		return new ParseContext(nodeContext.filename(), nodeContext.sourceLines(), span);
 	}
 
@@ -148,8 +144,7 @@ abstract class KdlParserContext {
 	 * @param context the context in which the value was parsed
 	 * @return the built value
 	 */
-	@Nonnull
-	protected KdlValue<?> createValue(@Nonnull ParsedValue parsed, @Nullable ParseContext context) {
+	protected KdlValue<?> createValue(ParsedValue parsed, @Nullable ParseContext context) {
 		var token = parsed.token();
 		if (token instanceof Number number) {
 			return number.asKDLNumber(parsed.type(), parsed.typeSpan(), context);
@@ -176,16 +171,15 @@ abstract class KdlParserContext {
 	 * @param nodeSpan         the span of the whole node
 	 * @return the built node
 	 */
-	@Nonnull
 	protected KdlNode buildNode(
 		@Nullable String type,
 		@Nullable Span typeSpan,
-		@Nonnull String name,
+		String name,
 		@Nullable Span nameSpan,
-		@Nonnull List<ParsedValue> parsedArguments,
-		@Nonnull List<ParsedProperty> parsedProperties,
-		@Nonnull List<KdlNode> children,
-		@Nonnull Span nodeSpan
+		List<ParsedValue> parsedArguments,
+		List<ParsedProperty> parsedProperties,
+		List<KdlNode> children,
+		Span nodeSpan
 	) {
 		var nodeContext = lexer.getParseContext(nodeSpan);
 
@@ -230,7 +224,7 @@ abstract class KdlParserContext {
 	 * @param value the value of the type
 	 * @param span  the span of the whole type annotation, including the parentheses
 	 */
-	protected record Type(@Nonnull String value, @Nonnull Span span) {
+	protected record Type(String value, Span span) {
 	}
 
 	/**
@@ -244,8 +238,8 @@ abstract class KdlParserContext {
 	protected record ParsedValue(
 		@Nullable String type,
 		@Nullable Span typeSpan,
-		@Nonnull Token token,
-		@Nonnull Span span
+		Token token,
+		Span span
 	) {
 	}
 
@@ -256,6 +250,6 @@ abstract class KdlParserContext {
 	 * @param nameSpan the span of the property's name
 	 * @param value    the value of the property
 	 */
-	protected record ParsedProperty(@Nonnull String name, @Nonnull Span nameSpan, @Nonnull ParsedValue value) {
+	protected record ParsedProperty(String name, Span nameSpan, ParsedValue value) {
 	}
 }

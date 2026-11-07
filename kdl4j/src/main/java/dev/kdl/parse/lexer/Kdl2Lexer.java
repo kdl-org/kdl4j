@@ -23,8 +23,7 @@ import dev.kdl.parse.lexer.token.SingleLineComment;
 import dev.kdl.parse.lexer.token.Slashdash;
 import dev.kdl.parse.lexer.token.StringToken;
 import dev.kdl.parse.lexer.token.Token;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,17 +34,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
-import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isDisallowedIdentifier;
-import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isIdentifierChar;
-import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isNewline;
-import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isUnambiguousIdentifierChar;
-import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.isWhitespace;
-import static dev.kdl.parse.lexer.helper.KdlCharHelper.CR;
-import static dev.kdl.parse.lexer.helper.KdlCharHelper.LF;
-import static dev.kdl.parse.lexer.helper.KdlCharHelper.isDecimalDigit;
-import static dev.kdl.parse.lexer.helper.KdlCharHelper.isHexadecimalDigit;
-import static dev.kdl.parse.lexer.helper.KdlCharHelper.isSign;
-import static dev.kdl.parse.lexer.helper.KdlCharHelper.isUnicodeScalarValue;
+import static dev.kdl.parse.lexer.helper.Kdl2CharHelper.*;
+import static dev.kdl.parse.lexer.helper.KdlCharHelper.*;
 import static dev.kdl.parse.lexer.reader.KdlReader.EOF;
 import static java.util.function.Predicate.not;
 
@@ -61,7 +51,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 	 * @param inputStream the stream to parse
 	 * @param capacity    the maximum number of token that can be peeked ahead
 	 */
-	public Kdl2Lexer(@Nullable String filename, @Nonnull InputStream inputStream, int capacity) {
+	public Kdl2Lexer(@Nullable String filename, InputStream inputStream, int capacity) {
 		super(filename, new KdlReader(inputStream, READER_CAPACITY, Kdl2Lexer::isInvalid), capacity);
 	}
 
@@ -141,14 +131,12 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		);
 	}
 
-	@Nonnull
 	private Newline newline() throws IOException {
 		var builder = new StringBuilder();
 		var span = newline(builder);
 		return new Newline(builder.toString(), span);
 	}
 
-	@Nonnull
 	private Span newline(StringBuilder builder) throws IOException {
 		var start = sourceLines.getNextPosition();
 
@@ -164,7 +152,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return new Span(start, end);
 	}
 
-	@Nonnull
 	private NodeSpace nodeSpace() throws IOException, KdlParseException {
 		var builder = new StringBuilder();
 		var start = sourceLines.getNextPosition();
@@ -274,7 +261,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 	}
 
-	@Nonnull
 	private SingleLineComment singleLineComment() throws IOException {
 		var builder = new StringBuilder();
 		var start = sourceLines.getNextPosition();
@@ -300,7 +286,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 	}
 
-	@Nonnull
 	private Slashdash slashdash() throws IOException, KdlParseException {
 		var builder = new StringBuilder("/-");
 		var start = sourceLines.getNextPosition();
@@ -331,7 +316,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return new Slashdash(builder.toString(), new Span(start, sourceLines.getCurrentPosition()));
 	}
 
-	@Nonnull
 	private StringToken quotedString() throws IOException, KdlParseException {
 		if (peekChar(1) == '"') {
 			if (peekChar(2) == '"') {
@@ -341,7 +325,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return singleLineQuotedString();
 	}
 
-	@Nonnull
 	private StringToken multiLineQuotedString() throws IOException, KdlParseException {
 		var start = sourceLines.getNextPosition();
 		consumeChar(3);
@@ -411,8 +394,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 	}
 
-	@Nonnull
-	private String getMultilineStringValue(@Nonnull String lastLinePrefix, @Nonnull List<MultilineStringLine> lines, @Nonnull Span span) throws IOException, KdlParseException {
+	private String getMultilineStringValue(String lastLinePrefix, List<MultilineStringLine> lines, Span span) throws IOException, KdlParseException {
 		var builder = new StringBuilder();
 
 		for (var i = 0; i < lines.size(); i++) {
@@ -425,8 +407,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return builder.toString();
 	}
 
-	@Nonnull
-	private String removeIndent(@Nonnull Span span, @Nonnull String lastLinePrefix, int lineNumber, @Nonnull MultilineStringLine line) throws IOException, KdlParseException {
+	private String removeIndent(Span span, String lastLinePrefix, int lineNumber, MultilineStringLine line) throws IOException, KdlParseException {
 		if (line.content.isEmpty()) {
 			return "";
 		}
@@ -463,7 +444,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		sourceLines.newline();
 	}
 
-	private boolean isWhitespaces(@Nonnull String line) {
+	private boolean isWhitespaces(String line) {
 		return line.chars().allMatch(Kdl2CharHelper::isWhitespace);
 	}
 
@@ -471,7 +452,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return (int) line.chars().takeWhile(Kdl2CharHelper::isWhitespace).count();
 	}
 
-	@Nonnull
 	private StringToken singleLineQuotedString() throws IOException, KdlParseException {
 		var builder = new StringBuilder();
 		var start = sourceLines.getNextPosition();
@@ -503,7 +483,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return new StringToken(builder.toString(), new Span(start, sourceLines.getCurrentPosition()));
 	}
 
-	private void stringCharacter(@Nonnull StringBuilder builder) throws IOException, KdlParseException {
+	private void stringCharacter(StringBuilder builder) throws IOException, KdlParseException {
 		var c = readChar();
 		if (c == '\\') {
 			escapedCharacter(builder);
@@ -512,7 +492,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 	}
 
-	private void escapedCharacter(@Nonnull StringBuilder builder) throws IOException, KdlParseException {
+	private void escapedCharacter(StringBuilder builder) throws IOException, KdlParseException {
 		var c = peekChar();
 		var escapedCharacter = ESCAPED_CHARACTERS.get(c);
 		if (escapedCharacter != null) {
@@ -608,7 +588,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 	}
 
-	@Nonnull
 	private StringToken rawString() throws IOException, KdlParseException {
 		var start = sourceLines.getNextPosition();
 		var openingSharpSigns = 0;
@@ -642,8 +621,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return singleLineRawString(start, openingSharpSigns);
 	}
 
-	@Nonnull
-	private StringToken multiLineRawString(@Nonnull Position start, int openingSharpSigns) throws IOException, KdlParseException {
+	private StringToken multiLineRawString(Position start, int openingSharpSigns) throws IOException, KdlParseException {
 		consumeChar(2);
 		expectNewLine();
 
@@ -685,8 +663,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return new StringToken(getMultiLineRawStringValue(lines, lastLine, span), span);
 	}
 
-	@Nonnull
-	private String getMultiLineRawStringValue(@Nonnull List<String> lines, @Nonnull String lastLine, @Nonnull Span span) throws IOException, KdlParseException {
+	private String getMultiLineRawStringValue(List<String> lines, String lastLine, Span span) throws IOException, KdlParseException {
 		checkLastLine(span, lastLine);
 		var builder = new StringBuilder();
 
@@ -700,7 +677,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return builder.toString();
 	}
 
-	private void checkLastLine(@Nonnull Span span, @Nonnull String lastLine) throws IOException, KdlParseException {
+	private void checkLastLine(Span span, String lastLine) throws IOException, KdlParseException {
 		for (var column = 0; column < lastLine.length(); column++) {
 			if (!isWhitespace(lastLine.charAt(column))) {
 				var errorSpan = Span.of(new Position(span.end().line(), column + 1));
@@ -714,8 +691,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 	}
 
-	@Nonnull
-	private String removeIndent(@Nonnull Span span, int lineNumber, @Nonnull String line, @Nonnull String lastLine) throws IOException, KdlParseException {
+	private String removeIndent(Span span, int lineNumber, String line, String lastLine) throws IOException, KdlParseException {
 		if (isWhitespaces(line)) {
 			return "";
 		}
@@ -730,8 +706,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return line.substring(lastLine.length());
 	}
 
-	@Nonnull
-	private StringToken singleLineRawString(@Nonnull Position start, int openingSharpSigns) throws IOException, KdlParseException {
+	private StringToken singleLineRawString(Position start, int openingSharpSigns) throws IOException, KdlParseException {
 		var builder = new StringBuilder();
 
 		while (true) {
@@ -767,13 +742,12 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 	}
 
-	private static void writeNonClosingSharpSigns(@Nonnull StringBuilder builder, int closingSharpSigns) {
+	private static void writeNonClosingSharpSigns(StringBuilder builder, int closingSharpSigns) {
 		if (closingSharpSigns > 0) {
 			builder.append("#".repeat(closingSharpSigns));
 		}
 	}
 
-	@Nonnull
 	private Token keyword() throws IOException, KdlParseException {
 		var start = sourceLines.getNextPosition();
 		consumeChar();
@@ -800,7 +774,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		};
 	}
 
-	@Nonnull
 	private Number number() throws IOException, KdlParseException {
 		var start = sourceLines.getNextPosition();
 		var builder = new StringBuilder();
@@ -851,9 +824,9 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 	}
 
 	private Number.Integer integer(
-		@Nonnull Position start,
-		@Nonnull StringBuilder builder,
-		@Nonnull IntegerBase base
+		Position start,
+		StringBuilder builder,
+		IntegerBase base
 	) throws IOException, KdlParseException {
 		consumeChar(2);
 
@@ -894,11 +867,11 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 	}
 
-	private void parseDigits(@Nonnull StringBuilder builder) throws IOException {
+	private void parseDigits(StringBuilder builder) throws IOException {
 		parseDigits(builder, KdlCharHelper::isDecimalDigit);
 	}
 
-	private void parseDigits(@Nonnull StringBuilder builder, @Nonnull Predicate<Integer> digitPredicate) throws IOException {
+	private void parseDigits(StringBuilder builder, Predicate<Integer> digitPredicate) throws IOException {
 		while (true) {
 			var c = peekChar();
 			if (digitPredicate.test(c)) {
@@ -911,7 +884,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 	}
 
-	private Number.Integer integer(@Nonnull Span span, @Nonnull String number, @Nonnull IntegerBase base) throws IOException, KdlParseException {
+	private Number.Integer integer(Span span, String number, IntegerBase base) throws IOException, KdlParseException {
 		try {
 			return new Number.Integer(new BigInteger(number, base.radix()), span);
 		} catch (NumberFormatException e) {
@@ -919,7 +892,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 	}
 
-	private Number.Decimal decimal(@Nonnull Span span, @Nonnull String number) throws IOException, KdlParseException {
+	private Number.Decimal decimal(Span span, String number) throws IOException, KdlParseException {
 		try {
 			return new Number.Decimal(new BigDecimal(number), span);
 		} catch (NumberFormatException e) {
@@ -927,7 +900,7 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		}
 	}
 
-	private KdlParseException invalidNumber(@Nonnull Span span, @Nonnull String number, @Nonnull IntegerBase base) throws IOException {
+	private KdlParseException invalidNumber(Span span, String number, IntegerBase base) throws IOException {
 		return new KdlParseException(
 			"Invalid number " + base.getPrefix() + number,
 			getErrorParseContext(span),
@@ -952,7 +925,6 @@ public class Kdl2Lexer extends AbstractKdlLexer {
 		return isUnambiguousIdentifierChar(c);
 	}
 
-	@Nonnull
 	private StringToken identifierString() throws IOException, KdlParseException {
 		var builder = new StringBuilder();
 		var start = sourceLines.getNextPosition();

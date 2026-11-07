@@ -1,7 +1,5 @@
 package dev.kdl;
 
-import jakarta.annotation.Nonnull;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -11,13 +9,13 @@ import java.util.List;
  *
  * @param nodes the nodes in the document
  */
-public record KdlDocument(@Nonnull List<KdlNode> nodes) {
+public record KdlDocument(List<KdlNode> nodes) {
 	/**
 	 * Creates a new document with the provided nodes.
 	 *
 	 * @param nodes the nodes in the document
 	 */
-	public KdlDocument(@Nonnull List<KdlNode> nodes) {
+	public KdlDocument(List<KdlNode> nodes) {
 		this.nodes = Collections.unmodifiableList(nodes);
 	}
 
@@ -26,7 +24,6 @@ public record KdlDocument(@Nonnull List<KdlNode> nodes) {
 	 *
 	 * @return a new builder with the nodes of this document
 	 */
-	@Nonnull
 	public Builder mutate() {
 		return new Builder(nodes);
 	}
@@ -34,7 +31,6 @@ public record KdlDocument(@Nonnull List<KdlNode> nodes) {
 	/**
 	 * @return a new document builder
 	 */
-	@Nonnull
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -58,8 +54,7 @@ public record KdlDocument(@Nonnull List<KdlNode> nodes) {
 		 * @param node a node to add
 		 * @return this builder
 		 */
-		@Nonnull
-		public Builder node(@Nonnull KdlNode node) {
+		public Builder node(KdlNode node) {
 			nodes.add(node);
 			return this;
 		}
@@ -70,8 +65,7 @@ public record KdlDocument(@Nonnull List<KdlNode> nodes) {
 		 * @param node a node builder to add
 		 * @return this builder
 		 */
-		@Nonnull
-		public Builder node(@Nonnull KdlNode.Builder node) {
+		public Builder node(KdlNode.Builder node) {
 			nodes.add(node.build());
 			return this;
 		}
@@ -82,8 +76,7 @@ public record KdlDocument(@Nonnull List<KdlNode> nodes) {
 		 * @param nodes nodes to add
 		 * @return this builder
 		 */
-		@Nonnull
-		public Builder nodes(@Nonnull KdlNode... nodes) {
+		public Builder nodes(KdlNode... nodes) {
 			Collections.addAll(this.nodes, nodes);
 			return this;
 		}
@@ -94,8 +87,7 @@ public record KdlDocument(@Nonnull List<KdlNode> nodes) {
 		 * @param nodes node builders to add
 		 * @return this builder
 		 */
-		@Nonnull
-		public Builder nodes(@Nonnull KdlNode.Builder... nodes) {
+		public Builder nodes(KdlNode.Builder... nodes) {
 			for (var node : nodes) {
 				this.nodes.add(node.build());
 			}
@@ -107,12 +99,10 @@ public record KdlDocument(@Nonnull List<KdlNode> nodes) {
 		 *
 		 * @return a new KDL document
 		 */
-		@Nonnull
 		public KdlDocument build() {
 			return new KdlDocument(nodes);
 		}
 
-		@Nonnull
 		private final List<KdlNode> nodes;
 	}
 }

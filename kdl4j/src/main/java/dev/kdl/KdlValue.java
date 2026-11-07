@@ -2,8 +2,7 @@ package dev.kdl;
 
 import dev.kdl.parse.context.ParseContext;
 import dev.kdl.parse.context.Span;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Supertype for all KDL values.
@@ -70,7 +69,6 @@ public interface KdlValue<T> {
 	 * @param value the value to wrap in a {@link KdlValue}
 	 * @return a corresponding {@link KdlValue}
 	 */
-	@Nonnull
 	static KdlValue<?> from(@Nullable Object value) {
 		if (value instanceof KdlValue<?>) {
 			return (KdlValue<?>) value;
@@ -85,7 +83,6 @@ public interface KdlValue<T> {
 	 * @param value the value to wrap in a {@link KdlValue}
 	 * @return a corresponding {@link KdlValue}
 	 */
-	@Nonnull
 	static KdlValue<?> from(@Nullable String type, @Nullable Object value) {
 		if (value == null) {
 			return new KdlNull(type);

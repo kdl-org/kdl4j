@@ -2,8 +2,7 @@ package dev.kdl;
 
 import dev.kdl.parse.context.ParseContext;
 import dev.kdl.parse.context.Span;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -39,7 +38,6 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 	/**
 	 * @return the number converted to a {@link BigInteger}
 	 */
-	@Nonnull
 	BigInteger asBigInteger();
 
 	/**
@@ -52,7 +50,6 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 	/**
 	 * @return the number converted to a {@link BigDecimal}
 	 */
-	@Nonnull
 	BigDecimal asBigDecimal();
 
 	/**
@@ -60,7 +57,7 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 	 */
 	default boolean isNumber() {
 		return true;
-	};
+	}
 
 	/**
 	 * Creates a {@link KdlNumber} from a {@link Number}.
@@ -68,8 +65,7 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 	 * @param number the number to represent
 	 * @return the corresponding {@link KdlNumber}
 	 */
-	@Nonnull
-	static KdlNumber<?> from(@Nonnull Number number) {
+	static KdlNumber<?> from(Number number) {
 		return from(null, number);
 	}
 
@@ -80,8 +76,7 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 	 * @param number the number to represent
 	 * @return the corresponding {@link KdlNumber}
 	 */
-	@Nonnull
-	static KdlNumber<?> from(@Nullable String type, @Nonnull Number number) {
+	static KdlNumber<?> from(@Nullable String type, Number number) {
 		if (number instanceof BigInteger) {
 			return new Integer(type, (BigInteger) number);
 		} else if (number instanceof BigDecimal) {
@@ -136,7 +131,6 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 			throw new UnsupportedOperationException("Not a number cannot be converted to long");
 		}
 
-		@Nonnull
 		@Override
 		public BigInteger asBigInteger() {
 			throw new UnsupportedOperationException("Not a number cannot be converted to BigInteger");
@@ -147,13 +141,11 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 			return Double.NaN;
 		}
 
-		@Nonnull
 		@Override
 		public BigDecimal asBigDecimal() {
 			throw new UnsupportedOperationException("Not a number cannot be converted to BigDecimal");
 		}
 
-		@Nonnull
 		@Override
 		public String toString() {
 			return "NaN";
@@ -214,7 +206,6 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 			throw new UnsupportedOperationException("Positive infinity cannot be converted to long");
 		}
 
-		@Nonnull
 		@Override
 		public BigInteger asBigInteger() {
 			throw new UnsupportedOperationException("Positive infinity cannot be converted to BigInteger");
@@ -225,13 +216,11 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 			return Double.POSITIVE_INFINITY;
 		}
 
-		@Nonnull
 		@Override
 		public BigDecimal asBigDecimal() {
 			throw new UnsupportedOperationException("Positive infinity cannot be converted to BigDecimal");
 		}
 
-		@Nonnull
 		@Override
 		public String toString() {
 			return "+inf";
@@ -292,7 +281,6 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 			throw new UnsupportedOperationException("Negative infinity cannot be converted to long");
 		}
 
-		@Nonnull
 		@Override
 		public BigInteger asBigInteger() {
 			throw new UnsupportedOperationException("Negative infinity cannot be converted to BigInteger");
@@ -303,13 +291,11 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 			return Double.NEGATIVE_INFINITY;
 		}
 
-		@Nonnull
 		@Override
 		public BigDecimal asBigDecimal() {
 			throw new UnsupportedOperationException("Negative infinity cannot be converted to BigDecimal");
 		}
 
-		@Nonnull
 		@Override
 		public String toString() {
 			return "-inf";
@@ -334,13 +320,13 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 	 * @param typeSpan     the span of the type annotation, if any
 	 * @param parseContext the context in which the value was parsed, if any
 	 */
-	record Integer(@Nullable String type, @Nonnull BigInteger value, @Nullable Span typeSpan, @Nullable ParseContext parseContext) implements KdlNumber<BigInteger> {
+	record Integer(@Nullable String type, BigInteger value, @Nullable Span typeSpan, @Nullable ParseContext parseContext) implements KdlNumber<BigInteger> {
 		/**
 		 * Creates a new {@link Integer} with no type.
 		 *
 		 * @param value the integer value
 		 */
-		public Integer(@Nonnull BigInteger value) {
+		public Integer(BigInteger value) {
 			this(null, value, null, null);
 		}
 
@@ -350,23 +336,20 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 		 * @param type  the type of the value
 		 * @param value the integer value
 		 */
-		public Integer(@Nullable String type, @Nonnull BigInteger value) {
+		public Integer(@Nullable String type, BigInteger value) {
 			this(type, value, null, null);
 		}
 
-		@Nonnull
 		@Override
 		public BigInteger asBigInteger() {
 			return value;
 		}
 
-		@Nonnull
 		@Override
 		public BigDecimal asBigDecimal() {
 			return new BigDecimal(value);
 		}
 
-		@Nonnull
 		@Override
 		public String toString() {
 			return "Integer(" + value + ')';
@@ -397,13 +380,13 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 	 * @param typeSpan     the span of the type annotation, if any
 	 * @param parseContext the context in which the value was parsed, if any
 	 */
-	record Decimal(@Nullable String type, @Nonnull BigDecimal value, @Nullable Span typeSpan, @Nullable ParseContext parseContext) implements KdlNumber<BigDecimal> {
+	record Decimal(@Nullable String type, BigDecimal value, @Nullable Span typeSpan, @Nullable ParseContext parseContext) implements KdlNumber<BigDecimal> {
 		/**
 		 * Creates a new {@link Decimal} with no type.
 		 *
 		 * @param value the integer value
 		 */
-		public Decimal(@Nonnull BigDecimal value) {
+		public Decimal(BigDecimal value) {
 			this(null, value, null, null);
 		}
 
@@ -413,23 +396,20 @@ public interface KdlNumber<T extends Number> extends KdlValue<T> {
 		 * @param type  the type of the value
 		 * @param value the integer value
 		 */
-		public Decimal(@Nullable String type, @Nonnull BigDecimal value) {
+		public Decimal(@Nullable String type, BigDecimal value) {
 			this(type, value, null, null);
 		}
 
-		@Nonnull
 		@Override
 		public BigInteger asBigInteger() {
 			return value.toBigInteger();
 		}
 
-		@Nonnull
 		@Override
 		public BigDecimal asBigDecimal() {
 			return value;
 		}
 
-		@Nonnull
 		@Override
 		public String toString() {
 			return "Decimal(" + value + ')';

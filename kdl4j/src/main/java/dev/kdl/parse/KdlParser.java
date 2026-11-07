@@ -2,8 +2,7 @@ package dev.kdl.parse;
 
 import dev.kdl.KdlDocument;
 import dev.kdl.KdlVersion;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -27,8 +26,7 @@ public interface KdlParser {
 	 * @throws IOException       if an error occurs while reading the input
 	 * @throws KdlParseException if the document is invalid
 	 */
-	@Nonnull
-	KdlDocument parse(@Nullable String filename, @Nonnull InputStream inputStream) throws IOException, KdlParseException;
+	KdlDocument parse(@Nullable String filename, InputStream inputStream) throws IOException, KdlParseException;
 
 	/**
 	 * Parses an input stream as a {@link  KdlDocument}.
@@ -38,8 +36,7 @@ public interface KdlParser {
 	 * @throws IOException       if an error occurs while reading the input
 	 * @throws KdlParseException if the document is invalid
 	 */
-	@Nonnull
-	default KdlDocument parse(@Nonnull InputStream inputStream) throws IOException, KdlParseException {
+	default KdlDocument parse(InputStream inputStream) throws IOException, KdlParseException {
 		return parse(null, inputStream);
 	}
 
@@ -51,8 +48,7 @@ public interface KdlParser {
 	 * @throws IOException       if an error occurs while reading the input
 	 * @throws KdlParseException if the document is invalid
 	 */
-	@Nonnull
-	default KdlDocument parse(@Nonnull Path path) throws IOException, KdlParseException {
+	default KdlDocument parse(Path path) throws IOException, KdlParseException {
 		try (var fileInputStream = Files.newInputStream(path)) {
 			return parse(path.toString(), new BufferedInputStream(fileInputStream));
 		}
@@ -67,8 +63,7 @@ public interface KdlParser {
 	 * @throws IOException       if an error occurs while reading the input or the resource is not found
 	 * @throws KdlParseException if the document is invalid
 	 */
-	@Nonnull
-	default KdlDocument parseResource(@Nonnull String resource) throws IOException, KdlParseException {
+	default KdlDocument parseResource(String resource) throws IOException, KdlParseException {
 		try (var inputStream = ClassLoader.getSystemResourceAsStream(resource)) {
 			if (inputStream == null) {
 				throw new IOException("Resource " + resource + " was not found");
@@ -86,8 +81,7 @@ public interface KdlParser {
 	 * @throws IOException       if an error occurs while reading the input
 	 * @throws KdlParseException if the document is invalid
 	 */
-	@Nonnull
-	default KdlDocument parse(@Nullable String filename, @Nonnull String document) throws IOException, KdlParseException {
+	default KdlDocument parse(@Nullable String filename, String document) throws IOException, KdlParseException {
 		return parse(filename, new ByteArrayInputStream(document.getBytes(StandardCharsets.UTF_8)));
 	}
 
@@ -99,8 +93,7 @@ public interface KdlParser {
 	 * @throws IOException       if an error occurs while reading the input
 	 * @throws KdlParseException if the document is invalid
 	 */
-	@Nonnull
-	default KdlDocument parse(@Nonnull String document) throws IOException, KdlParseException {
+	default KdlDocument parse(String document) throws IOException, KdlParseException {
 		return parse(null, document);
 	}
 
@@ -109,7 +102,6 @@ public interface KdlParser {
 	 *
 	 * @return a KDL 1 parser
 	 */
-	@Nonnull
 	static KdlParser v1() {
 		return KdlParsers.v1();
 	}
@@ -119,7 +111,6 @@ public interface KdlParser {
 	 *
 	 * @return a KDL 2 parser
 	 */
-	@Nonnull
 	static KdlParser v2() {
 		return KdlParsers.v2();
 	}
@@ -130,7 +121,6 @@ public interface KdlParser {
 	 *
 	 * @return a hybrid KDL parser
 	 */
-	@Nonnull
 	static KdlParser hybrid() {
 		return KdlParsers.hybrid();
 	}
@@ -141,7 +131,6 @@ public interface KdlParser {
 	 * @param version the version of the created parser
 	 * @return a new parser
 	 */
-	@Nonnull
 	static KdlParser fromVersion(@Nullable KdlVersion version) {
 		if (version == null) {
 			return hybrid();

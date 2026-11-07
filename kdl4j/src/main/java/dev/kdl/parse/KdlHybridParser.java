@@ -1,8 +1,7 @@
 package dev.kdl.parse;
 
 import dev.kdl.KdlDocument;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,9 +11,8 @@ import java.io.InputStream;
  * fails. If both parsers fail, a {@link KdlHybridParseException} is thrown, containing both errors.
  */
 public class KdlHybridParser implements KdlParser {
-	@Nonnull
 	@Override
-	public KdlDocument parse(@Nullable String filename, @Nonnull InputStream inputStream) throws IOException, KdlParseException {
+	public KdlDocument parse(@Nullable String filename, InputStream inputStream) throws IOException, KdlParseException {
 		try {
 			return v2Parser.parse(filename, inputStream);
 		} catch (KdlParseException v2Exception) {

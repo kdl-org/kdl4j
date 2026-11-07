@@ -1,7 +1,6 @@
 package dev.kdl.parse;
 
 import dev.kdl.KdlDocument;
-import jakarta.annotation.Nonnull;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -10,14 +9,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-import static dev.kdl.TestUtils.arguments;
-import static dev.kdl.TestUtils.document;
-import static dev.kdl.TestUtils.kdlBoolean;
-import static dev.kdl.TestUtils.kdlNull;
-import static dev.kdl.TestUtils.node;
-import static dev.kdl.TestUtils.number;
-import static dev.kdl.TestUtils.properties;
-import static dev.kdl.TestUtils.string;
+import static dev.kdl.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -216,7 +208,7 @@ class Kdl2ParserTest {
 
 	@ParameterizedTest
 	@MethodSource("errorTestCases")
-	void errorParserTest(@Nonnull String input, @Nonnull String report) {
+	void errorParserTest(String input, String report) {
 		assertThatThrownBy(() -> PARSER.parse("test.kdl", input))
 			.asInstanceOf(InstanceOfAssertFactories.type(KdlParseException.class))
 			.satisfies(exception -> assertThat(Reporter.getReport(exception)).isEqualTo(report));

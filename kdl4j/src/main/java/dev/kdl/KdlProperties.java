@@ -1,6 +1,5 @@
 package dev.kdl;
 
-import jakarta.annotation.Nonnull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +16,7 @@ import java.util.stream.Collectors;
  * The properties of a {@link KdlNode}.
  */
 public final class KdlProperties implements Iterable<KdlProperty<?>> {
-	private KdlProperties(@Nonnull LinkedHashMap<String, List<KdlProperty<?>>> properties) {
+	private KdlProperties(LinkedHashMap<String, List<KdlProperty<?>>> properties) {
 		this.properties = properties;
 	}
 
@@ -29,8 +28,7 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 	 * @return an option containing the last value of the property if it has any
 	 */
 	@SuppressWarnings("unchecked")
-	@Nonnull
-	public <T> Optional<KdlValue<T>> getValue(@Nonnull String property) {
+	public <T> Optional<KdlValue<T>> getValue(String property) {
 		var values = properties.get(property);
 		return values == null || values.isEmpty()
 			? Optional.empty()
@@ -43,8 +41,7 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 	 * @param property the name of the property to retrieve
 	 * @return a list containing all the values of the property
 	 */
-	@Nonnull
-	public List<KdlValue<?>> getValues(@Nonnull String property) {
+	public List<KdlValue<?>> getValues(String property) {
 		var values = properties.get(property);
 		if (values == null) {
 			return Collections.emptyList();
@@ -59,8 +56,7 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 	 * @param property the name of the property to retrieve
 	 * @return a list containing all the properties with the provided name
 	 */
-	@Nonnull
-	public List<KdlProperty<?>> getProperties(@Nonnull String property) {
+	public List<KdlProperty<?>> getProperties(String property) {
 		var values = properties.get(property);
 		return values == null ? Collections.emptyList() : Collections.unmodifiableList(values);
 	}
@@ -71,11 +67,10 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 	 * @param property the name of the property to check
 	 * @return {@code true} if the property is present, {@code false} otherwise
 	 */
-	public boolean hasProperty(@Nonnull String property) {
+	public boolean hasProperty(String property) {
 		return properties.containsKey(property);
 	}
 
-	@Nonnull
 	@Override
 	public Iterator<KdlProperty<?>> iterator() {
 		return properties.values().stream()
@@ -86,17 +81,15 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 	/**
 	 * @return all the properties, in declaration order
 	 */
-	@Nonnull
 	public List<KdlProperty<?>> properties() {
 		return properties.values().stream()
 			.flatMap(List::stream)
-			.collect(Collectors.toUnmodifiableList());
+			.toList();
 	}
 
 	/**
 	 * @return a set containing the names of all the properties
 	 */
-	@Nonnull
 	public Set<String> propertyNames() {
 		return properties.keySet();
 	}
@@ -119,7 +112,6 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 	 *
 	 * @return a new builder with the current properties
 	 */
-	@Nonnull
 	public Builder mutate() {
 		return new Builder(properties);
 	}
@@ -129,7 +121,6 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 	/**
 	 * @return a new {@link KdlProperties} builder.
 	 */
-	@Nonnull
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -142,7 +133,7 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 			this.properties = new LinkedHashMap<>();
 		}
 
-		private Builder(@Nonnull Map<String, List<KdlProperty<?>>> properties) {
+		private Builder(Map<String, List<KdlProperty<?>>> properties) {
 			this.properties = new LinkedHashMap<>();
 			properties.forEach((name, values) -> this.properties.put(name, new ArrayList<>(values)));
 		}
@@ -154,8 +145,7 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 		 * @param value the value of the property
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder property(@Nonnull String name, @Nonnull KdlValue<?> value) {
+		public Builder property(String name, KdlValue<?> value) {
 			return property(new KdlProperty<>(name, value));
 		}
 
@@ -165,8 +155,7 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 		 * @param property the property to add
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder property(@Nonnull KdlProperty<?> property) {
+		public Builder property(KdlProperty<?> property) {
 			properties.compute(property.name(), (k, values) -> {
 				if (values == null) {
 					values = new ArrayList<>();
@@ -182,12 +171,10 @@ public final class KdlProperties implements Iterable<KdlProperty<?>> {
 		 *
 		 * @return the build properties
 		 */
-		@Nonnull
 		public KdlProperties build() {
 			return new KdlProperties(properties);
 		}
 
-		@Nonnull
 		private final LinkedHashMap<String, List<KdlProperty<?>>> properties;
 	}
 

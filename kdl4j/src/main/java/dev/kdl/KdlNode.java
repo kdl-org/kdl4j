@@ -2,8 +2,7 @@ package dev.kdl;
 
 import dev.kdl.parse.context.ParseContext;
 import dev.kdl.parse.context.Span;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,10 +26,10 @@ import java.util.stream.Collectors;
  */
 public record KdlNode(
 	@Nullable String type,
-	@Nonnull String name,
-	@Nonnull List<KdlValue<?>> arguments,
-	@Nonnull KdlProperties properties,
-	@Nonnull List<KdlNode> children,
+	String name,
+	List<KdlValue<?>> arguments,
+	KdlProperties properties,
+	List<KdlNode> children,
 	@Nullable ParseContext parseContext,
 	@Nullable Span nameSpan,
 	@Nullable Span typeSpan
@@ -51,10 +50,10 @@ public record KdlNode(
 	 */
 	public KdlNode(
 		@Nullable String type,
-		@Nonnull String name,
-		@Nonnull List<KdlValue<?>> arguments,
-		@Nonnull KdlProperties properties,
-		@Nonnull List<KdlNode> children
+		String name,
+		List<KdlValue<?>> arguments,
+		KdlProperties properties,
+		List<KdlNode> children
 	) {
 		this(type, name, arguments, properties, children, null, null, null);
 	}
@@ -66,12 +65,10 @@ public record KdlNode(
 	 * @param <T>  the type of the property's value
 	 * @return an option containing the last value of the property if it has any
 	 */
-	@Nonnull
 	public <T> Optional<KdlValue<T>> getProperty(String name) {
 		return properties.getValue(name);
 	}
 
-	@Nonnull
 	@Override
 	public String toString() {
 		var builder = new StringBuilder("KDLNode(");
@@ -115,7 +112,6 @@ public record KdlNode(
 	 *
 	 * @return a new builder with the type, name, arguments, properties, and children of this document
 	 */
-	@Nonnull
 	public Builder mutate() {
 		return new Builder(type, name, arguments, properties, children, parseContext, nameSpan, typeSpan);
 	}
@@ -123,7 +119,6 @@ public record KdlNode(
 	/**
 	 * @return a new node builder
 	 */
-	@Nonnull
 	public static Builder builder() {
 		return new Builder();
 	}
@@ -141,9 +136,9 @@ public record KdlNode(
 		private Builder(
 			@Nullable String type,
 			@Nullable String name,
-			@Nonnull List<KdlValue<?>> arguments,
-			@Nonnull KdlProperties properties,
-			@Nonnull List<KdlNode> children,
+			List<KdlValue<?>> arguments,
+			KdlProperties properties,
+			List<KdlNode> children,
 			@Nullable ParseContext parseContext,
 			@Nullable Span nameSpan,
 			@Nullable Span typeSpan
@@ -164,8 +159,7 @@ public record KdlNode(
 		 * @param name the name of the node
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder name(@Nonnull String name) {
+		public Builder name(String name) {
 			this.name = name;
 			return this;
 		}
@@ -176,7 +170,6 @@ public record KdlNode(
 		 * @param type the type of the node, or {@code null} if it has no type
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder type(@Nullable String type) {
 			this.type = type;
 			return this;
@@ -188,7 +181,6 @@ public record KdlNode(
 		 * @param value the value of the argument
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder argument(@Nullable Object value) {
 			arguments.add(KdlValue.from(value));
 			return this;
@@ -201,7 +193,6 @@ public record KdlNode(
 		 * @param value the value of the argument
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder argument(@Nullable String type, @Nullable Object value) {
 			arguments.add(KdlValue.from(type, value));
 			return this;
@@ -214,8 +205,7 @@ public record KdlNode(
 		 * @param value the value of the property
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder property(@Nonnull String name, @Nullable Object value) {
+		public Builder property(String name, @Nullable Object value) {
 			properties.property(name, KdlValue.from(value));
 			return this;
 		}
@@ -228,8 +218,7 @@ public record KdlNode(
 		 * @param value the value of the property
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder property(@Nonnull String name, @Nullable String type, @Nullable Object value) {
+		public Builder property(String name, @Nullable String type, @Nullable Object value) {
 			properties.property(name, KdlValue.from(type, value));
 			return this;
 		}
@@ -240,8 +229,7 @@ public record KdlNode(
 		 * @param node the child to add
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder child(@Nonnull KdlNode node) {
+		public Builder child(KdlNode node) {
 			children.add(node);
 			return this;
 		}
@@ -252,8 +240,7 @@ public record KdlNode(
 		 * @param node a builder for the child to add
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder child(@Nonnull Builder node) {
+		public Builder child(Builder node) {
 			children.add(node.build());
 			return this;
 		}
@@ -264,8 +251,7 @@ public record KdlNode(
 		 * @param nodes the children to add
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder children(@Nonnull List<KdlNode> nodes) {
+		public Builder children(List<KdlNode> nodes) {
 			children.addAll(nodes);
 			return this;
 		}
@@ -276,8 +262,7 @@ public record KdlNode(
 		 * @param nodes the children to add
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder children(@Nonnull KdlNode... nodes) {
+		public Builder children(KdlNode... nodes) {
 			children.addAll(Arrays.asList(nodes));
 			return this;
 		}
@@ -288,8 +273,7 @@ public record KdlNode(
 		 * @param nodes the builders of the children to add
 		 * @return {@code this}
 		 */
-		@Nonnull
-		public Builder children(@Nonnull Builder... nodes) {
+		public Builder children(Builder... nodes) {
 			for (var node : nodes) {
 				children.add(node.build());
 			}
@@ -302,7 +286,6 @@ public record KdlNode(
 		 * @param parseContext the parse context of the node, or {@code null} if it has none
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder parseContext(@Nullable ParseContext parseContext) {
 			this.parseContext = parseContext;
 			return this;
@@ -314,7 +297,6 @@ public record KdlNode(
 		 * @param nameSpan the span of the name of the node, or {@code null} if it has none
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder nameSpan(@Nullable Span nameSpan) {
 			this.nameSpan = nameSpan;
 			return this;
@@ -326,7 +308,6 @@ public record KdlNode(
 		 * @param typeSpan the span of the type annotation of the node, or {@code null} if it has none
 		 * @return {@code this}
 		 */
-		@Nonnull
 		public Builder typeSpan(@Nullable Span typeSpan) {
 			this.typeSpan = typeSpan;
 			return this;
@@ -337,7 +318,6 @@ public record KdlNode(
 		 *
 		 * @return the built node
 		 */
-		@Nonnull
 		public KdlNode build() {
 			return new KdlNode(type, Objects.requireNonNull(name), arguments, properties.build(), children, parseContext, nameSpan, typeSpan);
 		}
@@ -346,11 +326,8 @@ public record KdlNode(
 		private String type;
 		@Nullable
 		private String name;
-		@Nonnull
 		private final ArrayList<KdlValue<?>> arguments;
-		@Nonnull
 		private final KdlProperties.Builder properties;
-		@Nonnull
 		private final ArrayList<KdlNode> children;
 		@Nullable
 		private ParseContext parseContext;

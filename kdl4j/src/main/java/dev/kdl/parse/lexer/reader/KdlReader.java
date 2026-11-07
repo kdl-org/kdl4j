@@ -1,7 +1,6 @@
 package dev.kdl.parse.lexer.reader;
 
 import dev.kdl.parse.KdlInternalParseException;
-import jakarta.annotation.Nonnull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +17,7 @@ public class KdlReader {
 	 * @param capacity         the maximum number of codepoints that can be peeked ahead
 	 * @param invalidCodepoint a predicate for checking if a codepoint is valid
 	 */
-	public KdlReader(@Nonnull InputStream inputStream, int capacity, @Nonnull InvalidCodepoint invalidCodepoint) {
+	public KdlReader(InputStream inputStream, int capacity, InvalidCodepoint invalidCodepoint) {
 		this.inputStream = inputStream;
 		this.peekedChars = new IntRingBuffer(capacity);
 		this.invalidCodepoint = invalidCodepoint;
@@ -117,11 +116,8 @@ public class KdlReader {
 		return (b & 0b1100_0000) != 0b1000_0000;
 	}
 
-	@Nonnull
 	private final InputStream inputStream;
-	@Nonnull
 	private final IntRingBuffer peekedChars;
-	@Nonnull
 	private final InvalidCodepoint invalidCodepoint;
 
 	/**

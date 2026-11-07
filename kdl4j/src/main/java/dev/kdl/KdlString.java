@@ -2,8 +2,7 @@ package dev.kdl;
 
 import dev.kdl.parse.context.ParseContext;
 import dev.kdl.parse.context.Span;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -17,7 +16,7 @@ import java.util.Objects;
  */
 public record KdlString(
 	@Nullable String type,
-	@Nonnull String value,
+	String value,
 	@Nullable Span typeSpan,
 	@Nullable ParseContext parseContext
 ) implements KdlValue<String> {
@@ -26,7 +25,7 @@ public record KdlString(
 	 *
 	 * @param value the value
 	 */
-	public KdlString(@Nonnull String value) {
+	public KdlString(String value) {
 		this(null, value, null, null);
 	}
 
@@ -36,7 +35,7 @@ public record KdlString(
 	 * @param type  the type of the value
 	 * @param value the value
 	 */
-	public KdlString(@Nullable String type, @Nonnull String value) {
+	public KdlString(@Nullable String type, String value) {
 		this(type, value, null, null);
 	}
 
@@ -47,7 +46,6 @@ public record KdlString(
 		return true;
 	}
 
-	@Nonnull
 	@Override
 	public String toString() {
 		return "String(" + value + ')';

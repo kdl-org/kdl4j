@@ -2,8 +2,7 @@ package dev.kdl;
 
 import dev.kdl.parse.context.ParseContext;
 import dev.kdl.parse.context.Span;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
 
@@ -17,8 +16,8 @@ import java.util.Objects;
  * @param <T>          the inner representation of the property's value
  */
 public record KdlProperty<T>(
-	@Nonnull String name,
-	@Nonnull KdlValue<T> value,
+	String name,
+	KdlValue<T> value,
 	@Nullable Span nameSpan,
 	@Nullable ParseContext parseContext
 ) {
@@ -28,11 +27,10 @@ public record KdlProperty<T>(
 	 * @param name  the name of the property
 	 * @param value the value of the property
 	 */
-	public KdlProperty(@Nonnull String name, @Nonnull KdlValue<T> value) {
+	public KdlProperty(String name, KdlValue<T> value) {
 		this(name, value, null, null);
 	}
 
-	@Nonnull
 	@Override
 	public String toString() {
 		return name + "=" + value;

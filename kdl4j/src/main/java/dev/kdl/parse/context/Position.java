@@ -1,6 +1,5 @@
 package dev.kdl.parse.context;
 
-import jakarta.annotation.Nonnull;
 
 /**
  * Represents a position in a file or stream.
@@ -15,7 +14,6 @@ public record Position(int line, int column) {
 	 * @param columnOffset the offset to add to the column
 	 * @return a new position with the new column
 	 */
-	@Nonnull
 	public Position withColumnOffset(int columnOffset) {
 		return new Position(line, column + columnOffset);
 	}

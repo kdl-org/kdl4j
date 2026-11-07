@@ -1,7 +1,6 @@
 package dev.kdl.parse.lexer.token;
 
 import dev.kdl.parse.context.Span;
-import jakarta.annotation.Nonnull;
 
 /**
  * A token produced by a KDL lexer.
@@ -12,7 +11,6 @@ public interface Token {
 	 *
 	 * @return the value of the token
 	 */
-	@Nonnull
 	String value();
 
 	/**
@@ -20,6 +18,5 @@ public interface Token {
 	 *
 	 * @return a span for the token
 	 */
-	@Nonnull
 	Span span();
 }

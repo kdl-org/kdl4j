@@ -1,15 +1,13 @@
 package dev.kdl.parse.lexer.token;
 
 import dev.kdl.parse.context.Span;
-import jakarta.annotation.Nonnull;
 
 /**
  * Token for the byte-order mark character (0xFEFF).
  *
  * @param span the position of the token
  */
-public record ByteOrderMark(@Nonnull Span span) implements Token {
-	@Nonnull
+public record ByteOrderMark(Span span) implements Token {
 	@Override
 	public String value() {
 		return STRING_VALUE;

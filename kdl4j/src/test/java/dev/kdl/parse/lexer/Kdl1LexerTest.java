@@ -18,7 +18,6 @@ import dev.kdl.parse.lexer.token.Slashdash;
 import dev.kdl.parse.lexer.token.StringToken;
 import dev.kdl.parse.lexer.token.Token;
 import dev.kdl.parse.lexer.token.Whitespace;
-import jakarta.annotation.Nonnull;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.aggregator.ArgumentsAccessor;
@@ -477,7 +476,7 @@ class Kdl1LexerTest {
 
 	@ParameterizedTest
 	@MethodSource("errorTestCases")
-	void errorLexerTest(String input, @Nonnull String report) throws Exception {
+	void errorLexerTest(String input, String report) throws Exception {
 		try (var inputStream = new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8))) {
 			var lexer = new Kdl1Lexer("test.kdl", inputStream, 1);
 			assertThatThrownBy(() -> {

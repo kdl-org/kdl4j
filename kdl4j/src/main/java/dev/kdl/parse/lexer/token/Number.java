@@ -3,8 +3,7 @@ package dev.kdl.parse.lexer.token;
 import dev.kdl.KdlNumber;
 import dev.kdl.parse.context.ParseContext;
 import dev.kdl.parse.context.Span;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -33,8 +32,7 @@ public interface Number extends Token {
 	 *
 	 * @param span the span of the token
 	 */
-	record PositiveInfinity(@Nonnull Span span) implements Number {
-		@Nonnull
+	record PositiveInfinity(Span span) implements Number {
 		@Override
 		public String value() {
 			return VALUE;
@@ -61,8 +59,7 @@ public interface Number extends Token {
 	 *
 	 * @param span the span of the token
 	 */
-	record NegativeInfinity(@Nonnull Span span) implements Number {
-		@Nonnull
+	record NegativeInfinity(Span span) implements Number {
 		@Override
 		public String value() {
 			return VALUE;
@@ -90,8 +87,7 @@ public interface Number extends Token {
 	 *
 	 * @param span the span of the token
 	 */
-	record NaN(@Nonnull Span span) implements Number {
-		@Nonnull
+	record NaN(Span span) implements Number {
 		@Override
 		public String value() {
 			return VALUE;
@@ -118,14 +114,12 @@ public interface Number extends Token {
 	 *
 	 * @param span the span of the token
 	 */
-	record Integer(@Nonnull BigInteger integer, @Nonnull Span span) implements Number {
-		@Nonnull
+	record Integer(BigInteger integer, Span span) implements Number {
 		@Override
 		public String value() {
 			return integer.toString();
 		}
 
-		@Nonnull
 		@Override
 		public Span span() {
 			return span;
@@ -147,14 +141,12 @@ public interface Number extends Token {
 	 *
 	 * @param span the span of the token
 	 */
-	record Decimal(@Nonnull BigDecimal decimal, @Nonnull Span span) implements Number {
-		@Nonnull
+	record Decimal(BigDecimal decimal, Span span) implements Number {
 		@Override
 		public String value() {
 			return decimal.toString();
 		}
 
-		@Nonnull
 		@Override
 		public Span span() {
 			return span;

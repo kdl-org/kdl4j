@@ -1,8 +1,7 @@
 package dev.kdl.parse;
 
 import dev.kdl.parse.context.ParseContext;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * An exception thrown when a KDL document is invalid. The error can be printed for users using a {@link Reporter}.
@@ -18,7 +17,7 @@ public class KdlParseException extends Exception {
 	 * @param help         a help message for the user
 	 */
 	public KdlParseException(
-		@Nonnull String errorMessage,
+		String errorMessage,
 		@Nullable ParseContext context,
 		@Nullable String label,
 		@Nullable String help
@@ -35,7 +34,7 @@ public class KdlParseException extends Exception {
 	 *
 	 * @param errorMessage the main error message
 	 */
-	public KdlParseException(@Nonnull String errorMessage) {
+	public KdlParseException(String errorMessage) {
 		this(errorMessage, null, null, null);
 	}
 
@@ -46,7 +45,7 @@ public class KdlParseException extends Exception {
 	 * @param context      the context of the error
 	 */
 	public KdlParseException(
-		@Nonnull String errorMessage,
+		String errorMessage,
 		@Nullable ParseContext context
 	) {
 		this(errorMessage, context, null, null);
@@ -59,7 +58,7 @@ public class KdlParseException extends Exception {
 	 * @param help         a help message for the user
 	 */
 	public KdlParseException(
-		@Nonnull String errorMessage,
+		String errorMessage,
 		@Nullable String help
 	) {
 		this(errorMessage, null, null, help);
@@ -73,7 +72,7 @@ public class KdlParseException extends Exception {
 	 * @param label        the label for the highlighted section of the context
 	 */
 	public KdlParseException(
-		@Nonnull String errorMessage,
+		String errorMessage,
 		@Nullable ParseContext context,
 		@Nullable String label
 	) {
@@ -83,7 +82,6 @@ public class KdlParseException extends Exception {
 	/**
 	 * @return the main error message
 	 */
-	@Nonnull
 	public String getErrorMessage() {
 		return errorMessage;
 	}
@@ -115,7 +113,6 @@ public class KdlParseException extends Exception {
 	/**
 	 * The main error message.
 	 */
-	@Nonnull
 	private final String errorMessage;
 	/**
 	 * A context of the error
@@ -133,7 +130,7 @@ public class KdlParseException extends Exception {
 	@Nullable
 	private final String help;
 
-	private static String computeMessage(@Nonnull String errorMessage, @Nullable ParseContext context) {
+	private static String computeMessage(String errorMessage, @Nullable ParseContext context) {
 		return context == null
 			? errorMessage
 			: errorMessage + " at " + context.span().start().line() + ':' + context.span().start().column();

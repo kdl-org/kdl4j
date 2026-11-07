@@ -19,8 +19,7 @@ import dev.kdl.parse.lexer.token.Slashdash;
 import dev.kdl.parse.lexer.token.StringToken;
 import dev.kdl.parse.lexer.token.Token;
 import dev.kdl.parse.lexer.token.Whitespace;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,26 +31,24 @@ import java.util.List;
  * Parser for the KDL 1.0 syntax.
  */
 public class Kdl1Parser implements KdlParser {
-	@Nonnull
 	@Override
-	public KdlDocument parse(@Nullable String filename, @Nonnull InputStream inputStream) throws IOException, KdlParseException {
+	public KdlDocument parse(@Nullable String filename, InputStream inputStream) throws IOException, KdlParseException {
 		return new Kdl1ParserContext(filename, inputStream).parse();
 	}
 
 	private static final class Kdl1ParserContext extends KdlParserContext {
 
-		private Kdl1ParserContext(@Nullable String filename, @Nonnull InputStream inputStream) {
+		private Kdl1ParserContext(@Nullable String filename, InputStream inputStream) {
 			super(new Kdl1Lexer(filename, inputStream, LEXER_CAPACITY));
 		}
 
-		@Nonnull
 		@Override
 		KdlDocument parse() throws IOException, KdlParseException {
 			return new KdlDocument(nodes());
 		}
 
 		@Override
-		protected boolean isIgnorable(@Nonnull Token token) {
+		protected boolean isIgnorable(Token token) {
 			return token instanceof Whitespace
 				|| token instanceof LineContinuation
 				|| token instanceof Newline
@@ -59,7 +56,6 @@ public class Kdl1Parser implements KdlParser {
 				|| token instanceof SingleLineComment;
 		}
 
-		@Nonnull
 		private List<KdlNode> nodes() throws IOException, KdlParseException {
 			var nodes = new ArrayList<KdlNode>();
 
@@ -139,7 +135,6 @@ public class Kdl1Parser implements KdlParser {
 			);
 		}
 
-		@Nonnull
 		private Pair<List<ParsedValue>, List<ParsedProperty>> argumentsAndProperties() throws IOException, KdlParseException {
 			var arguments = new ArrayList<ParsedValue>();
 			var properties = new ArrayList<ParsedProperty>();
@@ -193,7 +188,6 @@ public class Kdl1Parser implements KdlParser {
 			return null;
 		}
 
-		@Nonnull
 		private ParsedValue expectValue(String errorMessage) throws IOException, KdlParseException {
 			var type = type();
 
@@ -215,7 +209,6 @@ public class Kdl1Parser implements KdlParser {
 			);
 		}
 
-		@Nonnull
 		private List<KdlNode> children() throws IOException, KdlParseException {
 			nodeSpaces();
 

@@ -2,7 +2,6 @@ package dev.kdl.print;
 
 import dev.kdl.KdlDocument;
 import dev.kdl.KdlVersion;
-import jakarta.annotation.Nonnull;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -90,7 +89,6 @@ public class KdlPrinter {
 	 *
 	 * @return a KDL 1 printer
 	 */
-	@Nonnull
 	public static KdlPrinter v1() {
 		return new KdlPrinter(
 			KdlPrinterConfiguration.builder()
@@ -104,12 +102,10 @@ public class KdlPrinter {
 	 *
 	 * @return a KDL 2 printer
 	 */
-	@Nonnull
 	public static KdlPrinter v2() {
 		return new KdlPrinter();
 	}
 
-	@Nonnull
 	private KdlPrinterContext getContext(Writer writer, KdlPrinterConfiguration configuration) {
 		if (configuration.version() == KdlVersion.V1) {
 			return new Kdl1PrinterContext(writer, configuration);

@@ -8,8 +8,7 @@ import dev.kdl.parse.context.SourceLines;
 import dev.kdl.parse.context.Span;
 import dev.kdl.parse.lexer.reader.KdlReader;
 import dev.kdl.parse.lexer.token.Token;
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.function.Function;
@@ -19,7 +18,7 @@ import static dev.kdl.parse.lexer.reader.KdlReader.EOF;
 
 abstract class AbstractKdlLexer implements Lexer {
 
-	AbstractKdlLexer(@Nullable String filename, @Nonnull KdlReader reader, int capacity) {
+	AbstractKdlLexer(@Nullable String filename, KdlReader reader, int capacity) {
 		this.filename = filename;
 		this.reader = reader;
 		this.readTokens = new RingBuffer<>(capacity);
@@ -61,9 +60,8 @@ abstract class AbstractKdlLexer implements Lexer {
 		return readTokens.get(n);
 	}
 
-	@Nonnull
 	@Override
-	public ParseContext getErrorParseContext(int startLine, int endLine, @Nonnull Span span) throws IOException {
+	public ParseContext getErrorParseContext(int startLine, int endLine, Span span) throws IOException {
 		while (true) {
 			var c = readChar();
 			if (c == EOF || isNewline(c)) {
@@ -74,7 +72,6 @@ abstract class AbstractKdlLexer implements Lexer {
 		return new ParseContext(filename, sourceLines.getLines(startLine, endLine), span);
 	}
 
-	@Nonnull
 	@Override
 	public ParseContext getErrorParseContextForNextPosition() throws IOException {
 		if (readTokens.isEmpty()) {
@@ -83,13 +80,11 @@ abstract class AbstractKdlLexer implements Lexer {
 		return getErrorParseContext(readTokens.get(0).span());
 	}
 
-	@Nonnull
 	@Override
-	public ParseContext getParseContext(@Nonnull Span span) {
+	public ParseContext getParseContext(Span span) {
 		return new ParseContext(filename, sourceLines.getLines(span.start().line(), span.end().line()), span);
 	}
 
-	@Nonnull
 	@Override
 	public Position getNextPosition() {
 		if (readTokens.isEmpty()) {
@@ -162,21 +157,17 @@ abstract class AbstractKdlLexer implements Lexer {
 	 * @return a new token created with {@code createToken}
 	 * @throws IOException when there is an error reading the stream
 	 */
-	@Nonnull
 	protected <T extends Token> T consumeAndCreate(Function<Span, T> createToken) throws IOException {
 		consumeChar();
 		return createToken.apply(Span.of(sourceLines.getCurrentPosition()));
 	}
 
-	@Nonnull
 	private final KdlReader reader;
-	@Nonnull
 	private final RingBuffer<Token> readTokens;
 	@Nullable
 	private final String filename;
 	/**
 	 * The source lines for the parsed document.
 	 */
-	@Nonnull
 	protected final SourceLines sourceLines = new SourceLines();
 }

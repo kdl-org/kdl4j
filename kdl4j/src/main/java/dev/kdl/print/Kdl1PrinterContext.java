@@ -5,7 +5,7 @@ import dev.kdl.KdlNull;
 import dev.kdl.KdlNumber;
 import dev.kdl.KdlString;
 import dev.kdl.parse.lexer.helper.Kdl1CharHelper;
-import jakarta.annotation.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Writer;
 
