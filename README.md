@@ -26,14 +26,14 @@ Maven:
 <dependency>
 	<groupId>dev.kdl</groupId>
 	<artifactId>kdl4j</artifactId>
-	<version>1.0.1</version>
+	<version>1.1.0</version>
 </dependency>
 ```
 
 Gradle:
 
 ```groovy
-implementation 'dev.kdl:kdl4j:1.0.1'
+implementation 'dev.kdl:kdl4j:1.1.0'
 ```
 
 Alternatively, you can use the packages [hosted by JitPack](https://jitpack.io/#kdl-org/kdl4j). In
